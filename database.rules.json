@@ -1,0 +1,72 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "players": {
+      "$playerId": {
+        ".read": true,
+        ".write": true,
+        ".validate": "newData.hasChildren(['id','name','rating','matchesPlayed','wins','losses','pointsFor','pointsAgainst','createdAt'])",
+        "id":             { ".validate": "newData.isString() && newData.val().length <= 64" },
+        "name":           { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
+        "shortname":      { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20 && newData.val().matches(/^[a-z0-9_-]+$/)" },
+        "rating":         { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999" },
+        "matchesPlayed":  { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "wins":           { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "losses":         { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "pointsFor":      { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "pointsAgainst":  { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "createdAt":      { ".validate": "newData.isNumber()" },
+        "ratingHistory": {
+          "$entry": { ".validate": "newData.isNumber()" }
+        },
+        "$other": { ".validate": false }
+      }
+    },
+
+    "tournaments": {
+      "$tournamentId": {
+        ".read": true,
+        ".write": true,
+        ".validate": "newData.hasChildren(['id','name','format','status','currentRound','createdAt'])",
+        "id":           { ".validate": "newData.isString() && newData.val().length <= 64" },
+        "name":         { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 60" },
+        "format":       { ".validate": "newData.isString() && newData.val().matches(/^(americano|mexicano)$/)" },
+        "status":       { ".validate": "newData.isString() && newData.val().matches(/^(setup|active|finished)$/)" },
+        "currentRound": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "createdAt":    { ".validate": "newData.isNumber()" },
+        "playerIds": {
+          "$idx": { ".validate": "newData.isString() && newData.val().length <= 64" }
+        },
+        "pointsTable": {
+          "$playerId": { ".validate": "newData.isNumber() && newData.val() >= 0" }
+        },
+        "rounds": {
+          "$roundIndex": {
+            ".validate": "newData.hasChildren(['index','completed'])",
+            "index":     { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "completed": { ".validate": "newData.isBoolean()" },
+            "matches": {
+              "$matchId": {
+                ".validate": "newData.hasChildren(['id','team1p1','team1p2','team2p1','team2p2'])",
+                "id":     { ".validate": "newData.isString() && newData.val().length <= 64" },
+                "team1p1":{ ".validate": "newData.isString() && newData.val().length <= 64" },
+                "team1p2":{ ".validate": "newData.isString() && newData.val().length <= 64" },
+                "team2p1":{ ".validate": "newData.isString() && newData.val().length <= 64" },
+                "team2p2":{ ".validate": "newData.isString() && newData.val().length <= 64" },
+                "score1": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99" },
+                "score2": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99" },
+                "$other": { ".validate": false }
+              }
+            },
+            "$other": { ".validate": false }
+          }
+        },
+        "$other": { ".validate": false }
+      }
+    },
+
+    "$other": { ".read": false, ".write": false }
+  }
+}

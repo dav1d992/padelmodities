@@ -1,0 +1,191 @@
+<div class="page fade-up">
+  <a routerLink="/" class="back-link">← Ranglist</a>
+
+  @if (error()) {
+    <p class="banner-error pop-in">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <div class="loader-center"><span class="loader"></span></div>
+  } @else if (tournament()) {
+    <!-- Header -->
+    <header class="tour-header glass panel">
+      <div class="tour-meta">
+        <h1>{{ tournament()!.name }}</h1>
+        <div class="tour-badges">
+          <span class="badge" [class.badge-green]="tournament()!.format === 'americano'" [class.badge-gold]="tournament()!.format === 'mexicano'">
+            {{ tournament()!.format }}
+          </span>
+          <span class="badge" [class.badge-green]="tournament()!.status === 'active'" [class.badge-muted]="tournament()!.status === 'finished'">
+            {{ tournament()!.status === 'active' ? 'Aktiv' : 'Afsluttet' }}
+          </span>
+        </div>
+      </div>
+
+      @if (tournament()!.status === 'active') {
+        <div class="round-indicator">
+          Runde <strong>{{ tournament()!.currentRound + 1 }}</strong>
+          @if (isAmericano()) {
+            <span class="muted">/ {{ maxRounds() }}</span>
+          }
+        </div>
+      }
+    </header>
+
+    @if (tournament()!.status === 'active') {
+      <!-- Current round matches -->
+      <section class="section">
+        <h2 class="section-title">
+          🎾 Runde {{ tournament()!.currentRound + 1 }}
+          @if (isAmericano()) { <span class="muted small">· Americano</span> }
+          @else { <span class="muted small">· Mexicano</span> }
+        </h2>
+
+        <div class="matches">
+          @for (match of currentMatches(); track match.id) {
+            <div class="match-card glass">
+              <div class="match-teams">
+                <!-- Team 1 -->
+                <div class="team">
+                  <div class="team-players">
+                    <div class="team-player">
+                      @if (playerImage(match.team1p1)) {
+                        <img class="mini-avatar" [src]="'/assets/' + playerImage(match.team1p1) + '-padel.png'" [alt]="playerName(match.team1p1)" loading="lazy"
+                             (error)="$any($event.target).style.display='none'">
+                      } @else {
+                        <div class="mini-avatar mini-avatar-ph">{{ playerName(match.team1p1)[0] }}</div>
+                      }
+                      <span>{{ playerName(match.team1p1) }}</span>
+                    </div>
+                    <div class="team-player">
+                      @if (playerImage(match.team1p2)) {
+                        <img class="mini-avatar" [src]="'/assets/' + playerImage(match.team1p2) + '-padel.png'" [alt]="playerName(match.team1p2)" loading="lazy"
+                             (error)="$any($event.target).style.display='none'">
+                      } @else {
+                        <div class="mini-avatar mini-avatar-ph">{{ playerName(match.team1p2)[0] }}</div>
+                      }
+                      <span>{{ playerName(match.team1p2) }}</span>
+                    </div>
+                  </div>
+                  <div class="score-input-wrap">
+                    <input
+                      type="number"
+                      class="score-input"
+                      min="0"
+                      max="99"
+                      placeholder="—"
+                      [value]="getScore(match.id).score1 ?? ''"
+                      (input)="setScore(match.id, 'score1', $any($event.target).value)"
+                      (change)="saveScore(match.id)"
+                    >
+                  </div>
+                </div>
+
+                <div class="vs">VS</div>
+
+                <!-- Team 2 -->
+                <div class="team team-right">
+                  <div class="score-input-wrap">
+                    <input
+                      type="number"
+                      class="score-input"
+                      min="0"
+                      max="99"
+                      placeholder="—"
+                      [value]="getScore(match.id).score2 ?? ''"
+                      (input)="setScore(match.id, 'score2', $any($event.target).value)"
+                      (change)="saveScore(match.id)"
+                    >
+                  </div>
+                  <div class="team-players team-players-right">
+                    <div class="team-player team-player-right">
+                      <span>{{ playerName(match.team2p1) }}</span>
+                      @if (playerImage(match.team2p1)) {
+                        <img class="mini-avatar" [src]="'/assets/' + playerImage(match.team2p1) + '-padel.png'" [alt]="playerName(match.team2p1)" loading="lazy"
+                             (error)="$any($event.target).style.display='none'">
+                      } @else {
+                        <div class="mini-avatar mini-avatar-ph">{{ playerName(match.team2p1)[0] }}</div>
+                      }
+                    </div>
+                    <div class="team-player team-player-right">
+                      <span>{{ playerName(match.team2p2) }}</span>
+                      @if (playerImage(match.team2p2)) {
+                        <img class="mini-avatar" [src]="'/assets/' + playerImage(match.team2p2) + '-padel.png'" [alt]="playerName(match.team2p2)" loading="lazy"
+                             (error)="$any($event.target).style.display='none'">
+                      } @else {
+                        <div class="mini-avatar mini-avatar-ph">{{ playerName(match.team2p2)[0] }}</div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Complete round button -->
+        <button
+          class="btn btn-primary big"
+          [disabled]="!allScoresEntered() || completing()"
+          (click)="completeRound()"
+        >
+          @if (completing()) {
+            Gemmer…
+          } @else if (isLastRound()) {
+            🏁 Afslut turnering
+          } @else {
+            ✓ Fuldfør runde &amp; næste runde
+          }
+        </button>
+
+        @if (!allScoresEntered()) {
+          <p class="hint muted small">Indtast alle resultater for at fortsætte.</p>
+        }
+
+        @if (!isLastRound() && tournament()!.status === 'active') {
+          <button
+            class="btn btn-ghost"
+            [disabled]="finishing()"
+            (click)="finishEarly()"
+          >
+            Afslut tidligt
+          </button>
+        }
+      </section>
+    } @else {
+      <!-- Finished banner -->
+      <div class="glass panel finished-banner">
+        <span class="finished-icon">🏆</span>
+        <h2>Turnering afsluttet!</h2>
+        <p class="muted">Se den endelige stilling herunder.</p>
+      </div>
+    }
+
+    <!-- Points leaderboard -->
+    @if (pointsLeaderboard().length > 0) {
+      <section class="section">
+        <h2 class="section-title">Turnerings-stilling</h2>
+        <div class="leaderboard glass">
+          @for (entry of pointsLeaderboard(); track entry.player!.id; let rank = $index) {
+            <div class="lb-row">
+              <span class="lb-rank">
+                @if (rank === 0) { 🥇 }
+                @else if (rank === 1) { 🥈 }
+                @else if (rank === 2) { 🥉 }
+                @else { #{{ rank + 1 }} }
+              </span>
+              @if (entry.player!.shortname) {
+                <img class="lb-avatar" [src]="'/assets/' + entry.player!.shortname + '-padel.png'" [alt]="entry.player!.name" loading="lazy"
+                     (error)="$any($event.target).style.display='none'">
+              } @else {
+                <div class="lb-avatar lb-avatar-ph">{{ entry.player!.name[0] }}</div>
+              }
+              <span class="lb-name">{{ entry.player!.name }}</span>
+              <span class="lb-pts">{{ entry.pts }} <span class="muted small">pts</span></span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>

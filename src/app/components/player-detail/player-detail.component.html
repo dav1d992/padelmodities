@@ -1,0 +1,112 @@
+﻿<div class="page">
+  <a routerLink="/" class="back-link fade-up">← Ranglist</a>
+
+
+  @if (error()) {
+    <p class="banner-error pop-in">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <div class="loader-center"><span class="loader"></span></div>
+  } @else if (player()) {
+    <div class="player-layout">
+
+      <div class="image-panel">
+        <div class="image-wrapper">
+          @if (imagePath()) {
+            <img
+              class="player-img"
+              [class.entering]="imageState() === 'entering'"
+              [class.shaking]="imageState() === 'shaking'"
+              [class.settled]="imageState() === 'settled'"
+              [src]="imagePath()!"
+              [alt]="player()!.name"
+            >
+          } @else {
+            <div class="player-img-placeholder settled">
+              {{ player()!.name[0].toUpperCase() }}
+            </div>
+          }
+
+          <div class="image-overlay">
+            <h1 class="overlay-name">{{ player()!.name }}</h1>
+            @if (player()!.shortname) {
+              <span class="overlay-shortname">{{ player()!.shortname }}</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="info-panel">
+        <div class="desktop-heading">
+          <h1>{{ player()!.name }}</h1>
+          @if (player()!.shortname) {
+            <span class="badge badge-green">{{ player()!.shortname }}</span>
+          }
+        </div>
+
+        <div class="rating-row">
+          <span class="rating-value">{{ player()!.rating }}</span>
+          <span class="muted">pts</span>
+          @if (winRate() !== null) {
+            <span class="badge badge-green">{{ winRate() }}% vundne</span>
+          }
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card glass">
+            <span class="stat-value">{{ player()!.matchesPlayed }}</span>
+            <span class="stat-label muted">Kampe</span>
+          </div>
+          <div class="stat-card glass">
+            <span class="stat-value green">{{ player()!.wins }}</span>
+            <span class="stat-label muted">Vundne</span>
+          </div>
+          <div class="stat-card glass">
+            <span class="stat-value red">{{ player()!.losses }}</span>
+            <span class="stat-label muted">Tabte</span>
+          </div>
+          <div class="stat-card glass">
+            <span class="stat-value accent">{{ player()!.pointsFor }}</span>
+            <span class="stat-label muted">Point for</span>
+          </div>
+          <div class="stat-card glass">
+            <span class="stat-value muted">{{ player()!.pointsAgainst }}</span>
+            <span class="stat-label muted">Point imod</span>
+          </div>
+          <div class="stat-card glass">
+            <span class="stat-value"
+                  [class.green]="player()!.pointsFor > player()!.pointsAgainst"
+                  [class.red]="player()!.pointsFor < player()!.pointsAgainst">
+              {{ player()!.pointsFor - player()!.pointsAgainst >= 0 ? '+' : '' }}{{ player()!.pointsFor - player()!.pointsAgainst }}
+            </span>
+            <span class="stat-label muted">Diff</span>
+          </div>
+        </div>
+
+        @if (ratingHistory().length >= 2) {
+          <div class="glass panel sparkline-panel">
+            <h3>Rating historik</h3>
+            <div class="sparkline-wrap">
+              <svg class="sparkline" viewBox="0 0 200 48" preserveAspectRatio="none">
+                <path [attr.d]="sparkPath()" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path [attr.d]="sparkPath() + ' V 48 H 0 Z'" fill="url(#sparkGrad)" opacity="0.3"/>
+                <defs>
+                  <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.6"/>
+                    <stop offset="100%" stop-color="var(--primary)" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div class="spark-labels muted small">
+              <span>{{ ratingHistory()[0] }} pts</span>
+              <span>Nu: {{ ratingHistory()[ratingHistory().length - 1] }} pts</span>
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+</div>

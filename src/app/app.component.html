@@ -1,0 +1,18 @@
+<main class="app-shell">
+  <router-outlet></router-outlet>
+</main>
+
+<div class="audio-fab">
+  <button
+    class="audio-btn"
+    [class.off]="audio.musicMuted()"
+    (click)="audio.toggleMusic()"
+    title="Musik"
+  >🎵</button>
+  <button
+    class="audio-btn"
+    [class.off]="audio.sfxMuted()"
+    (click)="audio.toggleSfx()"
+    title="Lydeffekter"
+  >🔊</button>
+</div>

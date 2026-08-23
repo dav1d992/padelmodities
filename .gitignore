@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Firebase cache
+.firebase/
+
+# Environment (contains real API keys — never commit)
+src/environments/environment.ts
+
+# Angular cache
+.angular/
+
+# Editor
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,90 @@
+<div class="page fade-up">
+  <a routerLink="/" class="back-link">← Ranglist</a>
+
+  <div class="glass panel form-card">
+    <h1>Ny turnering</h1>
+    <p class="muted">Vælg format og deltagere.</p>
+
+    @if (error()) {
+      <p class="banner-error pop-in">{{ error() }}</p>
+    }
+
+    <label>
+      Turneringens navn *
+      <input
+        type="text"
+        placeholder="F.eks. Lørdag Americano"
+        maxlength="60"
+        [ngModel]="tournamentName()"
+        (ngModelChange)="tournamentName.set($event)"
+      >
+    </label>
+
+    <!-- Format -->
+    <div class="format-section">
+      <span class="field-label muted">Format</span>
+      <div class="format-cards">
+        <button
+          class="format-card glass"
+          [class.selected]="format() === 'americano'"
+          (click)="format.set('americano')"
+        >
+          <span class="format-emoji">🔄</span>
+          <strong>Americano</strong>
+          <span class="muted small">Alle runder genereres på forhånd. Partnere roterer.</span>
+        </button>
+        <button
+          class="format-card glass"
+          [class.selected]="format() === 'mexicano'"
+          (click)="format.set('mexicano')"
+        >
+          <span class="format-emoji">🏆</span>
+          <strong>Mexicano</strong>
+          <span class="muted small">Parring efter aktuel stilling hver runde.</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Player selection -->
+    <div class="players-section">
+      <span class="field-label muted">Vælg spillere</span>
+      <p class="validation-hint small" [class.ok]="selectedCount() >= 4 && selectedCount() % 2 === 0">
+        {{ validationHint() }}
+      </p>
+
+      @if (players().length === 0) {
+        <p class="muted small">Ingen spillere fundet. <a routerLink="/create-player">Opret spillere</a> først.</p>
+      } @else {
+        <div class="player-grid">
+          @for (p of players(); track p.id) {
+            <button
+              class="player-chip"
+              [class.selected]="isSelected(p.id)"
+              (click)="togglePlayer(p.id)"
+            >
+              @if (p.shortname) {
+                <img class="chip-avatar" [src]="'/assets/' + p.shortname + '-padel.png'" [alt]="p.name" loading="lazy"
+                     (error)="$any($event.target).style.display='none'">
+              } @else {
+                <div class="chip-avatar chip-avatar-placeholder">{{ p.name[0].toUpperCase() }}</div>
+              }
+              <span class="chip-name">{{ p.name }}</span>
+              <span class="chip-rating muted">{{ p.rating }}</span>
+              @if (isSelected(p.id)) {
+                <span class="chip-check">✓</span>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <button
+      class="btn btn-primary big"
+      [disabled]="!canCreate() || submitting()"
+      (click)="create()"
+    >
+      {{ submitting() ? 'Opretter…' : '🏆 Start turnering' }}
+    </button>
+  </div>
+</div>

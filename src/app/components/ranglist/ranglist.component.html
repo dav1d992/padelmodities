@@ -1,0 +1,108 @@
+<div class="page fade-up">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-title">
+      <div>
+        <h1>Rangliste</h1>
+        <p class="muted small">Danske Padelmodities</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/tournament/new" class="btn btn-ghost">🏆 Ny turnering</a>
+      <a routerLink="/create-player" class="btn btn-primary">＋ Spiller</a>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="banner-error pop-in">{{ error() }}</p>
+  }
+
+  <!-- Active tournaments -->
+  @if (activeTournaments().length > 0) {
+    <section class="section">
+      <h2 class="section-title">🟢 Aktive turneringer</h2>
+      <div class="tournament-chips">
+        @for (t of activeTournaments(); track t.id) {
+          <button class="chip glass" (click)="goToTournament(t.id)">
+            <span class="chip-format badge" [class.badge-green]="t.format === 'americano'" [class.badge-gold]="t.format === 'mexicano'">
+              {{ t.format }}
+            </span>
+            <span class="chip-name">{{ t.name }}</span>
+            <span class="chip-arrow">→</span>
+          </button>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Ranglist table -->
+  <section class="section">
+    <h2 class="section-title">Spillere</h2>
+
+    @if (loading()) {
+      <div class="loader-row">
+        <span class="loader"></span>
+        <span class="muted">Henter ranglist…</span>
+      </div>
+    } @else if (players().length === 0) {
+      <div class="empty glass panel">
+        <span class="empty-icon">🎾</span>
+        <p>Ingen spillere endnu.</p>
+        <a routerLink="/create-player" class="btn btn-primary">Tilføj første spiller</a>
+      </div>
+    } @else {
+      <div class="ranglist glass">
+        @for (player of players(); track player.id; let rank = $index) {
+          <a class="ranglist-row" [routerLink]="['/player', player.id]" (mouseenter)="audioSvc.playHover()">
+            <div class="rank-cell">
+              @if (rankMedal(rank + 1)) {
+                <span class="medal">{{ rankMedal(rank + 1) }}</span>
+              } @else {
+                <span class="rank-num">#{{ rank + 1 }}</span>
+              }
+            </div>
+
+            <div class="avatar-cell">
+              @if (player.shortname) {
+                <img class="avatar" [src]="'/assets/' + player.shortname + '-padel.png'" [alt]="player.name" loading="lazy"
+                     (error)="$any($event.target).style.display='none'">
+                <div class="avatar avatar-placeholder" [style.display]="player.shortname ? 'none' : 'flex'">{{ player.name[0].toUpperCase() }}</div>
+              } @else {
+                <div class="avatar avatar-placeholder">{{ player.name[0].toUpperCase() }}</div>
+              }
+            </div>
+
+            <div class="info-cell">
+              <span class="player-name">{{ player.name }}</span>
+              <span class="player-record muted small">
+                @if (player.shortname) { <span class="shortname-tag">{{ player.shortname }}</span> · }
+                {{ player.wins }}V · {{ player.losses }}T · {{ player.matchesPlayed }} kampe
+              </span>
+            </div>
+
+            <div class="rating-cell">
+              <span class="rating">{{ player.rating }}</span>
+              <span class="muted small">pts</span>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Recent tournaments -->
+  @if (recentTournaments().length > 0) {
+    <section class="section">
+      <h2 class="section-title">📋 Seneste turneringer</h2>
+      <div class="tournament-chips">
+        @for (t of recentTournaments(); track t.id) {
+          <button class="chip chip-finished glass" (click)="goToTournament(t.id)">
+            <span class="chip-format badge badge-muted">{{ t.format }}</span>
+            <span class="chip-name">{{ t.name }}</span>
+            <span class="badge badge-muted">Afsluttet</span>
+          </button>
+        }
+      </div>
+    </section>
+  }
+</div>
