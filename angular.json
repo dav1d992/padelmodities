@@ -17,7 +17,10 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/danske-padelmodities",
+            "outputPath": {
+              "base": "dist/danske-padelmodities",
+              "browser": ""
+            },
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],

@@ -20,6 +20,10 @@ export class AudioService {
     if (!this.musicMuted()) this.bg.play().catch(() => {});
   }
 
+  isPlaying(): boolean {
+    return !!this.bg && !this.bg.paused;
+  }
+
   toggleMusic(): void {
     const next = !this.musicMuted();
     this.musicMuted.set(next);
