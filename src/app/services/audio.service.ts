@@ -38,10 +38,17 @@ export class AudioService {
     localStorage.setItem(KEY_SFX, String(next));
   }
 
-  playOneShot(src: string, volume = 0.8): void {
+  playOneShot(src: string, volume = 0.8, stopAfterMs?: number): void {
     if (this.sfxMuted()) return;
     const a = new Audio(src);
     a.volume = volume;
+    if (stopAfterMs && stopAfterMs > 0) {
+      const stopTimer = setTimeout(() => {
+        a.pause();
+        a.currentTime = 0;
+      }, stopAfterMs);
+      a.addEventListener('ended', () => clearTimeout(stopTimer), { once: true });
+    }
     a.play().catch(() => {});
   }
 

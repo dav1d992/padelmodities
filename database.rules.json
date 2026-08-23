@@ -7,11 +7,20 @@
       "$playerId": {
         ".read": true,
         ".write": true,
-        ".validate": "newData.hasChildren(['id','name','rating','matchesPlayed','wins','losses','pointsFor','pointsAgainst','createdAt'])",
+        ".validate": "newData.hasChildren(['id','name','rating','skillset','matchesPlayed','wins','losses','pointsFor','pointsAgainst','createdAt'])",
         "id":             { ".validate": "newData.isString() && newData.val().length <= 64" },
         "name":           { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
         "shortname":      { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20 && newData.val().matches(/^[a-z0-9_-]+$/)" },
         "rating":         { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999" },
+        "skillset": {
+          ".validate": "newData.hasChildren(['power','agility','stamina','reflexes','strategy'])",
+          "power":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
+          "agility":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
+          "stamina":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
+          "reflexes":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
+          "strategy":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
+          "$other":    { ".validate": false }
+        },
         "matchesPlayed":  { ".validate": "newData.isNumber() && newData.val() >= 0" },
         "wins":           { ".validate": "newData.isNumber() && newData.val() >= 0" },
         "losses":         { ".validate": "newData.isNumber() && newData.val() >= 0" },

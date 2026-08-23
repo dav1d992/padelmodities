@@ -2,7 +2,13 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PadelService } from '../../services/padel.service';
-import { CREATE_PLAYER_CODE } from '../../models/padel.model';
+import {
+  CREATE_PLAYER_CODE,
+  DEFAULT_SKILLSET,
+  SKILL_LABELS,
+  type SkillName,
+  type Skillset,
+} from '../../models/padel.model';
 import { CommonModule } from '@angular/common';
 
 type Step = 'code' | 'form';
@@ -25,8 +31,11 @@ export class CreatePlayerComponent {
   readonly name = signal('');
   readonly shortname = signal('');
   readonly startingRating = signal(1000);
+  readonly skills = signal<Skillset>({ ...DEFAULT_SKILLSET });
   readonly submitting = signal(false);
   readonly submitError = signal('');
+  readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
+  readonly skillLabels = SKILL_LABELS;
 
   verifyCode(): void {
     if (this.codeInput().trim().toUpperCase() === CREATE_PLAYER_CODE) {
@@ -35,6 +44,14 @@ export class CreatePlayerComponent {
     } else {
       this.codeError.set('Forkert kode. Prøv igen.');
     }
+  }
+
+  updateSkill(skill: SkillName, rawValue: number): void {
+    const nextValue = Math.max(0, Math.min(10, Math.round(rawValue)));
+    this.skills.set({
+      ...this.skills(),
+      [skill]: nextValue,
+    });
   }
 
   async createPlayer(): Promise<void> {
@@ -57,6 +74,7 @@ export class CreatePlayerComponent {
         this.name(),
         this.shortname() || undefined,
         this.startingRating(),
+        this.skills(),
       );
       this.router.navigate(['/player', id]);
     } catch (err) {

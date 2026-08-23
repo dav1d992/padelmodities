@@ -11,8 +11,10 @@ import {
 import { Observable } from 'rxjs';
 import { FIREBASE_DB } from '../core/firebase';
 import {
+  DEFAULT_SKILLSET,
   ELO_K,
   type Player,
+  type Skillset,
   type Tournament,
   type TournamentFormat,
   type TournamentMatch,
@@ -28,6 +30,20 @@ function withTimeout<T>(promise: Promise<T>, ms = 10_000): Promise<T> {
     );
   });
   return Promise.race([promise, timeout]);
+}
+
+function clampSkillValue(value: number): number {
+  return Math.max(0, Math.min(10, Math.round(value)));
+}
+
+function normaliseSkillset(skillset?: Partial<Skillset>): Skillset {
+  return {
+    power: clampSkillValue(skillset?.power ?? DEFAULT_SKILLSET.power),
+    agility: clampSkillValue(skillset?.agility ?? DEFAULT_SKILLSET.agility),
+    stamina: clampSkillValue(skillset?.stamina ?? DEFAULT_SKILLSET.stamina),
+    reflexes: clampSkillValue(skillset?.reflexes ?? DEFAULT_SKILLSET.reflexes),
+    strategy: clampSkillValue(skillset?.strategy ?? DEFAULT_SKILLSET.strategy),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -184,6 +200,7 @@ export class PadelService {
     name: string,
     shortname?: string,
     startingRating = 1000,
+    skillset?: Partial<Skillset>,
   ): Promise<string> {
     const playerRef = push(ref(this.db, 'players'));
     const id = playerRef.key!;
@@ -192,6 +209,7 @@ export class PadelService {
       name: name.trim(),
       ...(shortname ? { shortname: shortname.trim().toLowerCase() } : {}),
       rating: startingRating,
+      skillset: normaliseSkillset(skillset),
       matchesPlayed: 0,
       wins: 0,
       losses: 0,

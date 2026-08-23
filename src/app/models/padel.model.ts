@@ -1,4 +1,35 @@
 /** A registered padel player. */
+export type SkillName =
+  | 'power'
+  | 'agility'
+  | 'stamina'
+  | 'reflexes'
+  | 'strategy';
+
+export interface Skillset {
+  power: number;
+  agility: number;
+  stamina: number;
+  reflexes: number;
+  strategy: number;
+}
+
+export const SKILL_LABELS: Record<SkillName, string> = {
+  power: 'Power',
+  agility: 'Agility',
+  stamina: 'Stamina',
+  reflexes: 'Reflexes',
+  strategy: 'Strategy',
+};
+
+export const DEFAULT_SKILLSET: Skillset = {
+  power: 5,
+  agility: 5,
+  stamina: 5,
+  reflexes: 5,
+  strategy: 5,
+};
+
 export interface Player {
   id: string;
   name: string;
@@ -10,6 +41,7 @@ export interface Player {
   shortname?: string;
   /** ELO-style rating, default 1000. */
   rating: number;
+  skillset: Skillset;
   matchesPlayed: number;
   wins: number;
   losses: number;

@@ -53,6 +53,27 @@
           }
         </div>
 
+        <div class="glass panel skills-panel">
+          <div class="skills-panel-head">
+            <h3>Skillset</h3>
+            <span class="muted small">0–10</span>
+          </div>
+
+          <div class="skill-bars">
+            @for (skill of skillBars(); track skill.key; let i = $index) {
+              <div class="skill-bar-row">
+                <div class="skill-bar-meta">
+                  <span>{{ skill.label }}</span>
+                  <strong>{{ skill.value }}</strong>
+                </div>
+                <div class="skill-track">
+                  <div class="stat-fill" [class.reveal]="visibleSkillIndex() >= i" [style.--skill-scale]="skill.scale"></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
         <div class="stats-grid">
           <div class="stat-card glass">
             <span class="stat-value">{{ player()!.matchesPlayed }}</span>

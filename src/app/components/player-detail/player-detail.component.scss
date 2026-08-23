@@ -161,6 +161,62 @@
   line-height: 1;
 }
 
+.skills-panel {
+  gap: 0.85rem;
+}
+
+.skills-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.skill-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skill-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.skill-bar-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+
+  strong {
+    color: var(--primary);
+    font-size: 0.95rem;
+  }
+}
+
+.skill-track {
+  height: 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary-dim), var(--primary), var(--accent));
+  transform-origin: left center;
+  transform: scaleX(0);
+
+  &.reveal {
+    animation: skillGrow 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+}
+
 /* Stats */
 .stats-grid {
   display: grid;
@@ -234,6 +290,11 @@
 @keyframes slideInTop {
   from { transform: translateY(-110%); }
   to   { transform: translateY(0); }
+}
+
+@keyframes skillGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(var(--skill-scale)); }
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }

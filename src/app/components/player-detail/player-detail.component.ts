@@ -11,7 +11,12 @@ import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { AudioService } from '../../services/audio.service';
-import type { Player } from '../../models/padel.model';
+import {
+  DEFAULT_SKILLSET,
+  SKILL_LABELS,
+  type Player,
+  type SkillName,
+} from '../../models/padel.model';
 import { CommonModule } from '@angular/common';
 
 export type ImageState = 'idle' | 'entering' | 'shaking' | 'settled';
@@ -50,6 +55,9 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly loading = signal(true);
   readonly error = signal('');
   readonly imageState = signal<ImageState>('idle');
+  readonly visibleSkillIndex = signal(-1);
+  readonly skillLabels = SKILL_LABELS;
+  readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
 
   private sub?: Subscription;
   private animationStarted = false;
@@ -84,7 +92,23 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     const t0 = setTimeout(() => this.imageState.set('entering'), 60);
     const t1 = setTimeout(() => this.imageState.set('shaking'), 710);
     const t2 = setTimeout(() => this.imageState.set('settled'), 1160);
+    this.startSkillBarSequence();
     this.timers.push(t0, t1, t2);
+  }
+
+  private startSkillBarSequence(): void {
+    this.visibleSkillIndex.set(-1);
+    const startAfterMs = 1300;
+    const barAnimationMs = 500;
+    const staggerMs = barAnimationMs;
+
+    this.skillNames.forEach((_, index) => {
+      const timer = setTimeout(() => {
+        this.visibleSkillIndex.set(index);
+        this.audioSvc.playOneShot('/assets/sounds-effects/scifi.mp3', 0.3, barAnimationMs);
+      }, startAfterMs + index * staggerMs);
+      this.timers.push(timer);
+    });
   }
 
   readonly imagePath = computed(() => {
@@ -96,6 +120,16 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     const p = this.player();
     if (!p || p.matchesPlayed === 0) return null;
     return Math.round((p.wins / p.matchesPlayed) * 100);
+  });
+
+  readonly skillBars = computed(() => {
+    const skillset = this.player()?.skillset ?? DEFAULT_SKILLSET;
+    return this.skillNames.map((skill) => ({
+      key: skill,
+      label: this.skillLabels[skill],
+      value: skillset[skill],
+      scale: skillset[skill] / 10,
+    }));
   });
 
   readonly ratingHistory = computed(() => {

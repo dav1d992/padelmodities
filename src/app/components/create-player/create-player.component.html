@@ -76,6 +76,30 @@
           <span class="field-hint muted small">Standard: 1000</span>
         </label>
 
+        <div class="skills-editor">
+          <div class="skills-header">
+            <h3>Skillset</h3>
+            <span class="muted small">0 til 10</span>
+          </div>
+
+          @for (skill of skillNames; track skill) {
+            <label class="skill-field">
+              <div class="skill-row">
+                <span>{{ skillLabels[skill] }}</span>
+                <strong>{{ skills()[skill] }}</strong>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="1"
+                [ngModel]="skills()[skill]"
+                (ngModelChange)="updateSkill(skill, +$event)"
+              >
+            </label>
+          }
+        </div>
+
         <button
           class="btn btn-primary big"
           [disabled]="submitting()"

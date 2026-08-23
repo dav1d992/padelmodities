@@ -19,6 +19,45 @@
   gap: 1.1rem;
 }
 
+.skills-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.skills-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.skill-field {
+  gap: 0.45rem;
+}
+
+.skill-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--text);
+
+  strong {
+    color: var(--primary);
+    font-size: 0.95rem;
+  }
+}
+
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
 .field-hint {
   margin-top: 0.2rem;
   a {
