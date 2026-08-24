@@ -13,13 +13,12 @@ import {
   PadelService,
   type CreateTournamentInput,
 } from '../../services/padel.service';
+import { I18nService } from '../../services/i18n.service';
 import {
   DEFAULT_BONUS,
   DEFAULT_SCORING,
-  FORMAT_LABELS,
   isDynamicFormat,
   isTeamFormat,
-  SCORING_LABELS,
   type CourtBonusConfig,
   type Player,
   type ScoringConfig,
@@ -33,7 +32,6 @@ import { CommonModule } from '@angular/common';
 interface FormatOption {
   value: TournamentFormat;
   emoji: string;
-  desc: string;
 }
 
 @Component({
@@ -47,17 +45,15 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
   private service = inject(PadelService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-
-  readonly FORMAT_LABELS = FORMAT_LABELS;
-  readonly SCORING_LABELS = SCORING_LABELS;
+  readonly i18n = inject(I18nService);
 
   readonly formatOptions: FormatOption[] = [
-    { value: 'americano', emoji: '🔄', desc: 'Individuelt. Roterende makkere, maks variation.' },
-    { value: 'team-americano', emoji: '👥', desc: 'Faste hold. Alle møder alle (round robin).' },
-    { value: 'mexicano', emoji: '🌮', desc: 'Individuelt. Runder efter aktuel stilling.' },
-    { value: 'team-mexicano', emoji: '🤝', desc: 'Faste hold. Møder efter stilling.' },
-    { value: 'super-mexicano', emoji: '⭐', desc: 'Mexicano med bane-bonuspoint.' },
-    { value: 'king-of-the-hill', emoji: '👑', desc: 'Bane-stige. Vindere op, tabere ned.' },
+    { value: 'americano', emoji: '🔄' },
+    { value: 'team-americano', emoji: '👥' },
+    { value: 'mexicano', emoji: '🌮' },
+    { value: 'team-mexicano', emoji: '🤝' },
+    { value: 'super-mexicano', emoji: '⭐' },
+    { value: 'king-of-the-hill', emoji: '👑' },
   ];
 
   readonly scoringMethods: ScoringMethod[] = [
@@ -73,7 +69,10 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
   readonly tournamentName = signal('');
   readonly format = signal<TournamentFormat>('americano');
   readonly seeded = signal(false);
-  readonly courtNames = signal<string[]>(['Bane 1', 'Bane 2']);
+  readonly courtNames = signal<string[]>([
+    this.i18n.t('court.default', { n: 1 }),
+    this.i18n.t('court.default', { n: 2 }),
+  ]);
   readonly totalRounds = signal(7);
 
   // Scoring
@@ -177,29 +176,27 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
   readonly validation = computed<{ ok: boolean; messages: string[] }>(() => {
     const messages: string[] = [];
     if (this.tournamentName().trim().length === 0) {
-      messages.push('Angiv et turneringsnavn.');
+      messages.push(this.i18n.t('val.name'));
     }
-    if (this.courtCount() < 1) messages.push('Tilføj mindst én bane.');
+    if (this.courtCount() < 1) messages.push(this.i18n.t('val.court'));
 
     if (this.isTeam()) {
-      if (this.teamCount() < 2) messages.push('Opret mindst 2 hold.');
+      if (this.teamCount() < 2) messages.push(this.i18n.t('val.teams'));
     } else if (this.isKoth()) {
       const needed = this.courtCount() * 4;
       if (this.courtCount() < 2)
-        messages.push('King of the Hill kræver mindst 2 baner.');
+        messages.push(this.i18n.t('val.kothCourts'));
       if (this.selectedCount() < needed)
-        messages.push(
-          `King of the Hill kræver præcis 4 spillere pr. bane (${needed} spillere).`,
-        );
+        messages.push(this.i18n.t('val.kothPlayers', { n: needed }));
     } else {
-      if (this.selectedCount() < 4) messages.push('Vælg mindst 4 spillere.');
+      if (this.selectedCount() < 4) messages.push(this.i18n.t('val.min4'));
     }
 
     if (!this.isTeam() && this.perRoundInfo().matches < 1) {
-      messages.push('Ikke nok deltagere til at fylde en bane.');
+      messages.push(this.i18n.t('val.fillCourt'));
     }
     if (!this.isRoundRobin() && this.totalRounds() < 1) {
-      messages.push('Angiv mindst én runde.');
+      messages.push(this.i18n.t('val.minRound'));
     }
     return { ok: messages.length === 0, messages };
   });
@@ -208,8 +205,8 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
   readonly fairnessWarning = computed(() => {
     const info = this.perRoundInfo();
     if (info.sitOut > 0 && !this.isKoth()) {
-      const who = this.isTeam() ? 'hold' : 'spillere';
-      return `${info.sitOut} ${who} sidder over hver runde — oversidning fordeles så retfærdigt som muligt.`;
+      const who = this.isTeam() ? this.i18n.t('who.teams') : this.i18n.t('who.players');
+      return this.i18n.t('val.fairness', { n: info.sitOut, who });
     }
     return '';
   });
@@ -221,7 +218,10 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
   selectFormat(f: TournamentFormat): void {
     this.format.set(f);
     if (f === 'king-of-the-hill' && this.courtCount() < 2) {
-      this.courtNames.set(['Bane 1 (King)', 'Bane 2']);
+      this.courtNames.set([
+        this.i18n.t('court.king'),
+        this.i18n.t('court.default', { n: 2 }),
+      ]);
     }
   }
 
@@ -242,7 +242,7 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
 
   addCourt(): void {
     const next = [...this.courtNames()];
-    next.push(`Bane ${next.length + 1}`);
+    next.push(this.i18n.t('court.default', { n: next.length + 1 }));
     this.courtNames.set(next);
   }
 
@@ -346,7 +346,7 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
 
   async saveDraft(): Promise<void> {
     if (this.tournamentName().trim().length === 0) {
-      this.error.set('Angiv et turneringsnavn for at gemme et udkast.');
+      this.error.set(this.i18n.t('err.draftName'));
       return;
     }
     this.submitting.set(true);
@@ -359,7 +359,7 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
       }
       this.router.navigate(['/']);
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Noget gik galt.');
+      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
     } finally {
       this.submitting.set(false);
     }
@@ -380,7 +380,7 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
       }
       this.router.navigate(['/tournament', id]);
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Noget gik galt.');
+      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
       this.submitting.set(false);
     }
   }

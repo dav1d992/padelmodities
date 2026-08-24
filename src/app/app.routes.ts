@@ -6,26 +6,26 @@ import { TournamentSetupComponent } from './components/tournament-setup/tourname
 import { TournamentViewComponent } from './components/tournament-view/tournament-view.component';
 
 export const routes: Routes = [
-  { path: '', component: RanglistComponent, title: 'Ranglist · Padel' },
+  { path: '', component: RanglistComponent, title: 'title.rank' },
   {
     path: 'player/:playerId',
     component: PlayerDetailComponent,
-    title: 'Spiller · Padel',
+    title: 'title.player',
   },
   {
     path: 'create-player',
     component: CreatePlayerComponent,
-    title: 'Ny spiller · Padel',
+    title: 'title.create',
   },
   {
     path: 'tournament/new',
     component: TournamentSetupComponent,
-    title: 'Nyt turnering · Padel',
+    title: 'title.setup',
   },
   {
     path: 'tournament/:tournamentId',
     component: TournamentViewComponent,
-    title: 'Turnering · Padel',
+    title: 'title.view',
   },
   { path: '**', redirectTo: '' },
 ];

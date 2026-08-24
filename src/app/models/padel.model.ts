@@ -1,4 +1,6 @@
 /** A registered padel player. */
+import { LOCAL_ADMIN_CODE } from '../../environments/admin-code';
+
 export type SkillName =
   | 'power'
   | 'agility'
@@ -256,9 +258,9 @@ export interface StandingRow {
   sitOuts: number;
 }
 
-/** Access code required to create a new player. Injected from the ADMIN_CODE secret in CI. */
+/** Admin access code. Injected from the ADMIN_CODE secret in CI; falls back to the local dev code. */
 const INJECTED_ADMIN_CODE = '__ADMIN_CODE__';
-export const CREATE_PLAYER_CODE = INJECTED_ADMIN_CODE.startsWith('__') ? 'dev' : INJECTED_ADMIN_CODE;
+export const ADMIN_CODE = INJECTED_ADMIN_CODE.startsWith('__') ? LOCAL_ADMIN_CODE : INJECTED_ADMIN_CODE;
 
 /** ELO K-factor used when updating global ratings after a match. */
 export const ELO_K = 32;

@@ -1,6 +1,12 @@
+:host {
+  display: block;
+  width: 100%;
+  align-self: stretch;
+}
+
 .page {
   width: 100%;
-  max-width: 480px;
+  max-width: 680px;
   margin: 0 auto;
   padding: clamp(1rem, 4vw, 2rem) clamp(0.75rem, 4vw, 1.5rem) 4rem;
   display: flex;

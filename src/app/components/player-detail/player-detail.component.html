@@ -1,5 +1,5 @@
 ﻿<div class="page">
-  <a routerLink="/" class="back-link fade-up">← Ranglist</a>
+  <a routerLink="/" class="back-link fade-up">{{ i18n.t('common.back') }}</a>
 
 
   @if (error()) {
@@ -48,22 +48,22 @@
         @if (admin.isAdmin()) {
           <div class="admin-actions">
             @if (!editing()) {
-              <button class="btn btn-ghost" (click)="startEdit()">✏️ Rediger</button>
-              <button class="btn btn-danger" (click)="deletePlayer()" [disabled]="saving()">🗑️ Slet</button>
+              <button class="btn btn-ghost" (click)="startEdit()">{{ i18n.t('common.edit') }}</button>
+              <button class="btn btn-danger" (click)="deletePlayer()" [disabled]="saving()">{{ i18n.t('common.delete') }}</button>
             }
           </div>
         }
 
         @if (admin.isAdmin() && editing()) {
           <div class="glass panel edit-panel">
-            <h3>Rediger spiller</h3>
+            <h3>{{ i18n.t('detail.editPlayer') }}</h3>
 
             @if (editError()) {
               <p class="banner-error pop-in">{{ editError() }}</p>
             }
 
             <label>
-              Navn *
+              {{ i18n.t('field.name') }}
               <input
                 type="text"
                 maxlength="40"
@@ -73,7 +73,7 @@
             </label>
 
             <label>
-              Kortnavn <span class="muted">(profilbillede)</span>
+              {{ i18n.t('field.shortname') }} <span class="muted">{{ i18n.t('detail.shortnamePic') }}</span>
               <input
                 type="text"
                 maxlength="20"
@@ -84,32 +84,32 @@
 
             <div class="edit-grid">
               <label>
-                Rating
+                {{ i18n.t('field.rating') }}
                 <input type="number" min="0" max="9999"
                   [ngModel]="editRating()" (ngModelChange)="editRating.set(+$event)">
               </label>
               <label>
-                Kampe
+                {{ i18n.t('field.matches') }}
                 <input type="number" min="0"
                   [ngModel]="editMatchesPlayed()" (ngModelChange)="editMatchesPlayed.set(+$event)">
               </label>
               <label>
-                Vundne
+                {{ i18n.t('field.wins') }}
                 <input type="number" min="0"
                   [ngModel]="editWins()" (ngModelChange)="editWins.set(+$event)">
               </label>
               <label>
-                Tabte
+                {{ i18n.t('field.losses') }}
                 <input type="number" min="0"
                   [ngModel]="editLosses()" (ngModelChange)="editLosses.set(+$event)">
               </label>
               <label>
-                Point for
+                {{ i18n.t('field.pointsFor') }}
                 <input type="number" min="0"
                   [ngModel]="editPointsFor()" (ngModelChange)="editPointsFor.set(+$event)">
               </label>
               <label>
-                Point imod
+                {{ i18n.t('field.pointsAgainst') }}
                 <input type="number" min="0"
                   [ngModel]="editPointsAgainst()" (ngModelChange)="editPointsAgainst.set(+$event)">
               </label>
@@ -117,13 +117,13 @@
 
             <div class="skills-editor">
               <div class="skills-header">
-                <h3>Skillset</h3>
-                <span class="muted small">0 til 10</span>
+                <h3>{{ i18n.t('skills.title') }}</h3>
+                <span class="muted small">{{ i18n.t('skills.range') }}</span>
               </div>
               @for (skill of skillNames; track skill) {
                 <label class="skill-field">
                   <div class="skill-row">
-                    <span>{{ skillLabels[skill] }}</span>
+                    <span>{{ i18n.t('skill.' + skill) }}</span>
                     <strong>{{ editSkills()[skill] }}</strong>
                   </div>
                   <input
@@ -140,32 +140,32 @@
 
             <div class="edit-buttons">
               <button class="btn btn-primary" [disabled]="saving()" (click)="saveEdit()">
-                {{ saving() ? 'Gemmer…' : '✓ Gem' }}
+                {{ saving() ? i18n.t('common.saving') : i18n.t('common.save') }}
               </button>
-              <button class="btn btn-ghost" [disabled]="saving()" (click)="cancelEdit()">Annuller</button>
+              <button class="btn btn-ghost" [disabled]="saving()" (click)="cancelEdit()">{{ i18n.t('common.cancel') }}</button>
             </div>
           </div>
         }
 
         <div class="rating-row">
           <span class="rating-value">{{ player()!.rating }}</span>
-          <span class="muted">pts</span>
+          <span class="muted">{{ i18n.t('common.pts') }}</span>
           @if (winRate() !== null) {
-            <span class="badge badge-green">{{ winRate() }}% vundne</span>
+            <span class="badge badge-green">{{ i18n.t('detail.winRate', { n: winRate()! }) }}</span>
           }
         </div>
 
         <div class="glass panel skills-panel">
           <div class="skills-panel-head">
-            <h3>Skillset</h3>
-            <span class="muted small">0–10</span>
+            <h3>{{ i18n.t('skills.title') }}</h3>
+            <span class="muted small">{{ i18n.t('skills.range2') }}</span>
           </div>
 
           <div class="skill-bars">
             @for (skill of skillBars(); track skill.key; let i = $index) {
               <div class="skill-bar-row">
                 <div class="skill-bar-meta">
-                  <span>{{ skill.label }}</span>
+                  <span>{{ i18n.t('skill.' + skill.key) }}</span>
                   <strong>{{ skill.value }}</strong>
                 </div>
                 <div class="skill-track">
@@ -179,23 +179,23 @@
         <div class="stats-grid">
           <div class="stat-card glass">
             <span class="stat-value">{{ player()!.matchesPlayed }}</span>
-            <span class="stat-label muted">Kampe</span>
+            <span class="stat-label muted">{{ i18n.t('field.matches') }}</span>
           </div>
           <div class="stat-card glass">
             <span class="stat-value green">{{ player()!.wins }}</span>
-            <span class="stat-label muted">Vundne</span>
+            <span class="stat-label muted">{{ i18n.t('field.wins') }}</span>
           </div>
           <div class="stat-card glass">
             <span class="stat-value red">{{ player()!.losses }}</span>
-            <span class="stat-label muted">Tabte</span>
+            <span class="stat-label muted">{{ i18n.t('field.losses') }}</span>
           </div>
           <div class="stat-card glass">
             <span class="stat-value accent">{{ player()!.pointsFor }}</span>
-            <span class="stat-label muted">Point for</span>
+            <span class="stat-label muted">{{ i18n.t('field.pointsFor') }}</span>
           </div>
           <div class="stat-card glass">
             <span class="stat-value muted">{{ player()!.pointsAgainst }}</span>
-            <span class="stat-label muted">Point imod</span>
+            <span class="stat-label muted">{{ i18n.t('field.pointsAgainst') }}</span>
           </div>
           <div class="stat-card glass">
             <span class="stat-value"
@@ -203,13 +203,13 @@
                   [class.red]="player()!.pointsFor < player()!.pointsAgainst">
               {{ player()!.pointsFor - player()!.pointsAgainst >= 0 ? '+' : '' }}{{ player()!.pointsFor - player()!.pointsAgainst }}
             </span>
-            <span class="stat-label muted">Diff</span>
+            <span class="stat-label muted">{{ i18n.t('stat.diff') }}</span>
           </div>
         </div>
 
         @if (ratingHistory().length >= 2) {
           <div class="glass panel sparkline-panel">
-            <h3>Rating historik</h3>
+            <h3>{{ i18n.t('detail.ratingHistory') }}</h3>
             <div class="sparkline-wrap">
               <svg class="sparkline" viewBox="0 0 200 48" preserveAspectRatio="none">
                 <path [attr.d]="sparkPath()" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -223,8 +223,8 @@
               </svg>
             </div>
             <div class="spark-labels muted small">
-              <span>{{ ratingHistory()[0] }} pts</span>
-              <span>Nu: {{ ratingHistory()[ratingHistory().length - 1] }} pts</span>
+              <span>{{ ratingHistory()[0] }} {{ i18n.t('common.pts') }}</span>
+              <span>{{ i18n.t('detail.now', { n: ratingHistory()[ratingHistory().length - 1] }) }}</span>
             </div>
           </div>
         }

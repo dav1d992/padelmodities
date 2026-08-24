@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { AudioService } from '../../services/audio.service';
 import { AdminService } from '../../services/admin.service';
+import { I18nService } from '../../services/i18n.service';
 import { FORMAT_LABELS, type Player, type Tournament } from '../../models/padel.model';
 import { CommonModule } from '@angular/common';
 
@@ -19,6 +20,7 @@ export class RanglistComponent implements OnInit, OnDestroy {
   readonly audioSvc = inject(AudioService);
   readonly admin = inject(AdminService);
   private router = inject(Router);
+  readonly i18n = inject(I18nService);
 
   readonly FORMAT_LABELS = FORMAT_LABELS;
 
@@ -37,7 +39,7 @@ export class RanglistComponent implements OnInit, OnDestroy {
           this.loading.set(false);
         },
         error: (err) => {
-          this.error.set(err?.message ?? 'Kunne ikke hente spillere.');
+          this.error.set(err?.message ? this.i18n.t(err.message) : this.i18n.t('err.loadPlayers'));
           this.loading.set(false);
         },
       }),

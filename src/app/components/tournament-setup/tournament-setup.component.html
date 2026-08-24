@@ -1,16 +1,16 @@
 <div class="page fade-up">
-  <a routerLink="/" class="back-link">← Ranglist</a>
+  <a routerLink="/" class="back-link">{{ i18n.t('common.back') }}</a>
 
   <div class="glass panel form-card">
-    <h1>Ny turnering</h1>
-    <p class="muted">Vælg format, deltagere og scoring.</p>
+    <h1>{{ i18n.t('setup.title') }}</h1>
+    <p class="muted">{{ i18n.t('setup.subtitle') }}</p>
 
     @if (error()) {
       <p class="banner-error pop-in">{{ error() }}</p>
     }
 
     <label>
-      Turneringens navn *
+      {{ i18n.t('setup.name') }}
       <input
         type="text"
         maxlength="60"
@@ -21,7 +21,7 @@
 
     <!-- Format -->
     <div class="format-section">
-      <span class="field-label muted">Format</span>
+      <span class="field-label muted">{{ i18n.t('setup.format') }}</span>
       <div class="format-cards">
         @for (opt of formatOptions; track opt.value) {
           <button
@@ -30,8 +30,8 @@
             (click)="selectFormat(opt.value)"
           >
             <span class="format-emoji">{{ opt.emoji }}</span>
-            <strong>{{ FORMAT_LABELS[opt.value] }}</strong>
-            <span class="muted small">{{ opt.desc }}</span>
+            <strong>{{ i18n.t('format.' + opt.value) }}</strong>
+            <span class="muted small">{{ i18n.t('format.' + opt.value + '.desc') }}</span>
           </button>
         }
       </div>
@@ -39,21 +39,21 @@
 
     <!-- Scoring -->
     <div class="config-section">
-      <span class="field-label muted">Scoring</span>
+      <span class="field-label muted">{{ i18n.t('setup.scoring') }}</span>
       <div class="chip-row">
         @for (m of scoringMethods; track m) {
           <button
             class="pill"
             [class.selected]="scoring().method === m"
             (click)="setScoringMethod(m)"
-          >{{ SCORING_LABELS[m] }}</button>
+          >{{ i18n.t('scoring.' + m) }}</button>
         }
       </div>
 
       <div class="scoring-options">
         @if (scoring().method === 'fixed-points' || scoring().method === 'first-to') {
           <label class="inline">
-            {{ scoring().method === 'fixed-points' ? 'Samlede point' : 'Point at nå' }}
+            {{ scoring().method === 'fixed-points' ? i18n.t('setup.totalPoints') : i18n.t('setup.pointsToReach') }}
             <input type="number" min="1" max="99"
               [ngModel]="scoring().pointTarget"
               (ngModelChange)="patchScoring('pointTarget', +$event)">
@@ -67,13 +67,13 @@
         }
         @if (scoring().method === 'games-sets') {
           <label class="inline">
-            Games pr. sæt
+            {{ i18n.t('setup.gamesPerSet') }}
             <input type="number" min="1" max="9"
               [ngModel]="scoring().gamesPerSet"
               (ngModelChange)="patchScoring('gamesPerSet', +$event)">
           </label>
           <label class="inline">
-            Sæt for sejr
+            {{ i18n.t('setup.setsToWin') }}
             <input type="number" min="1" max="5"
               [ngModel]="scoring().setsToWin"
               (ngModelChange)="patchScoring('setsToWin', +$event)">
@@ -81,12 +81,12 @@
         }
         @if (scoring().method === 'timed') {
           <label class="inline">
-            Minutter pr. runde
+            {{ i18n.t('setup.minutesPerRound') }}
             <input type="number" min="1" max="60"
               [ngModel]="scoring().minutesPerRound"
               (ngModelChange)="patchScoring('minutesPerRound', +$event)">
           </label>
-          <p class="muted small">Den førende fører når tiden er gået.</p>
+          <p class="muted small">{{ i18n.t('setup.timedNote') }}</p>
         }
       </div>
 
@@ -94,19 +94,19 @@
         <label class="switch">
           <input type="checkbox" [ngModel]="scoring().winByTwo"
             (ngModelChange)="patchScoring('winByTwo', $event)">
-          <span>Vind med 2</span>
+          <span>{{ i18n.t('setup.winByTwo') }}</span>
         </label>
         <label class="switch">
           <input type="checkbox" [ngModel]="scoring().goldenPoint"
             (ngModelChange)="patchScoring('goldenPoint', $event)">
-          <span>Golden point</span>
+          <span>{{ i18n.t('setup.goldenPoint') }}</span>
         </label>
       </div>
     </div>
 
     <!-- Courts -->
     <div class="config-section">
-      <span class="field-label muted">Baner ({{ courtCount() }})</span>
+      <span class="field-label muted">{{ i18n.t('setup.courts', { n: courtCount() }) }}</span>
       <div class="court-list">
         @for (name of courtNames(); track $index) {
           <div class="court-row">
@@ -118,45 +118,45 @@
           </div>
         }
       </div>
-      <button class="btn btn-ghost small-btn" (click)="addCourt()">+ Tilføj bane</button>
+      <button class="btn btn-ghost small-btn" (click)="addCourt()">{{ i18n.t('setup.addCourt') }}</button>
     </div>
 
     <!-- Rounds (not for round robin) -->
     @if (!isRoundRobin()) {
       <label class="inline">
-        Antal runder
+        {{ i18n.t('setup.numRounds') }}
         <input type="number" min="1" max="50"
           [ngModel]="totalRounds()" (ngModelChange)="totalRounds.set(+$event)">
       </label>
     } @else {
-      <p class="muted small">Team Americano spiller alle mod alle — antal runder beregnes automatisk.</p>
+      <p class="muted small">{{ i18n.t('setup.roundRobinNote') }}</p>
     }
 
     <!-- Seeded order -->
     <label class="switch standalone">
       <input type="checkbox" [ngModel]="seeded()" (ngModelChange)="seeded.set($event)">
-      <span>{{ isKoth() ? 'Seedet startopstilling' : 'Seedet start (ellers tilfældig)' }}</span>
+      <span>{{ isKoth() ? i18n.t('setup.seededKoth') : i18n.t('setup.seeded') }}</span>
     </label>
 
     <!-- Super Mexicano bonus -->
     @if (isSuperMex()) {
       <div class="config-section bonus-section">
-        <span class="field-label muted">Bane-bonuspoint</span>
+        <span class="field-label muted">{{ i18n.t('setup.bonusTitle') }}</span>
         <label class="switch">
           <input type="checkbox" [ngModel]="bonus().enabled"
             (ngModelChange)="patchBonus('enabled', $event)">
-          <span>Aktivér bonuspoint</span>
+          <span>{{ i18n.t('setup.bonusEnable') }}</span>
         </label>
         @if (bonus().enabled) {
           <label class="inline">
-            Bonus starter fra runde
+            {{ i18n.t('setup.bonusFromRound') }}
             <input type="number" min="1" max="50"
               [ngModel]="bonus().startRound" (ngModelChange)="patchBonus('startRound', +$event)">
           </label>
           <label class="switch">
             <input type="checkbox" [ngModel]="bonus().winnersOnly"
               (ngModelChange)="patchBonus('winnersOnly', $event)">
-            <span>Kun til vinderne (ellers alle på banen)</span>
+            <span>{{ i18n.t('setup.bonusWinnersOnly') }}</span>
           </label>
           <div class="court-list">
             @for (name of courtNames(); track $index) {
@@ -165,7 +165,7 @@
                 <input type="number" min="0" max="20"
                   [ngModel]="bonusForCourt($index)"
                   (ngModelChange)="setBonusForCourt($index, +$event)">
-                <span class="muted small">pt</span>
+                <span class="muted small">{{ i18n.t('setup.pt') }}</span>
               </div>
             }
           </div>
@@ -176,7 +176,7 @@
     <!-- Participants -->
     @if (isTeam()) {
       <div class="config-section">
-        <span class="field-label muted">Hold ({{ teamCount() }})</span>
+        <span class="field-label muted">{{ i18n.t('setup.teams', { n: teamCount() }) }}</span>
 
         @if (teams().length > 0) {
           <div class="team-list">
@@ -191,7 +191,7 @@
         }
 
         <div class="team-builder glass">
-          <p class="muted small">Vælg 2 spillere for at danne et hold</p>
+          <p class="muted small">{{ i18n.t('setup.pickTwo') }}</p>
           <div class="player-grid">
             @for (p of availableForTeams(); track p.id) {
               <button class="player-chip" [class.selected]="isPicked(p.id)"
@@ -209,17 +209,17 @@
           <input type="text" class="team-name-input"
             maxlength="40" [ngModel]="teamName()" (ngModelChange)="teamName.set($event)">
           <button class="btn btn-ghost small-btn" [disabled]="teamPick().length !== 2"
-            (click)="addTeam()">+ Tilføj hold</button>
+            (click)="addTeam()">{{ i18n.t('setup.addTeam') }}</button>
         </div>
       </div>
     } @else {
       <div class="config-section">
-        <span class="field-label muted">Vælg spillere</span>
+        <span class="field-label muted">{{ i18n.t('setup.choosePlayers') }}</span>
         <p class="validation-hint small" [class.ok]="canSubmit()">
-          {{ selectedCount() }} spillere valgt
+          {{ i18n.t('setup.playersSelected', { n: selectedCount() }) }}
         </p>
         @if (players().length === 0) {
-          <p class="muted small">Ingen spillere fundet. <a routerLink="/create-player">Opret spillere</a> først.</p>
+          <p class="muted small">{{ i18n.t('setup.noPlayers') }} <a routerLink="/create-player">{{ i18n.t('setup.createPlayers') }}</a> {{ i18n.t('setup.first') }}</p>
         } @else {
           <div class="player-grid">
             @for (p of players(); track p.id) {
@@ -244,16 +244,16 @@
     <!-- Preview / validation -->
     <div class="preview-box glass">
       <div class="preview-row">
-        <span class="muted small">Deltagere</span>
-        <strong>{{ isTeam() ? teamCount() + ' hold' : selectedCount() + ' spillere' }}</strong>
+        <span class="muted small">{{ i18n.t('setup.participants') }}</span>
+        <strong>{{ isTeam() ? i18n.t('setup.teamsCount', { n: teamCount() }) : i18n.t('setup.playersCount', { n: selectedCount() }) }}</strong>
       </div>
       <div class="preview-row">
-        <span class="muted small">Kampe pr. runde</span>
+        <span class="muted small">{{ i18n.t('setup.matchesPerRound') }}</span>
         <strong>{{ perRoundInfo().matches }}</strong>
       </div>
       @if (!isRoundRobin()) {
         <div class="preview-row">
-          <span class="muted small">Runder</span>
+          <span class="muted small">{{ i18n.t('setup.rounds') }}</span>
           <strong>{{ totalRounds() }}</strong>
         </div>
       }
@@ -269,11 +269,11 @@
 
     <div class="action-buttons">
       <button class="btn btn-ghost" [disabled]="submitting()" (click)="saveDraft()">
-        💾 Gem udkast
+        {{ i18n.t('setup.saveDraft') }}
       </button>
       <button class="btn btn-primary big" [disabled]="!canSubmit() || submitting()"
         (click)="start()">
-        {{ submitting() ? 'Starter…' : '🏆 Start turnering' }}
+        {{ submitting() ? i18n.t('setup.starting') : i18n.t('setup.start') }}
       </button>
     </div>
   </div>

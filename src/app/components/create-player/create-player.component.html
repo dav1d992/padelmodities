@@ -1,17 +1,17 @@
 <div class="page fade-up">
-  <a routerLink="/" class="back-link">← Ranglist</a>
+  <a routerLink="/" class="back-link">{{ i18n.t('common.back') }}</a>
 
   <div class="glass panel form-card">
-    <h1>Ny spiller</h1>
+    <h1>{{ i18n.t('create.title') }}</h1>
 
-    <p class="muted">Udfyld spillerens oplysninger.</p>
+    <p class="muted">{{ i18n.t('create.subtitle') }}</p>
 
     @if (submitError()) {
       <p class="banner-error pop-in">{{ submitError() }}</p>
     }
 
     <label>
-      Navn *
+      {{ i18n.t('field.name') }}
       <input
         type="text"
         maxlength="40"
@@ -21,7 +21,7 @@
     </label>
 
     <label>
-      Kortnavn <span class="muted">(bruges til profilbillede)</span>
+      {{ i18n.t('field.shortname') }} <span class="muted">{{ i18n.t('create.shortnameHint') }}</span>
       <input
         type="text"
         maxlength="20"
@@ -29,13 +29,13 @@
         (ngModelChange)="shortname.set($event)"
       >
       <span class="field-hint muted small">
-        Kun bogstaver/tal/bindestreg. Billede hentes fra
-        <code>assets/&#123;kortnavn&#125;-padel.png</code>.
+        {{ i18n.t('create.shortnameHelp') }}
+        <code>assets/{{ '{' }}{{ i18n.t('field.shortname') }}{{ '}' }}-padel.png</code>.
       </span>
     </label>
 
     <label>
-      Startrating
+      {{ i18n.t('create.startRating') }}
       <input
         type="number"
         min="0"
@@ -43,19 +43,19 @@
         [ngModel]="startingRating()"
         (ngModelChange)="startingRating.set(+$event)"
       >
-      <span class="field-hint muted small">Standard: 1000</span>
+      <span class="field-hint muted small">{{ i18n.t('create.defaultRating') }}</span>
     </label>
 
     <div class="skills-editor">
       <div class="skills-header">
-        <h3>Skillset</h3>
-        <span class="muted small">0 til 10</span>
+        <h3>{{ i18n.t('skills.title') }}</h3>
+        <span class="muted small">{{ i18n.t('skills.range') }}</span>
       </div>
 
       @for (skill of skillNames; track skill) {
         <label class="skill-field">
           <div class="skill-row">
-            <span>{{ skillLabels[skill] }}</span>
+            <span>{{ i18n.t('skill.' + skill) }}</span>
             <strong>{{ skills()[skill] }}</strong>
           </div>
           <input
@@ -75,7 +75,7 @@
       [disabled]="submitting()"
       (click)="createPlayer()"
     >
-      {{ submitting() ? 'Opretter…' : '✓ Opret spiller' }}
+      {{ submitting() ? i18n.t('create.submitting') : i18n.t('create.submit') }}
     </button>
   </div>
 </div>

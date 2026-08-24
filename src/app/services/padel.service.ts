@@ -291,10 +291,10 @@ export class PadelService {
     const team = isTeamFormat(input.format);
     if (team) {
       if (!input.teams || input.teams.length < 2) {
-        throw new Error('Team-formater kræver mindst 2 hold.');
+        throw new Error('err.minTeams');
       }
     } else if (input.playerIds.length < 4) {
-      throw new Error('En turnering kræver mindst 4 spillere.');
+      throw new Error('err.min4');
     }
 
     const courtNames: Record<string, string> = {};
@@ -461,16 +461,16 @@ export class PadelService {
   async regenerateCurrentRound(tournamentId: string): Promise<void> {
     const tournament = await this.getTournament(tournamentId);
     if (!isDynamicFormat(tournament.format)) {
-      throw new Error('Kun dynamiske formater kan genereres om.');
+      throw new Error('err.dynamicOnly');
     }
     const roundIndex = tournament.currentRound;
     const round = tournament.rounds?.[roundIndex];
-    if (round?.completed) throw new Error('Runden er allerede fuldført.');
+    if (round?.completed) throw new Error('err.roundDone');
     const anyScore = Object.values(round?.matches ?? {}).some(
       (m) => m.score1 !== undefined || m.score2 !== undefined,
     );
     if (anyScore) {
-      throw new Error('Kan ikke genskabe en runde med indtastede resultater.');
+      throw new Error('err.regenScores');
     }
 
     const prior = this.sortedRounds(tournament).filter(
@@ -511,15 +511,15 @@ export class PadelService {
     const tournament = await this.getTournament(tournamentId);
     const roundIndex = tournament.currentRound;
     const round = tournament.rounds?.[roundIndex];
-    if (!round) throw new Error('Aktuel runde ikke fundet.');
+    if (!round) throw new Error('err.roundNotFound');
 
     const matches = round.matches ? Object.values(round.matches) : [];
     for (const m of matches) {
       if (m.score1 === undefined || m.score2 === undefined) {
-        throw new Error('Indtast alle resultater før runden fuldføres.');
+        throw new Error('err.enterBeforeComplete');
       }
       const v = validateScore(m.score1, m.score2, tournament.scoring, tournament.format);
-      if (!v.valid) throw new Error(v.reason ?? 'Ugyldigt resultat.');
+      if (!v.valid) throw new Error(v.reason ?? 'err.invalidScore');
     }
 
     // Mark completed first so recomputed standings include this round.
@@ -596,7 +596,7 @@ export class PadelService {
       get(ref(this.db, `tournaments/${tournamentId}`)),
     );
     const tournament = snap.val() as Tournament | null;
-    if (!tournament) throw new Error('Turnering ikke fundet.');
+    if (!tournament) throw new Error('err.tournamentNotFound');
     return tournament;
   }
 
@@ -619,7 +619,7 @@ export class PadelService {
       get(ref(this.db, `tournaments/${tournamentId}`)),
     );
     const tournament = snap.val() as Tournament | null;
-    if (!tournament) throw new Error('Tournament not found.');
+    if (!tournament) throw new Error('err.tournamentNotFound');
 
     await withTimeout(
       update(ref(this.db, `tournaments/${tournamentId}`), { status: 'finished' }),

@@ -1,20 +1,21 @@
 /* ─── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  --bg:          #0f1419;
-  --surface:     #161e2b;
-  --card:        #1c2638;
-  --card-hover:  #233045;
-  --border:      rgba(90, 120, 160, 0.22);
-  --primary:     #4a8fb8;
-  --primary-dim: #336a8c;
+  --bg:          #0a1728;
+  --surface:     #0f2140;
+  --card:        #142a49;
+  --card-hover:  #1c375c;
+  --border:      rgba(227, 186, 212, 0.22);
+  --primary:     #e3bad4;
+  --primary-dim: #cf9fbf;
+  --on-primary:  #13294b;
   --gold:        #e8c547;
   --silver:      #a8bccf;
   --bronze:      #a07850;
-  --accent:      #6ab0d0;
+  --accent:      #f0d3e5;
   --danger:      #d95f5f;
   --danger-dim:  #b84040;
-  --text:        #d8e4f0;
-  --text-muted:  #6888a4;
+  --text:        #eef3fa;
+  --text-muted:  #93a8c8;
   --radius:      14px;
   --radius-sm:   8px;
   --shadow:      0 4px 28px rgba(0, 0, 0, 0.55);
@@ -58,6 +59,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: none; backgroun
   border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.95rem;
+  text-decoration: none;
   transition: background var(--transition), transform var(--transition), opacity var(--transition);
   white-space: nowrap;
 
@@ -67,7 +69,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: none; backgroun
 
 .btn-primary {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   &:hover:not(:disabled) { background: var(--primary-dim); }
 }
 
@@ -75,7 +77,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: none; backgroun
   background: transparent;
   color: var(--primary);
   border: 1.5px solid var(--primary);
-  &:hover:not(:disabled) { background: rgba(46,160,80,0.12); }
+  &:hover:not(:disabled) { background: rgba(227, 186, 212, 0.12); }
 }
 
 .btn-danger {
@@ -176,10 +178,10 @@ label {
   text-transform: uppercase;
 }
 
-.badge-green  { background: rgba(46,160,80,0.2);  color: var(--primary); }
+.badge-green  { background: rgba(227,186,212,0.18); color: var(--primary); }
 .badge-gold   { background: rgba(241,196,15,0.2); color: var(--gold); }
 .badge-blue   { background: rgba(52,152,219,0.2); color: #5dade2; }
-.badge-muted  { background: rgba(122,173,138,0.1); color: var(--text-muted); }
+.badge-muted  { background: rgba(147,168,200,0.12); color: var(--text-muted); }
 
 /* ─── Error banner ───────────────────────────────────────────────────────── */
 .banner-error {

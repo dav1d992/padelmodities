@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { CREATE_PLAYER_CODE } from '../models/padel.model';
+import { ADMIN_CODE } from '../models/padel.model';
 
 const STORAGE_KEY = 'padel_admin';
 
@@ -10,7 +10,7 @@ export class AdminService {
 
   /** Returns true if the code is correct and admin mode is enabled. */
   login(code: string): boolean {
-    if (code.trim().toUpperCase() === CREATE_PLAYER_CODE) {
+    if (code.trim() === ADMIN_CODE) {
       this.isAdmin.set(true);
       try {
         sessionStorage.setItem(STORAGE_KEY, '1');

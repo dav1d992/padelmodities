@@ -49,7 +49,7 @@
 
   &.selected {
     border-color: var(--primary);
-    background: rgba(46,160,80,0.1);
+    background: rgba(227, 186, 212, 0.1);
   }
 
   &:hover:not(.selected) {
@@ -94,7 +94,7 @@
 
   &.selected {
     border-color: var(--primary);
-    background: rgba(46,160,80,0.08);
+    background: rgba(227, 186, 212, 0.08);
   }
 
   &:hover:not(.selected) {
@@ -116,7 +116,7 @@
   align-items: center;
   justify-content: center;
   background: var(--primary-dim);
-  color: #fff;
+  color: var(--on-primary);
   font-weight: 700;
   font-size: 0.9rem;
 }
@@ -166,7 +166,7 @@
   transition: border-color var(--transition), background var(--transition);
 
   &.small { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
-  &.selected { border-color: var(--primary); background: rgba(74,143,184,0.15); color: var(--accent); }
+  &.selected { border-color: var(--primary); background: rgba(227, 186, 212, 0.15); color: var(--accent); }
   &:hover:not(.selected) { background: var(--card-hover); }
 }
 

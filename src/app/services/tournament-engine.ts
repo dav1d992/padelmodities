@@ -185,7 +185,7 @@ export function generateAmericanoRounds(
 ): TournamentRound[] {
   const n = playerIds.length;
   const perRound = 4 * Math.min(courtCount, Math.floor(n / 4));
-  if (perRound < 4) throw new Error('Americano kræver mindst 4 spillere.');
+  if (perRound < 4) throw new Error('err.americano4');
   const sitCount = n - perRound;
 
   const rounds: TournamentRound[] = [];
@@ -459,7 +459,7 @@ function readCourts(round: TournamentRound): CourtState[] {
 function kothWinnerSide(m: TournamentMatch): 'a' | 'b' {
   const s1 = m.score1 ?? 0;
   const s2 = m.score2 ?? 0;
-  if (s1 === s2) throw new Error('King of the Hill kræver en vinder.');
+  if (s1 === s2) throw new Error('err.kothWinner');
   return s1 > s2 ? 'a' : 'b';
 }
 
@@ -471,9 +471,7 @@ export function generateKothInitialRound(
 ): TournamentRound {
   const active = courtCount * 4;
   if (playerIds.length < active) {
-    throw new Error(
-      `King of the Hill kræver præcis 4 spillere pr. bane (${active} spillere til ${courtCount} baner).`,
-    );
+    throw new Error('err.kothPlayersGeneric');
   }
   const order = seeded ? [...playerIds] : shuffle(playerIds);
   const sitters = order.slice(active);
@@ -650,7 +648,10 @@ export function computeKothStats(
 
 export interface ScoreValidation {
   valid: boolean;
+  /** i18n key describing why the score is invalid. */
   reason?: string;
+  /** Interpolation params for the reason key. */
+  reasonParams?: Record<string, string | number>;
 }
 
 /** Winner of a match: 'a' | 'b' | 'tie' based on primary scores. */
@@ -669,13 +670,13 @@ export function validateScore(
   format: TournamentFormat,
 ): ScoreValidation {
   if (score1 < 0 || score2 < 0) {
-    return { valid: false, reason: 'Point kan ikke være negative.' };
+    return { valid: false, reason: 'err.negative' };
   }
   const koth = format === 'king-of-the-hill';
   if (koth && score1 === score2) {
     return {
       valid: false,
-      reason: 'King of the Hill kan ikke ende uafgjort — brug golden point.',
+      reason: 'err.kothTie',
     };
   }
 
@@ -685,7 +686,8 @@ export function validateScore(
       if (total !== scoring.pointTarget) {
         return {
           valid: false,
-          reason: `Pointene skal summe til ${scoring.pointTarget}.`,
+          reason: 'err.sumTo',
+          reasonParams: { target: scoring.pointTarget },
         };
       }
       return { valid: true };
@@ -696,12 +698,13 @@ export function validateScore(
       if (hi < scoring.pointTarget) {
         return {
           valid: false,
-          reason: `Vinderen skal nå ${scoring.pointTarget} point.`,
+          reason: 'err.winnerReach',
+          reasonParams: { target: scoring.pointTarget },
         };
       }
       if (scoring.goldenPoint) return { valid: true };
       if (scoring.winByTwo && hi - lo < 2) {
-        return { valid: false, reason: 'Der kræves mindst 2 points forskel.' };
+        return { valid: false, reason: 'err.diff2' };
       }
       return { valid: true };
     }

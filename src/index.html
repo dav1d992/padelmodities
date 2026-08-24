@@ -6,7 +6,7 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
   <meta name="description" content="Ranglist og turneringer for Danske Padelmodities. Følg din rating og spil Americano eller Mexicano.">
-  <meta name="theme-color" content="#0a1a0e">
+  <meta name="theme-color" content="#0a1728">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,13 +14,14 @@
   <meta property="og:title" content="Danske Padelmodities — Ranglist & Turneringer">
   <meta property="og:description" content="Spil Americano og Mexicano. Følg din padel-rating live.">
   <meta property="og:type" content="website">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎾%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2313294b'/%3E%3Ctext x='50' y='54' font-family='Segoe UI,Arial,sans-serif' font-size='46' font-weight='800' fill='%23e3bad4' text-anchor='middle' dominant-baseline='central'%3EDP%3C/text%3E%3C/svg%3E">
 </head>
 <body>
   <app-root>
-    <div style="min-height:100vh;display:grid;place-items:center;color:#7aad8a;font-family:system-ui,sans-serif;">
-      Indlæser Padel…
+    <div style="min-height:100vh;display:grid;place-items:center;">
+      <div style="width:44px;height:44px;border:4px solid rgba(122,173,138,0.25);border-top-color:#7aad8a;border-radius:50%;animation:app-spin 0.8s linear infinite;"></div>
     </div>
+    <style>@keyframes app-spin{to{transform:rotate(360deg)}}</style>
   </app-root>
 </body>
 </html>

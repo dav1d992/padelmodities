@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AudioService } from './services/audio.service';
 import { AdminService } from './services/admin.service';
+import { I18nService } from './services/i18n.service';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ import { AdminService } from './services/admin.service';
 export class AppComponent implements OnInit, OnDestroy {
   readonly audio = inject(AudioService);
   readonly admin = inject(AdminService);
+  readonly i18n = inject(I18nService);
 
   readonly adminInputOpen = signal(false);
   readonly adminCode = signal('');

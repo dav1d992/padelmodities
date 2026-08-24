@@ -56,21 +56,12 @@
   &:focus { outline: none; border-color: var(--primary); }
 }
 
-.audio-fab {
-  position: fixed;
-  bottom: 1.25rem;
-  right: 1.25rem;
-  z-index: 200;
-  display: flex;
-  gap: 0.4rem;
-}
-
 .audio-btn {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   background: var(--card);
   color: var(--text);
   border: 1.5px solid var(--border);
-  padding: 0.45em 0.6em;
+  padding: 0.35em 0.55em;
   border-radius: 50%;
   box-shadow: var(--shadow);
   cursor: pointer;

@@ -11,11 +11,10 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
+import { I18nService } from '../../services/i18n.service';
 import {
-  FORMAT_LABELS,
   isDynamicFormat,
   isTeamFormat,
-  SCORING_LABELS,
   type KothStats,
   type Player,
   type StandingRow,
@@ -54,9 +53,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
 
   private service = inject(PadelService);
   private router = inject(Router);
-
-  readonly FORMAT_LABELS = FORMAT_LABELS;
-  readonly SCORING_LABELS = SCORING_LABELS;
+  readonly i18n = inject(I18nService);
 
   readonly tournament = signal<Tournament | null>(null);
   readonly players = signal<Player[]>([]);
@@ -202,7 +199,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
   });
 
   courtName(index: number): string {
-    return this.tournament()?.courtNames?.[String(index)] ?? `Bane ${index + 1}`;
+    return this.tournament()?.courtNames?.[String(index)] ?? this.i18n.t('court.default', { n: index + 1 });
   }
 
   // ── Standings ─────────────────────────────────────────────────────────────
@@ -330,7 +327,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
     if (!t || !this.isDynamic()) return '';
     const round = this.currentRound();
     if (round?.completed && this.displayRound() < t.currentRound) {
-      return 'Redigering af en tidligere runde opdaterer stillingen, men senere runder blev genereret ud fra det gamle resultat.';
+      return this.i18n.t('view.editWarn');
     }
     return '';
   });
@@ -341,7 +338,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
     const s = this.getScore(matchId);
     if (s.score1 === null || s.score2 === null) return '';
     const v = validateScore(s.score1, s.score2, t.scoring, t.format);
-    return v.valid ? '' : v.reason ?? '';
+    return v.valid ? '' : this.i18n.t(v.reason ?? 'err.invalidScore', v.reasonParams);
   }
 
   async saveScore(matchId: string): Promise<void> {
@@ -351,7 +348,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
     if (t) {
       const v = validateScore(s.score1, s.score2, t.scoring, t.format);
       if (!v.valid) {
-        this.error.set(v.reason ?? 'Ugyldigt resultat.');
+        this.error.set(this.i18n.t(v.reason ?? 'err.invalidScore', v.reasonParams));
         return;
       }
     }
@@ -365,7 +362,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
         s.score2,
       );
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Fejl ved gem.');
+      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.saveError'));
     }
   }
 
@@ -381,7 +378,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
         matchId,
       );
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Fejl.');
+      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
     }
   }
 
@@ -399,7 +396,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
       this.scores.set({});
       this.viewRound.set(null);
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Fejl.');
+      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
     } finally {
       this.completing.set(false);
     }
@@ -425,7 +422,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
       await this.service.regenerateCurrentRound(this.tournamentId());
       this.scores.set({});
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Fejl.');
+      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
     } finally {
       this.regenerating.set(false);
     }
@@ -433,14 +430,14 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
 
   async finishEarly(): Promise<void> {
     if (
-      !window.confirm('Afslut turneringen? Aktuelle resultater bevares.')
+      !window.confirm(this.i18n.t('view.finishConfirm'))
     )
       return;
     this.finishing.set(true);
     try {
       await this.service.finishTournament(this.tournamentId());
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Fejl.');
+      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
     } finally {
       this.finishing.set(false);
     }
@@ -452,7 +449,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
     try {
       await this.service.startTournament(this.tournamentId());
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Fejl.');
+      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
     } finally {
       this.completing.set(false);
     }

@@ -1,5 +1,5 @@
 <div class="page fade-up">
-  <a routerLink="/" class="back-link">← Ranglist</a>
+  <a routerLink="/" class="back-link">{{ i18n.t('common.back') }}</a>
 
   @if (error()) {
     <p class="banner-error pop-in">{{ error() }}</p>
@@ -13,20 +13,20 @@
       <div class="tour-meta">
         <h1>{{ t.name }}</h1>
         <div class="tour-badges">
-          <span class="badge badge-blue">{{ FORMAT_LABELS[t.format] }}</span>
+          <span class="badge badge-blue">{{ i18n.t('format.' + t.format) }}</span>
           <span class="badge"
             [class.badge-green]="t.status === 'active'"
             [class.badge-gold]="t.status === 'draft'"
             [class.badge-muted]="t.status === 'finished'">
-            {{ t.status === 'active' ? 'Aktiv' : t.status === 'draft' ? 'Udkast' : 'Afsluttet' }}
+            {{ t.status === 'active' ? i18n.t('status.active') : t.status === 'draft' ? i18n.t('status.draft') : i18n.t('status.finished') }}
           </span>
-          <span class="badge badge-muted">{{ SCORING_LABELS[t.scoring.method] }}</span>
+          <span class="badge badge-muted">{{ i18n.t('scoring.' + t.scoring.method) }}</span>
         </div>
       </div>
 
       @if (isActive()) {
         <div class="round-indicator">
-          Runde <strong>{{ displayRound() + 1 }}</strong>
+          {{ i18n.t('view.round') }} <strong>{{ displayRound() + 1 }}</strong>
           <span class="muted">/ {{ t.totalRounds }}</span>
         </div>
       }
@@ -36,12 +36,12 @@
     @if (isDraft()) {
       <div class="glass panel draft-banner">
         <span class="draft-icon">📝</span>
-        <h2>Udkast gemt</h2>
-        <p class="muted">Rediger opsætningen eller start turneringen.</p>
+        <h2>{{ i18n.t('view.draftSaved') }}</h2>
+        <p class="muted">{{ i18n.t('view.draftHint') }}</p>
         <div class="action-buttons">
-          <button class="btn btn-ghost" (click)="editDraft()">✏️ Rediger</button>
+          <button class="btn btn-ghost" (click)="editDraft()">{{ i18n.t('common.edit') }}</button>
           <button class="btn btn-primary" [disabled]="completing()" (click)="startDraft()">
-            {{ completing() ? 'Starter…' : '🏆 Start turnering' }}
+            {{ completing() ? i18n.t('setup.starting') : i18n.t('setup.start') }}
           </button>
         </div>
       </div>
@@ -53,8 +53,8 @@
         <div class="round-nav">
           <button class="btn-icon" [disabled]="!hasPrevRound()" (click)="prevRound()">←</button>
           <span class="round-nav-label">
-            Runde {{ displayRound() + 1 }}
-            @if (!isCurrentRound()) { <button class="link-btn" (click)="goToCurrent()">gå til nu</button> }
+            {{ i18n.t('view.round') }} {{ displayRound() + 1 }}
+            @if (!isCurrentRound()) { <button class="link-btn" (click)="goToCurrent()">{{ i18n.t('view.goToNow') }}</button> }
           </span>
           <button class="btn-icon" [disabled]="!hasNextRound()" (click)="nextRound()">→</button>
         </div>
@@ -67,7 +67,7 @@
       <!-- King of the Hill ladder -->
       @if (isKoth()) {
         <section class="section">
-          <h2 class="section-title">👑 Bane-stige</h2>
+          <h2 class="section-title">{{ i18n.t('view.ladder') }}</h2>
           <div class="ladder">
             @for (court of ladder(); track court.courtIndex) {
               <div class="ladder-court glass" [class.king-court]="court.isKing">
@@ -75,7 +75,7 @@
                   <span class="ladder-name">
                     @if (court.isKing) { 👑 } {{ court.courtName }}
                   </span>
-                  @if (court.isKing) { <span class="badge badge-gold">King Court</span> }
+                  @if (court.isKing) { <span class="badge badge-gold">{{ i18n.t('view.kingCourt') }}</span> }
                 </div>
                 <div class="match-teams koth-teams">
                   <div class="team">
@@ -112,7 +112,7 @@
       } @else {
         <!-- Standard matches grouped by court -->
         <section class="section">
-          <h2 class="section-title">🎾 Runde {{ displayRound() + 1 }}</h2>
+          <h2 class="section-title">{{ i18n.t('view.roundTitle', { n: displayRound() + 1 }) }}</h2>
           <div class="matches">
             @for (match of currentMatches(); track match.id) {
               <div class="match-card glass">
@@ -192,7 +192,7 @@
                   <p class="warn small">{{ scoreError(match.id) }}</p>
                 }
                 @if ((getScore(match.id).score1 !== null || getScore(match.id).score2 !== null) && !isFinished()) {
-                  <button class="link-btn reset-btn" (click)="resetScore(match.id)">Nulstil resultat</button>
+                  <button class="link-btn reset-btn" (click)="resetScore(match.id)">{{ i18n.t('view.resetResult') }}</button>
                 }
               </div>
             }
@@ -203,7 +203,7 @@
       <!-- Sit-outs -->
       @if (sitOuts().length > 0) {
         <div class="sitouts glass">
-          <span class="muted small">Sidder over:</span>
+          <span class="muted small">{{ i18n.t('view.sittingOut') }}</span>
           @for (id of sitOuts(); track id) {
             <span class="sitout-chip">{{ participantName(id) }}</span>
           }
@@ -214,20 +214,20 @@
       @if (isActive() && isCurrentRound()) {
         <button class="btn btn-primary big" [disabled]="!allScoresEntered() || completing()"
           (click)="completeRound()">
-          {{ completing() ? 'Gemmer…' : '✓ Fuldfør runde' }}
+          {{ completing() ? i18n.t('common.saving') : i18n.t('view.completeRound') }}
         </button>
         @if (!allScoresEntered()) {
-          <p class="hint muted small">Indtast alle resultater for at fortsætte.</p>
+          <p class="hint muted small">{{ i18n.t('view.enterAll') }}</p>
         }
 
         @if (canRegenerate()) {
           <button class="btn btn-ghost" [disabled]="regenerating()" (click)="regenerate()">
-            {{ regenerating() ? 'Genererer…' : '🔀 Generér runden igen' }}
+            {{ regenerating() ? i18n.t('view.generating') : i18n.t('view.regenerate') }}
           </button>
         }
 
         <button class="btn btn-ghost" [disabled]="finishing()" (click)="finishEarly()">
-          🏁 Afslut turnering
+          {{ i18n.t('view.finish') }}
         </button>
       }
     } @else if (isFinished()) {
@@ -238,7 +238,7 @@
     @if (isFinished() && winnerLabel()) {
       <div class="glass panel finished-banner">
         <span class="finished-icon">{{ isKoth() ? '👑' : '🏆' }}</span>
-        <h2>{{ isKoth() ? 'King of the Hill!' : 'Turnering afsluttet!' }}</h2>
+        <h2>{{ isKoth() ? i18n.t('view.kothWin') : i18n.t('view.finished') }}</h2>
         <p class="winner-name">{{ winnerLabel() }}</p>
       </div>
     }
@@ -246,23 +246,23 @@
     <!-- Standings -->
     @if (standings().length > 0) {
       <section class="section">
-        <h2 class="section-title">Stilling</h2>
+        <h2 class="section-title">{{ i18n.t('view.standings') }}</h2>
         <div class="standings-wrap glass">
           <table class="standings">
             <thead>
               <tr>
                 <th>#</th>
-                <th class="left">{{ isTeam() ? 'Hold' : 'Spiller' }}</th>
-                <th>K</th>
-                <th>V</th>
-                <th>T</th>
-                @if (!isKoth()) { <th>U</th> }
+                <th class="left">{{ isTeam() ? i18n.t('th.team') : i18n.t('th.player') }}</th>
+                <th>{{ i18n.t('th.played') }}</th>
+                <th>{{ i18n.t('th.wins') }}</th>
+                <th>{{ i18n.t('th.losses') }}</th>
+                @if (!isKoth()) { <th>{{ i18n.t('th.draws') }}</th> }
                 <th>+</th>
                 <th>−</th>
-                <th>Diff</th>
-                @if (isSuperMex()) { <th>Match</th><th>Bonus</th> }
-                <th>Total</th>
-                <th>Over</th>
+                <th>{{ i18n.t('stat.diff') }}</th>
+                @if (isSuperMex()) { <th>{{ i18n.t('th.match') }}</th><th>{{ i18n.t('th.bonus') }}</th> }
+                <th>{{ i18n.t('th.total') }}</th>
+                <th>{{ i18n.t('th.sitouts') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -295,18 +295,18 @@
     <!-- KotH stats -->
     @if (isKoth() && kothRows().length > 0) {
       <section class="section">
-        <h2 class="section-title">👑 King of the Hill statistik</h2>
+        <h2 class="section-title">{{ i18n.t('view.kothStats') }}</h2>
         <div class="standings-wrap glass">
           <table class="standings">
             <thead>
               <tr>
-                <th class="left">Spiller</th>
-                <th>Bane</th>
-                <th>Bedste</th>
-                <th>V</th>
-                <th>T</th>
-                <th>King</th>
-                <th>King V</th>
+                <th class="left">{{ i18n.t('th.player') }}</th>
+                <th>{{ i18n.t('th.court') }}</th>
+                <th>{{ i18n.t('th.best') }}</th>
+                <th>{{ i18n.t('th.wins') }}</th>
+                <th>{{ i18n.t('th.losses') }}</th>
+                <th>{{ i18n.t('th.king') }}</th>
+                <th>{{ i18n.t('th.kingWins') }}</th>
                 <th>+</th>
                 <th>−</th>
               </tr>

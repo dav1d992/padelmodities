@@ -12,6 +12,7 @@ import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { AudioService } from '../../services/audio.service';
 import { AdminService } from '../../services/admin.service';
+import { I18nService } from '../../services/i18n.service';
 import {
   DEFAULT_SKILLSET,
   SKILL_LABELS,
@@ -54,6 +55,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   readonly audioSvc = inject(AudioService);
   readonly admin = inject(AdminService);
+  readonly i18n = inject(I18nService);
 
   readonly player = signal<Player | null>(null);
   readonly loading = signal(true);
@@ -94,7 +96,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        this.error.set(err?.message ?? 'Kunne niet hente spiller.');
+        this.error.set(err?.message ? this.i18n.t(err.message) : this.i18n.t('err.loadPlayer'));
         this.loading.set(false);
       },
     });
@@ -199,11 +201,11 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     const p = this.player();
     if (!p) return;
     if (!this.editName().trim()) {
-      this.editError.set('Navn er påkrævet.');
+      this.editError.set(this.i18n.t('err.nameRequired'));
       return;
     }
     if (this.editShortname().trim() && !/^[a-z0-9_-]+$/i.test(this.editShortname())) {
-      this.editError.set('Kortnavn må kun indeholde bogstaver, tal, - og _.');
+      this.editError.set(this.i18n.t('err.shortnameChars'));
       return;
     }
     this.saving.set(true);
@@ -222,7 +224,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
       });
       this.editing.set(false);
     } catch (err) {
-      this.editError.set(err instanceof Error ? err.message : 'Noget gik galt.');
+      this.editError.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
     } finally {
       this.saving.set(false);
     }
@@ -231,13 +233,13 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   async deletePlayer(): Promise<void> {
     const p = this.player();
     if (!p) return;
-    if (!confirm(`Slet ${p.name}? Dette kan ikke fortrydes.`)) return;
+    if (!confirm(this.i18n.t('detail.deleteConfirm', { name: p.name }))) return;
     this.saving.set(true);
     try {
       await this.service.deletePlayer(p.id);
       this.router.navigate(['/']);
     } catch (err) {
-      this.editError.set(err instanceof Error ? err.message : 'Noget gik galt.');
+      this.editError.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
       this.saving.set(false);
     }
   }
