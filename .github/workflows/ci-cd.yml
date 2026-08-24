@@ -49,10 +49,15 @@ jobs:
           REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
         run: |
           lftp -c "
-            set ftp:ssl-allow no;
-            set net:timeout 20;
-            set net:max-retries 3;
-            set net:reconnect-interval-base 5;
+            set ftp:ssl-allow yes;
+            set ftp:ssl-force no;
+            set ssl:verify-certificate no;
+            set ftp:passive-mode on;
+            set ftp:prefer-epsv no;
+            set net:timeout 30;
+            set net:max-retries 5;
+            set net:reconnect-interval-base 10;
+            set net:persist-retries 5;
             open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" -p \"$FTP_PORT\" \"$FTP_SERVER\";
             mirror -R --delete --verbose --parallel=2 ./dist/danske-padelmodities/ \"$REMOTE_DIR\";
           "
