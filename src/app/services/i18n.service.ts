@@ -49,9 +49,9 @@ const DA: Dict = {
   // Ranglist
   'rank.title': 'Rangliste',
   'rank.brand': 'Danske Padelmodities',
-  'rank.newTournament': '＋ Turnering',
+  'rank.newTournament': '＋Turnering',
   'rank.simulate': 'Simulator',
-  'rank.addPlayer': '＋ Spiller',
+  'rank.addPlayer': '＋Spiller',
   'rank.active': '🟢 Aktive turneringer',
   'rank.drafts': '📝 Udkast',
   'rank.players': 'Spillere',
@@ -294,9 +294,9 @@ const EN: Dict = {
   // Ranglist
   'rank.title': 'Ranking',
   'rank.brand': 'Danske Padelmodities',
-  'rank.newTournament': '＋ Tournament',
+  'rank.newTournament': '＋Tournament',
   'rank.simulate': 'Simulator',
-  'rank.addPlayer': '＋ Player',
+  'rank.addPlayer': '＋Player',
   'rank.active': '🟢 Active tournaments',
   'rank.drafts': '📝 Drafts',
   'rank.players': 'Players',

@@ -260,3 +260,8 @@
 @media (prefers-reduced-motion: reduce) {
   .rail-down, .rail-up { animation: none; }
 }
+
+@media (max-width: 640px) {
+  .shortname-tag { display: none; }
+  .page { padding-top: 0.5rem; }
+}

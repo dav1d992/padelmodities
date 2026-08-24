@@ -117,7 +117,7 @@
             <div class="info-cell">
               <span class="player-name">{{ player.name }}</span>
               <span class="player-record muted small">
-                @if (player.shortname) { <span class="shortname-tag">{{ player.shortname }}</span> · }
+                @if (player.shortname) { <span class="shortname-tag">{{ player.shortname }} · </span> }
                 {{ i18n.t('rank.record', { w: player.wins, l: player.losses, m: player.matchesPlayed }) }}
               </span>
             </div>
