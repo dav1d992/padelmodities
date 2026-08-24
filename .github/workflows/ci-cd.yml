@@ -46,7 +46,6 @@ jobs:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_PORT: ${{ secrets.FTP_PORT }}
-          REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
         run: |
           lftp -c "
             set ftp:ssl-allow yes;
@@ -59,5 +58,5 @@ jobs:
             set net:reconnect-interval-base 10;
             set net:persist-retries 5;
             open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" -p \"$FTP_PORT\" \"$FTP_SERVER\";
-            mirror -R --delete --verbose --parallel=2 ./dist/danske-padelmodities/ \"$REMOTE_DIR\";
+            mirror -R --delete --verbose --parallel=2 ./dist/danske-padelmodities/ ./;
           "
