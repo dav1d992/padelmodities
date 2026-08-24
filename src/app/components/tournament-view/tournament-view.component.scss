@@ -138,9 +138,16 @@
   outline: none;
   transition: border-color var(--transition);
 
+  -moz-appearance: textfield;
+  appearance: textfield;
+
   &:focus { border-color: var(--primary); }
   &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button { opacity: 0; }
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+  }
 }
 
 .hint { text-align: center; }
@@ -227,4 +234,166 @@
   .match-teams { grid-template-columns: 1fr auto 1fr; gap: 0.4rem; }
   .score-input { width: 50px; font-size: 1.2rem; }
   .team-player { font-size: 0.8rem; }
+}
+
+/* ─── Round navigation ─────────────────────────────────────────────────────── */
+.round-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.round-nav-label {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.reset-btn { margin-top: 0.5rem; display: block; }
+
+.warn { color: var(--gold); margin: 0.4rem 0 0; }
+.edit-warn {
+  background: rgba(232,197,71,0.1);
+  border: 1px solid rgba(232,197,71,0.3);
+  border-radius: var(--radius-sm);
+  padding: 0.6em 0.9em;
+}
+
+/* ─── Court label / team title ─────────────────────────────────────────────── */
+.court-label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.team-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--accent);
+  margin-bottom: 0.15rem;
+}
+
+/* ─── Sit-outs ─────────────────────────────────────────────────────────────── */
+.sitouts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius);
+}
+
+.sitout-chip {
+  padding: 0.25em 0.7em;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+/* ─── Draft banner ─────────────────────────────────────────────────────────── */
+.draft-banner {
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+}
+.draft-icon { font-size: 2.5rem; }
+
+.action-buttons {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.winner-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+/* ─── Standings table ──────────────────────────────────────────────────────── */
+.standings-wrap { overflow-x: auto; }
+
+.standings {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th, td {
+    padding: 0.5rem 0.4rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+  th {
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  td { border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+
+  .left { text-align: left; }
+  .name { font-weight: 600; }
+  .rank { font-weight: 700; }
+  .total { font-weight: 800; color: var(--primary); }
+  .pos { color: var(--primary); }
+  .neg { color: var(--danger); }
+}
+
+/* ─── King of the Hill ladder ──────────────────────────────────────────────── */
+.ladder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.ladder-court {
+  padding: 1rem;
+  border-left: 4px solid var(--border);
+
+  &.king-court {
+    border-left-color: var(--gold);
+    background: rgba(232,197,71,0.06);
+  }
+}
+
+.ladder-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+}
+
+.ladder-name { font-weight: 700; }
+
+.koth-teams .team-players {
+  gap: 0.25rem;
+}
+
+.koth-player {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+@media (max-width: 400px) {
+  .standings { font-size: 0.78rem; }
+  .standings th, .standings td { padding: 0.4rem 0.25rem; }
 }

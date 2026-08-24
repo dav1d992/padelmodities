@@ -3,7 +3,7 @@
 
   <div class="glass panel form-card">
     <h1>Ny turnering</h1>
-    <p class="muted">Vælg format og deltagere.</p>
+    <p class="muted">Vælg format, deltagere og scoring.</p>
 
     @if (error()) {
       <p class="banner-error pop-in">{{ error() }}</p>
@@ -13,7 +13,6 @@
       Turneringens navn *
       <input
         type="text"
-        placeholder="F.eks. Lørdag Americano"
         maxlength="60"
         [ngModel]="tournamentName()"
         (ngModelChange)="tournamentName.set($event)"
@@ -24,67 +23,258 @@
     <div class="format-section">
       <span class="field-label muted">Format</span>
       <div class="format-cards">
-        <button
-          class="format-card glass"
-          [class.selected]="format() === 'americano'"
-          (click)="format.set('americano')"
-        >
-          <span class="format-emoji">🔄</span>
-          <strong>Americano</strong>
-          <span class="muted small">Alle runder genereres på forhånd. Partnere roterer.</span>
-        </button>
-        <button
-          class="format-card glass"
-          [class.selected]="format() === 'mexicano'"
-          (click)="format.set('mexicano')"
-        >
-          <span class="format-emoji">🏆</span>
-          <strong>Mexicano</strong>
-          <span class="muted small">Parring efter aktuel stilling hver runde.</span>
-        </button>
+        @for (opt of formatOptions; track opt.value) {
+          <button
+            class="format-card glass"
+            [class.selected]="format() === opt.value"
+            (click)="selectFormat(opt.value)"
+          >
+            <span class="format-emoji">{{ opt.emoji }}</span>
+            <strong>{{ FORMAT_LABELS[opt.value] }}</strong>
+            <span class="muted small">{{ opt.desc }}</span>
+          </button>
+        }
       </div>
     </div>
 
-    <!-- Player selection -->
-    <div class="players-section">
-      <span class="field-label muted">Vælg spillere</span>
-      <p class="validation-hint small" [class.ok]="selectedCount() >= 4 && selectedCount() % 2 === 0">
-        {{ validationHint() }}
-      </p>
+    <!-- Scoring -->
+    <div class="config-section">
+      <span class="field-label muted">Scoring</span>
+      <div class="chip-row">
+        @for (m of scoringMethods; track m) {
+          <button
+            class="pill"
+            [class.selected]="scoring().method === m"
+            (click)="setScoringMethod(m)"
+          >{{ SCORING_LABELS[m] }}</button>
+        }
+      </div>
 
-      @if (players().length === 0) {
-        <p class="muted small">Ingen spillere fundet. <a routerLink="/create-player">Opret spillere</a> først.</p>
-      } @else {
-        <div class="player-grid">
-          @for (p of players(); track p.id) {
-            <button
-              class="player-chip"
-              [class.selected]="isSelected(p.id)"
-              (click)="togglePlayer(p.id)"
-            >
-              @if (p.shortname) {
-                <img class="chip-avatar" [src]="'/assets/' + p.shortname + '-padel.png'" [alt]="p.name" loading="lazy"
-                     (error)="$any($event.target).style.display='none'">
-              } @else {
-                <div class="chip-avatar chip-avatar-placeholder">{{ p.name[0].toUpperCase() }}</div>
-              }
-              <span class="chip-name">{{ p.name }}</span>
-              <span class="chip-rating muted">{{ p.rating }}</span>
-              @if (isSelected(p.id)) {
-                <span class="chip-check">✓</span>
-              }
-            </button>
-          }
+      <div class="scoring-options">
+        @if (scoring().method === 'fixed-points' || scoring().method === 'first-to') {
+          <label class="inline">
+            {{ scoring().method === 'fixed-points' ? 'Samlede point' : 'Point at nå' }}
+            <input type="number" min="1" max="99"
+              [ngModel]="scoring().pointTarget"
+              (ngModelChange)="patchScoring('pointTarget', +$event)">
+          </label>
+          <div class="quick-targets">
+            @for (t of [16, 21, 24, 32]; track t) {
+              <button class="pill small" [class.selected]="scoring().pointTarget === t"
+                (click)="patchScoring('pointTarget', t)">{{ t }}</button>
+            }
+          </div>
+        }
+        @if (scoring().method === 'games-sets') {
+          <label class="inline">
+            Games pr. sæt
+            <input type="number" min="1" max="9"
+              [ngModel]="scoring().gamesPerSet"
+              (ngModelChange)="patchScoring('gamesPerSet', +$event)">
+          </label>
+          <label class="inline">
+            Sæt for sejr
+            <input type="number" min="1" max="5"
+              [ngModel]="scoring().setsToWin"
+              (ngModelChange)="patchScoring('setsToWin', +$event)">
+          </label>
+        }
+        @if (scoring().method === 'timed') {
+          <label class="inline">
+            Minutter pr. runde
+            <input type="number" min="1" max="60"
+              [ngModel]="scoring().minutesPerRound"
+              (ngModelChange)="patchScoring('minutesPerRound', +$event)">
+          </label>
+          <p class="muted small">Den førende fører når tiden er gået.</p>
+        }
+      </div>
+
+      <div class="toggle-row">
+        <label class="switch">
+          <input type="checkbox" [ngModel]="scoring().winByTwo"
+            (ngModelChange)="patchScoring('winByTwo', $event)">
+          <span>Vind med 2</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" [ngModel]="scoring().goldenPoint"
+            (ngModelChange)="patchScoring('goldenPoint', $event)">
+          <span>Golden point</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Courts -->
+    <div class="config-section">
+      <span class="field-label muted">Baner ({{ courtCount() }})</span>
+      <div class="court-list">
+        @for (name of courtNames(); track $index) {
+          <div class="court-row">
+            <span class="court-num">{{ $index + 1 }}</span>
+            <input type="text" [ngModel]="name"
+              (ngModelChange)="setCourtName($index, $event)" maxlength="30">
+            <button class="btn-icon" (click)="removeCourt($index)"
+              [disabled]="courtCount() <= 1">✕</button>
+          </div>
+        }
+      </div>
+      <button class="btn btn-ghost small-btn" (click)="addCourt()">+ Tilføj bane</button>
+    </div>
+
+    <!-- Rounds (not for round robin) -->
+    @if (!isRoundRobin()) {
+      <label class="inline">
+        Antal runder
+        <input type="number" min="1" max="50"
+          [ngModel]="totalRounds()" (ngModelChange)="totalRounds.set(+$event)">
+      </label>
+    } @else {
+      <p class="muted small">Team Americano spiller alle mod alle — antal runder beregnes automatisk.</p>
+    }
+
+    <!-- Seeded order -->
+    <label class="switch standalone">
+      <input type="checkbox" [ngModel]="seeded()" (ngModelChange)="seeded.set($event)">
+      <span>{{ isKoth() ? 'Seedet startopstilling' : 'Seedet start (ellers tilfældig)' }}</span>
+    </label>
+
+    <!-- Super Mexicano bonus -->
+    @if (isSuperMex()) {
+      <div class="config-section bonus-section">
+        <span class="field-label muted">Bane-bonuspoint</span>
+        <label class="switch">
+          <input type="checkbox" [ngModel]="bonus().enabled"
+            (ngModelChange)="patchBonus('enabled', $event)">
+          <span>Aktivér bonuspoint</span>
+        </label>
+        @if (bonus().enabled) {
+          <label class="inline">
+            Bonus starter fra runde
+            <input type="number" min="1" max="50"
+              [ngModel]="bonus().startRound" (ngModelChange)="patchBonus('startRound', +$event)">
+          </label>
+          <label class="switch">
+            <input type="checkbox" [ngModel]="bonus().winnersOnly"
+              (ngModelChange)="patchBonus('winnersOnly', $event)">
+            <span>Kun til vinderne (ellers alle på banen)</span>
+          </label>
+          <div class="court-list">
+            @for (name of courtNames(); track $index) {
+              <div class="court-row">
+                <span class="court-name-label">{{ name }}</span>
+                <input type="number" min="0" max="20"
+                  [ngModel]="bonusForCourt($index)"
+                  (ngModelChange)="setBonusForCourt($index, +$event)">
+                <span class="muted small">pt</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Participants -->
+    @if (isTeam()) {
+      <div class="config-section">
+        <span class="field-label muted">Hold ({{ teamCount() }})</span>
+
+        @if (teams().length > 0) {
+          <div class="team-list">
+            @for (t of teams(); track t.id) {
+              <div class="team-item glass">
+                <span class="team-item-name">{{ t.name }}</span>
+                <span class="muted small">{{ playerName(t.p1) }} + {{ playerName(t.p2) }}</span>
+                <button class="btn-icon" (click)="removeTeam(t.id)">✕</button>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="team-builder glass">
+          <p class="muted small">Vælg 2 spillere for at danne et hold</p>
+          <div class="player-grid">
+            @for (p of availableForTeams(); track p.id) {
+              <button class="player-chip" [class.selected]="isPicked(p.id)"
+                (click)="toggleTeamPick(p.id)">
+                @if (p.shortname) {
+                  <img class="chip-avatar" [src]="'/assets/' + p.shortname + '-padel.png'" [alt]="p.name" loading="lazy"
+                       (error)="$any($event.target).style.display='none'">
+                } @else {
+                  <div class="chip-avatar chip-avatar-placeholder">{{ p.name[0].toUpperCase() }}</div>
+                }
+                <span class="chip-name">{{ p.name }}</span>
+              </button>
+            }
+          </div>
+          <input type="text" class="team-name-input"
+            maxlength="40" [ngModel]="teamName()" (ngModelChange)="teamName.set($event)">
+          <button class="btn btn-ghost small-btn" [disabled]="teamPick().length !== 2"
+            (click)="addTeam()">+ Tilføj hold</button>
         </div>
+      </div>
+    } @else {
+      <div class="config-section">
+        <span class="field-label muted">Vælg spillere</span>
+        <p class="validation-hint small" [class.ok]="canSubmit()">
+          {{ selectedCount() }} spillere valgt
+        </p>
+        @if (players().length === 0) {
+          <p class="muted small">Ingen spillere fundet. <a routerLink="/create-player">Opret spillere</a> først.</p>
+        } @else {
+          <div class="player-grid">
+            @for (p of players(); track p.id) {
+              <button class="player-chip" [class.selected]="isSelected(p.id)"
+                (click)="togglePlayer(p.id)">
+                @if (p.shortname) {
+                  <img class="chip-avatar" [src]="'/assets/' + p.shortname + '-padel.png'" [alt]="p.name" loading="lazy"
+                       (error)="$any($event.target).style.display='none'">
+                } @else {
+                  <div class="chip-avatar chip-avatar-placeholder">{{ p.name[0].toUpperCase() }}</div>
+                }
+                <span class="chip-name">{{ p.name }}</span>
+                <span class="chip-rating muted">{{ p.rating }}</span>
+                @if (isSelected(p.id)) { <span class="chip-check">✓</span> }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Preview / validation -->
+    <div class="preview-box glass">
+      <div class="preview-row">
+        <span class="muted small">Deltagere</span>
+        <strong>{{ isTeam() ? teamCount() + ' hold' : selectedCount() + ' spillere' }}</strong>
+      </div>
+      <div class="preview-row">
+        <span class="muted small">Kampe pr. runde</span>
+        <strong>{{ perRoundInfo().matches }}</strong>
+      </div>
+      @if (!isRoundRobin()) {
+        <div class="preview-row">
+          <span class="muted small">Runder</span>
+          <strong>{{ totalRounds() }}</strong>
+        </div>
+      }
+      @if (fairnessWarning()) {
+        <p class="warn small">⚠️ {{ fairnessWarning() }}</p>
+      }
+      @if (!validation().ok) {
+        @for (msg of validation().messages; track msg) {
+          <p class="warn small">• {{ msg }}</p>
+        }
       }
     </div>
 
-    <button
-      class="btn btn-primary big"
-      [disabled]="!canCreate() || submitting()"
-      (click)="create()"
-    >
-      {{ submitting() ? 'Opretter…' : '🏆 Start turnering' }}
-    </button>
+    <div class="action-buttons">
+      <button class="btn btn-ghost" [disabled]="submitting()" (click)="saveDraft()">
+        💾 Gem udkast
+      </button>
+      <button class="btn btn-primary big" [disabled]="!canSubmit() || submitting()"
+        (click)="start()">
+        {{ submitting() ? 'Starter…' : '🏆 Start turnering' }}
+      </button>
+    </div>
   </div>
 </div>

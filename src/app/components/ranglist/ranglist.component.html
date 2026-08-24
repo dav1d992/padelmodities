@@ -26,11 +26,25 @@
       <div class="tournament-chips">
         @for (t of activeTournaments(); track t.id) {
           <button class="chip glass" (click)="goToTournament(t.id)">
-            <span class="chip-format badge" [class.badge-green]="t.format === 'americano'" [class.badge-gold]="t.format === 'mexicano'">
-              {{ t.format }}
-            </span>
+            <span class="chip-format badge badge-blue">{{ FORMAT_LABELS[t.format] }}</span>
             <span class="chip-name">{{ t.name }}</span>
             <span class="chip-arrow">→</span>
+          </button>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Draft tournaments -->
+  @if (draftTournaments().length > 0) {
+    <section class="section">
+      <h2 class="section-title">📝 Udkast</h2>
+      <div class="tournament-chips">
+        @for (t of draftTournaments(); track t.id) {
+          <button class="chip glass" (click)="goToTournament(t.id)">
+            <span class="chip-format badge badge-gold">{{ FORMAT_LABELS[t.format] }}</span>
+            <span class="chip-name">{{ t.name }}</span>
+            <span class="badge badge-gold">Udkast</span>
           </button>
         }
       </div>
@@ -101,7 +115,7 @@
       <div class="tournament-chips">
         @for (t of recentTournaments(); track t.id) {
           <button class="chip chip-finished glass" (click)="goToTournament(t.id)">
-            <span class="chip-format badge badge-muted">{{ t.format }}</span>
+            <span class="chip-format badge badge-muted">{{ FORMAT_LABELS[t.format] }}</span>
             <span class="chip-name">{{ t.name }}</span>
             <span class="badge badge-muted">Afsluttet</span>
           </button>

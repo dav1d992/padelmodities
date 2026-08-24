@@ -14,7 +14,6 @@
       Navn *
       <input
         type="text"
-        placeholder="F.eks. Lars Hansen"
         maxlength="40"
         [ngModel]="name()"
         (ngModelChange)="name.set($event)"
@@ -25,7 +24,6 @@
       Kortnavn <span class="muted">(bruges til profilbillede)</span>
       <input
         type="text"
-        placeholder="F.eks. men"
         maxlength="20"
         [ngModel]="shortname()"
         (ngModelChange)="shortname.set($event)"

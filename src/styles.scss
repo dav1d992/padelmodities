@@ -47,7 +47,7 @@ h3 { font-size: clamp(1rem, 3vw, 1.25rem); font-weight: 600; }
 .small { font-size: 0.85rem; }
 
 /* ─── Buttons ────────────────────────────────────────────────────────────── */
-button { font: inherit; cursor: pointer; border: none; background: none; }
+button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
 
 .btn {
   display: inline-flex;
@@ -136,6 +136,24 @@ select {
 
   &:focus { border-color: var(--primary); }
   &::placeholder { color: var(--text-muted); }
+}
+
+/* Remove up/down spinners on number inputs (all browsers). */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+/* Native dropdown options render on a light surface — keep their text dark
+   there, but never let app text fall back to black on the dark theme. */
+option {
+  color: #1a2333;
 }
 
 label {

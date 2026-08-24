@@ -52,28 +52,164 @@ export interface Player {
   createdAt: number;
 }
 
-export type TournamentFormat = 'americano' | 'mexicano';
-export type TournamentStatus = 'setup' | 'active' | 'finished';
+export type TournamentFormat =
+  | 'americano'
+  | 'team-americano'
+  | 'mexicano'
+  | 'team-mexicano'
+  | 'super-mexicano'
+  | 'king-of-the-hill';
+
+export type TournamentStatus = 'draft' | 'active' | 'finished';
+
+/** Formats where participants are fixed teams of two rather than individuals. */
+export const TEAM_FORMATS: readonly TournamentFormat[] = [
+  'team-americano',
+  'team-mexicano',
+];
+
+/** Formats whose rounds are generated from live standings (regeneration allowed). */
+export const DYNAMIC_FORMATS: readonly TournamentFormat[] = [
+  'mexicano',
+  'team-mexicano',
+  'super-mexicano',
+  'king-of-the-hill',
+];
+
+/** Human-readable labels for each format. */
+export const FORMAT_LABELS: Record<TournamentFormat, string> = {
+  'americano': 'Americano',
+  'team-americano': 'Team Americano',
+  'mexicano': 'Mexicano',
+  'team-mexicano': 'Team Mexicano',
+  'super-mexicano': 'Super Mexicano',
+  'king-of-the-hill': 'King of the Hill',
+};
+
+export function isTeamFormat(format: TournamentFormat): boolean {
+  return TEAM_FORMATS.includes(format);
+}
+
+export function isDynamicFormat(format: TournamentFormat): boolean {
+  return DYNAMIC_FORMATS.includes(format);
+}
+
+// ── Scoring ────────────────────────────────────────────────────────────────
+
+export type ScoringMethod =
+  | 'fixed-points' // race to a fixed total (e.g. 16/24/32); sides split the total
+  | 'first-to' // first side to reach the target wins
+  | 'games-sets' // games and sets
+  | 'timed'; // timed round, leader wins
+
+export const SCORING_LABELS: Record<ScoringMethod, string> = {
+  'fixed-points': 'Faste point',
+  'first-to': 'Først til',
+  'games-sets': 'Games & sæt',
+  'timed': 'Tid',
+};
+
+export interface ScoringConfig {
+  method: ScoringMethod;
+  /** Point target for fixed-points / first-to. */
+  pointTarget: number;
+  /** Require a two-point margin to win. */
+  winByTwo: boolean;
+  /** Sudden-death golden point (overrides win-by-two once reached). */
+  goldenPoint: boolean;
+  /** Games required to win a set (games-sets). */
+  gamesPerSet: number;
+  /** Sets required to win a match (games-sets). */
+  setsToWin: number;
+  /** Minutes per round (timed). */
+  minutesPerRound: number;
+}
+
+export const DEFAULT_SCORING: ScoringConfig = {
+  method: 'fixed-points',
+  pointTarget: 24,
+  winByTwo: false,
+  goldenPoint: false,
+  gamesPerSet: 6,
+  setsToWin: 1,
+  minutesPerRound: 15,
+};
+
+/** Court-bonus configuration used by the Super Mexicano format. */
+export interface CourtBonusConfig {
+  enabled: boolean;
+  /** 1-based round from which bonuses start applying. */
+  startRound: number;
+  /** Award bonus only to the winning side (else everyone on the court). */
+  winnersOnly: boolean;
+  /** Bonus points keyed by 0-based court index (as string, RTDB-safe). */
+  points: Record<string, number>;
+}
+
+export const DEFAULT_BONUS: CourtBonusConfig = {
+  enabled: true,
+  startRound: 1,
+  winnersOnly: false,
+  points: { '0': 3, '1': 2, '2': 1 },
+};
+
+/** A fixed team of two players (team formats). */
+export interface TournamentTeam {
+  id: string;
+  name: string;
+  p1: string;
+  p2: string;
+}
+
+/** A single set result within a games-sets match. */
+export interface SetScore {
+  a: number;
+  b: number;
+}
 
 /**
  * A single padel doubles match within a tournament round.
- * Teams are stored as flat fields because Firebase RTDB serialises JS arrays as
- * objects with numeric keys, which can cause subtle bugs on read-back.
+ * Player/team members are stored as flat fields because Firebase RTDB
+ * serialises JS arrays as objects with numeric keys.
  */
 export interface TournamentMatch {
   id: string;
-  team1p1: string;
-  team1p2: string;
-  team2p1: string;
-  team2p2: string;
+  /** 0-based court index within the round. */
+  courtIndex: number;
+  a1: string;
+  a2: string;
+  b1: string;
+  b2: string;
+  /** Team ids for team formats (side A / side B). */
+  teamAId?: string;
+  teamBId?: string;
+  /** Primary points for side A / side B. */
   score1?: number;
   score2?: number;
+  /** Per-set detail for the games-sets method, keyed by set index. */
+  setScores?: Record<string, SetScore>;
 }
 
 export interface TournamentRound {
   index: number;
   completed: boolean;
   matches?: Record<string, TournamentMatch>;
+  /** Participant ids (players or teams) sitting out this round. */
+  sitOutIds?: Record<string, string>;
+}
+
+/** Per-player King of the Hill statistics (recomputed from rounds). */
+export interface KothStats {
+  currentCourt: number;
+  lastMovement: 'up' | 'down' | 'stay-top' | 'stay-bottom' | 'none';
+  /** Best (lowest) court index reached. 0 = King Court. */
+  highestCourt: number;
+  wins: number;
+  losses: number;
+  kingAppearances: number;
+  kingWins: number;
+  pointsFor: number;
+  pointsAgainst: number;
 }
 
 export interface Tournament {
@@ -81,13 +217,43 @@ export interface Tournament {
   name: string;
   format: TournamentFormat;
   status: TournamentStatus;
-  /** Player IDs keyed by insertion index (RTDB-safe). */
+  /** Player IDs keyed by insertion index (RTDB-safe) — individual formats. */
   playerIds?: Record<string, string>;
+  /** Fixed teams keyed by insertion index — team formats. */
+  teams?: Record<string, TournamentTeam>;
+  /** Court display names keyed by 0-based index. */
+  courtNames?: Record<string, string>;
+  courtCount: number;
+  /** Planned number of rounds (advisory for round-robin formats). */
+  totalRounds: number;
   currentRound: number;
-  /** Accumulated tournament points per player. */
+  scoring: ScoringConfig;
+  /** Court-bonus config (Super Mexicano only). */
+  bonus?: CourtBonusConfig;
+  /** Seeded starting order instead of random. */
+  seeded: boolean;
+  /** Convenience cache of participant → match points (recomputed on write). */
   pointsTable?: Record<string, number>;
   rounds?: Record<string, TournamentRound>;
   createdAt: number;
+  updatedAt?: number;
+}
+
+/** A computed standings row (players or teams). */
+export interface StandingRow {
+  participantId: string;
+  name: string;
+  played: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  pointsFor: number;
+  pointsAgainst: number;
+  diff: number;
+  bonus: number;
+  matchPoints: number;
+  total: number;
+  sitOuts: number;
 }
 
 /** Access code required to create a new player. Injected from the ADMIN_CODE secret in CI. */

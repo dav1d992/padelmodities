@@ -13,13 +13,46 @@ import { FIREBASE_DB } from '../core/firebase';
 import {
   DEFAULT_SKILLSET,
   ELO_K,
+  isDynamicFormat,
+  isTeamFormat,
+  type CourtBonusConfig,
   type Player,
+  type ScoringConfig,
   type Skillset,
   type Tournament,
   type TournamentFormat,
   type TournamentMatch,
   type TournamentRound,
+  type TournamentStatus,
+  type TournamentTeam,
 } from '../models/padel.model';
+import {
+  computeStandings,
+  generateAmericanoRounds,
+  generateKothInitialRound,
+  generateKothNextRound,
+  generateMexicanoRound,
+  generateTeamAmericanoRounds,
+  generateTeamMexicanoRound,
+  standingsOrder,
+  validateScore,
+} from './tournament-engine';
+
+/** Everything needed to create or update a tournament (draft or active). */
+export interface CreateTournamentInput {
+  name: string;
+  format: TournamentFormat;
+  /** Individual formats. */
+  playerIds: string[];
+  /** Team formats. */
+  teams?: TournamentTeam[];
+  courtNames: string[];
+  totalRounds: number;
+  scoring: ScoringConfig;
+  bonus?: CourtBonusConfig;
+  seeded: boolean;
+  status: 'draft' | 'active';
+}
 
 /** Reject if a Firebase call doesn't settle within the timeout. */
 function withTimeout<T>(promise: Promise<T>, ms = 10_000): Promise<T> {
@@ -47,84 +80,6 @@ function normaliseSkillset(skillset?: Partial<Skillset>): Skillset {
 }
 
 // ---------------------------------------------------------------------------
-// Round-generation helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Generates all rounds for an Americano tournament using the circle/Berger
- * rotation method.  For N players (must be even, min 4) this produces N-1
- * rounds each with floor(N/4) courts.  When N is not divisible by 4 some
- * players naturally sit out each round.
- */
-function generateAmericanoRounds(playerIds: string[]): TournamentMatch[][] {
-  const n = playerIds.length;
-  if (n < 4 || n % 2 !== 0) {
-    throw new Error('Americano requires an even number of players (min 4).');
-  }
-
-  const fixed = playerIds[0];
-  const rotating = playerIds.slice(1);
-  const rounds: TournamentMatch[][] = [];
-  const numRounds = n - 1;
-
-  for (let r = 0; r < numRounds; r++) {
-    const order = [fixed, ...rotating];
-
-    // Pair symmetrically: order[i] with order[n-1-i]
-    const pairs: [string, string][] = [];
-    for (let i = 0; i < n / 2; i++) {
-      pairs.push([order[i], order[n - 1 - i]]);
-    }
-
-    // Group consecutive pairs into courts (2 pairs → 1 match)
-    const matches: TournamentMatch[] = [];
-    for (let i = 0; i + 1 < pairs.length; i += 2) {
-      matches.push({
-        id: `r${r}_c${i / 2}`,
-        team1p1: pairs[i][0],
-        team1p2: pairs[i][1],
-        team2p1: pairs[i + 1][0],
-        team2p2: pairs[i + 1][1],
-      });
-    }
-    rounds.push(matches);
-
-    // Rotate: last element moves to front of rotating list
-    rotating.unshift(rotating.pop()!);
-  }
-
-  return rounds;
-}
-
-/**
- * Generates a single Mexicano round by pairing players according to current
- * standings: within each group of 4 (sorted by points), pair 1st+4th vs
- * 2nd+3rd.
- */
-function generateMexicanoRound(
-  playerIds: string[],
-  pointsTable: Record<string, number>,
-  roundIndex: number,
-): TournamentMatch[] {
-  const sorted = [...playerIds].sort(
-    (a, b) => (pointsTable[b] ?? 0) - (pointsTable[a] ?? 0),
-  );
-
-  const matches: TournamentMatch[] = [];
-  for (let court = 0; court + 3 < sorted.length; court += 4) {
-    const [p1, p2, p3, p4] = sorted.slice(court, court + 4);
-    matches.push({
-      id: `r${roundIndex}_c${court / 4}`,
-      team1p1: p1,
-      team1p2: p4,
-      team2p1: p2,
-      team2p2: p3,
-    });
-  }
-  return matches;
-}
-
-// ---------------------------------------------------------------------------
 // ELO helper
 // ---------------------------------------------------------------------------
 
@@ -141,8 +96,8 @@ function computeEloDeltas(
   ratings: Record<string, number>,
 ): Record<string, number> {
   const r = (id: string) => ratings[id] ?? 1000;
-  const teamA = (r(match.team1p1) + r(match.team1p2)) / 2;
-  const teamB = (r(match.team2p1) + r(match.team2p2)) / 2;
+  const teamA = (r(match.a1) + r(match.a2)) / 2;
+  const teamB = (r(match.b1) + r(match.b2)) / 2;
   const expA = eloExpected(teamA, teamB);
   const expB = 1 - expA;
   const total = (match.score1 ?? 0) + (match.score2 ?? 0);
@@ -150,10 +105,10 @@ function computeEloDeltas(
   const actB = 1 - actA;
 
   return {
-    [match.team1p1]: ELO_K * (actA - expA),
-    [match.team1p2]: ELO_K * (actA - expA),
-    [match.team2p1]: ELO_K * (actB - expB),
-    [match.team2p2]: ELO_K * (actB - expB),
+    [match.a1]: ELO_K * (actA - expA),
+    [match.a2]: ELO_K * (actA - expA),
+    [match.b1]: ELO_K * (actB - expB),
+    [match.b2]: ELO_K * (actB - expB),
   };
 }
 
@@ -292,79 +247,179 @@ export class PadelService {
     });
   }
 
-  async createTournament(
-    name: string,
-    format: TournamentFormat,
-    playerIds: string[],
-  ): Promise<string> {
-    if (playerIds.length < 4) {
-      throw new Error('A tournament requires at least 4 players.');
-    }
-    if (playerIds.length % 2 !== 0) {
-      throw new Error('Player count must be even (2v2 courts).');
-    }
-
+  /**
+   * Create a tournament (draft or active). When `status` is 'active' the
+   * initial round(s) are generated immediately.
+   */
+  async createTournament(input: CreateTournamentInput): Promise<string> {
+    const tournament = this.buildTournamentRecord(input);
     const tourRef = push(ref(this.db, 'tournaments'));
-    const id = tourRef.key!;
-
-    // Initialise points table to 0 for all players
-    const pointsTable: Record<string, number> = {};
-    playerIds.forEach((pid) => (pointsTable[pid] = 0));
-
-    // Store playerIds as an object (RTDB-safe)
-    const playerIdsRecord: Record<string, string> = {};
-    playerIds.forEach((pid, i) => (playerIdsRecord[String(i)] = pid));
-
-    const tournament: Tournament = {
-      id,
-      name: name.trim(),
-      format,
-      status: 'active',
-      playerIds: playerIdsRecord,
-      currentRound: 0,
-      pointsTable,
-      createdAt: Date.now(),
-    };
-
+    tournament.id = tourRef.key!;
     await withTimeout(set(tourRef, tournament));
-
-    // Generate and store round 0
-    await this.generateAndStoreRound(id, format, playerIds, pointsTable, 0);
-
-    return id;
+    if (input.status === 'active') {
+      await this.generateInitialRounds(tournament);
+    }
+    return tournament.id;
   }
 
-  private async generateAndStoreRound(
+  /** Update an existing draft in place (never touches an active tournament's rounds). */
+  async updateDraft(
     tournamentId: string,
-    format: TournamentFormat,
-    playerIds: string[],
-    pointsTable: Record<string, number>,
-    roundIndex: number,
+    input: CreateTournamentInput,
   ): Promise<void> {
-    let matches: TournamentMatch[];
-
-    if (format === 'americano') {
-      const allRounds = generateAmericanoRounds(playerIds);
-      if (roundIndex >= allRounds.length) return; // exhausted
-      matches = allRounds[roundIndex];
-    } else {
-      matches = generateMexicanoRound(playerIds, pointsTable, roundIndex);
-    }
-
-    const matchesRecord: Record<string, TournamentMatch> = {};
-    matches.forEach((m) => (matchesRecord[m.id] = m));
-
-    const round: TournamentRound = {
-      index: roundIndex,
-      completed: false,
-      matches: matchesRecord,
-    };
-
+    const record = this.buildTournamentRecord(input);
+    record.id = tournamentId;
     await withTimeout(
-      set(ref(this.db, `tournaments/${tournamentId}/rounds/${roundIndex}`), round),
+      set(ref(this.db, `tournaments/${tournamentId}`), record),
     );
   }
 
+  /** Promote a draft to active and generate its opening round(s). */
+  async startTournament(tournamentId: string): Promise<void> {
+    const tournament = await this.getTournament(tournamentId);
+    if (tournament.status !== 'draft') return;
+    await withTimeout(
+      update(ref(this.db, `tournaments/${tournamentId}`), {
+        status: 'active' satisfies TournamentStatus,
+        updatedAt: Date.now(),
+      }),
+    );
+    await this.generateInitialRounds({ ...tournament, status: 'active' });
+  }
+
+  private buildTournamentRecord(input: CreateTournamentInput): Tournament {
+    const team = isTeamFormat(input.format);
+    if (team) {
+      if (!input.teams || input.teams.length < 2) {
+        throw new Error('Team-formater kræver mindst 2 hold.');
+      }
+    } else if (input.playerIds.length < 4) {
+      throw new Error('En turnering kræver mindst 4 spillere.');
+    }
+
+    const courtNames: Record<string, string> = {};
+    input.courtNames.forEach((name, i) => {
+      courtNames[String(i)] = name.trim() || `Bane ${i + 1}`;
+    });
+
+    const record: Tournament = {
+      id: '',
+      name: input.name.trim(),
+      format: input.format,
+      status: input.status,
+      courtCount: input.courtNames.length,
+      courtNames,
+      totalRounds: input.totalRounds,
+      currentRound: 0,
+      scoring: input.scoring,
+      seeded: input.seeded,
+      pointsTable: {},
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    if (team) {
+      const teamsRecord: Record<string, TournamentTeam> = {};
+      input.teams!.forEach((t, i) => (teamsRecord[String(i)] = t));
+      record.teams = teamsRecord;
+    } else {
+      const playerIdsRecord: Record<string, string> = {};
+      input.playerIds.forEach((pid, i) => (playerIdsRecord[String(i)] = pid));
+      record.playerIds = playerIdsRecord;
+    }
+
+    if (input.format === 'super-mexicano' && input.bonus) {
+      record.bonus = input.bonus;
+    }
+    return record;
+  }
+
+  /** Generate and store the opening round(s) for a freshly-started tournament. */
+  private async generateInitialRounds(tournament: Tournament): Promise<void> {
+    const { format, courtCount } = tournament;
+    const rounds: Record<string, TournamentRound> = {};
+
+    if (format === 'americano') {
+      const playerIds = Object.values(tournament.playerIds ?? {});
+      const generated = generateAmericanoRounds(
+        playerIds,
+        courtCount,
+        tournament.totalRounds,
+      );
+      generated.forEach((r) => (rounds[String(r.index)] = r));
+    } else if (format === 'team-americano') {
+      const teamIds = Object.values(tournament.teams ?? {}).map((t) => t.id);
+      const generated = generateTeamAmericanoRounds(
+        teamIds,
+        this.teamMap(tournament),
+        courtCount,
+      );
+      generated.forEach((r) => (rounds[String(r.index)] = r));
+      // Round-robin length is fixed by the number of teams/courts.
+      await withTimeout(
+        update(ref(this.db, `tournaments/${tournament.id}`), {
+          totalRounds: generated.length,
+        }),
+      );
+    } else if (format === 'king-of-the-hill') {
+      const playerIds = Object.values(tournament.playerIds ?? {});
+      rounds['0'] = generateKothInitialRound(
+        playerIds,
+        courtCount,
+        tournament.seeded,
+      );
+    } else {
+      // mexicano / super-mexicano / team-mexicano: only round 0 up front.
+      rounds['0'] = this.buildDynamicRound(tournament, 0, []);
+    }
+
+    await withTimeout(
+      set(ref(this.db, `tournaments/${tournament.id}/rounds`), rounds),
+    );
+  }
+
+  private teamMap(tournament: Tournament): Record<string, TournamentTeam> {
+    const map: Record<string, TournamentTeam> = {};
+    Object.values(tournament.teams ?? {}).forEach((t) => (map[t.id] = t));
+    return map;
+  }
+
+  /** Build a single dynamic (standings-based) round for a tournament. */
+  private buildDynamicRound(
+    tournament: Tournament,
+    roundIndex: number,
+    priorRounds: TournamentRound[],
+  ): TournamentRound {
+    const order = standingsOrder(tournament, (id) => this.participantName(tournament, id));
+
+    if (tournament.format === 'team-mexicano') {
+      const teamIds = Object.values(tournament.teams ?? {}).map((t) => t.id);
+      return generateTeamMexicanoRound(
+        teamIds,
+        this.teamMap(tournament),
+        tournament.courtCount,
+        roundIndex,
+        priorRounds,
+        order,
+      );
+    }
+    // mexicano + super-mexicano
+    const playerIds = Object.values(tournament.playerIds ?? {});
+    return generateMexicanoRound(
+      playerIds,
+      tournament.courtCount,
+      roundIndex,
+      priorRounds,
+      order,
+    );
+  }
+
+  private participantName(tournament: Tournament, id: string): string {
+    const team = Object.values(tournament.teams ?? {}).find((t) => t.id === id);
+    return team?.name ?? id;
+  }
+
+  /** Persist a match score (works on any round; used for entry and editing). */
   async saveMatchScore(
     tournamentId: string,
     roundIndex: number,
@@ -381,71 +436,181 @@ export class PadelService {
         { score1, score2 },
       ),
     );
+    await this.refreshPointsTable(tournamentId);
   }
 
-  /** Complete a round: update points table, optionally advance to next round. */
-  async completeRound(tournamentId: string): Promise<void> {
-    const snap = await withTimeout(
-      get(ref(this.db, `tournaments/${tournamentId}`)),
+  /** Clear a match score. */
+  async resetMatchScore(
+    tournamentId: string,
+    roundIndex: number,
+    matchId: string,
+  ): Promise<void> {
+    await withTimeout(
+      update(
+        ref(
+          this.db,
+          `tournaments/${tournamentId}/rounds/${roundIndex}/matches/${matchId}`,
+        ),
+        { score1: null, score2: null, setScores: null },
+      ),
     );
-    const tournament = snap.val() as Tournament | null;
-    if (!tournament) throw new Error('Tournament not found.');
+    await this.refreshPointsTable(tournamentId);
+  }
 
+  /** Regenerate the current round of a dynamic format (only if unscored). */
+  async regenerateCurrentRound(tournamentId: string): Promise<void> {
+    const tournament = await this.getTournament(tournamentId);
+    if (!isDynamicFormat(tournament.format)) {
+      throw new Error('Kun dynamiske formater kan genereres om.');
+    }
     const roundIndex = tournament.currentRound;
     const round = tournament.rounds?.[roundIndex];
-    if (!round) throw new Error('Current round not found.');
+    if (round?.completed) throw new Error('Runden er allerede fuldført.');
+    const anyScore = Object.values(round?.matches ?? {}).some(
+      (m) => m.score1 !== undefined || m.score2 !== undefined,
+    );
+    if (anyScore) {
+      throw new Error('Kan ikke genskabe en runde med indtastede resultater.');
+    }
+
+    const prior = this.sortedRounds(tournament).filter(
+      (r) => r.index < roundIndex,
+    );
+
+    let newRound: TournamentRound;
+    if (tournament.format === 'king-of-the-hill') {
+      if (roundIndex === 0) {
+        newRound = generateKothInitialRound(
+          Object.values(tournament.playerIds ?? {}),
+          tournament.courtCount,
+          tournament.seeded,
+        );
+      } else {
+        const prev = prior[prior.length - 1];
+        newRound = generateKothNextRound(
+          prev,
+          prior.slice(0, -1),
+          roundIndex,
+          Object.values(tournament.playerIds ?? {}),
+        );
+      }
+    } else {
+      newRound = this.buildDynamicRound(tournament, roundIndex, prior);
+    }
+
+    await withTimeout(
+      set(
+        ref(this.db, `tournaments/${tournamentId}/rounds/${roundIndex}`),
+        newRound,
+      ),
+    );
+  }
+
+  /** Complete the current round: validate, advance or finish, generate next. */
+  async completeRound(tournamentId: string): Promise<void> {
+    const tournament = await this.getTournament(tournamentId);
+    const roundIndex = tournament.currentRound;
+    const round = tournament.rounds?.[roundIndex];
+    if (!round) throw new Error('Aktuel runde ikke fundet.');
 
     const matches = round.matches ? Object.values(round.matches) : [];
-    const hasAllScores = matches.every(
-      (m) => m.score1 !== undefined && m.score2 !== undefined,
+    for (const m of matches) {
+      if (m.score1 === undefined || m.score2 === undefined) {
+        throw new Error('Indtast alle resultater før runden fuldføres.');
+      }
+      const v = validateScore(m.score1, m.score2, tournament.scoring, tournament.format);
+      if (!v.valid) throw new Error(v.reason ?? 'Ugyldigt resultat.');
+    }
+
+    // Mark completed first so recomputed standings include this round.
+    await withTimeout(
+      update(ref(this.db, `tournaments/${tournamentId}/rounds/${roundIndex}`), {
+        completed: true,
+      }),
     );
-    if (!hasAllScores) {
-      throw new Error('Enter scores for all matches before completing the round.');
-    }
-
-    const playerIds = Object.values(tournament.playerIds ?? {});
-    const pointsTable = { ...(tournament.pointsTable ?? {}) };
-
-    // Accumulate tournament points (each player gets points equal to their team's score)
-    for (const match of matches) {
-      pointsTable[match.team1p1] = (pointsTable[match.team1p1] ?? 0) + (match.score1 ?? 0);
-      pointsTable[match.team1p2] = (pointsTable[match.team1p2] ?? 0) + (match.score1 ?? 0);
-      pointsTable[match.team2p1] = (pointsTable[match.team2p1] ?? 0) + (match.score2 ?? 0);
-      pointsTable[match.team2p2] = (pointsTable[match.team2p2] ?? 0) + (match.score2 ?? 0);
-    }
-
-    const maxRounds =
-      tournament.format === 'americano' ? playerIds.length - 1 : 999;
-    const nextRound = roundIndex + 1;
-    const isLast = nextRound >= maxRounds;
-
-    const updates: Record<string, unknown> = {
-      [`tournaments/${tournamentId}/rounds/${roundIndex}/completed`]: true,
-      [`tournaments/${tournamentId}/pointsTable`]: pointsTable,
+    const completedTournament: Tournament = {
+      ...tournament,
+      rounds: {
+        ...(tournament.rounds ?? {}),
+        [roundIndex]: { ...round, completed: true },
+      },
     };
 
+    const isStatic =
+      tournament.format === 'americano' ||
+      tournament.format === 'team-americano';
+    const nextRound = roundIndex + 1;
+    const precomputedNext = tournament.rounds?.[nextRound];
+    const isLast = isStatic
+      ? !precomputedNext
+      : nextRound >= tournament.totalRounds;
+
+    const updates: Record<string, unknown> = {
+      [`tournaments/${tournamentId}/updatedAt`]: Date.now(),
+    };
     if (isLast) {
       updates[`tournaments/${tournamentId}/status`] = 'finished';
       updates[`tournaments/${tournamentId}/currentRound`] = roundIndex;
     } else {
       updates[`tournaments/${tournamentId}/currentRound`] = nextRound;
     }
-
     await withTimeout(update(ref(this.db), updates));
 
-    // Apply ELO updates to global player ratings
+    // Global ELO / player stats from the completed round.
     await this.applyEloUpdates(matches);
 
-    // Generate next round if not the last
-    if (!isLast) {
-      await this.generateAndStoreRound(
-        tournamentId,
-        tournament.format,
-        playerIds,
-        pointsTable,
-        nextRound,
+    // Generate the next dynamic round if needed.
+    if (!isLast && !isStatic) {
+      let newRound: TournamentRound;
+      if (tournament.format === 'king-of-the-hill') {
+        const prior = this.sortedRounds(completedTournament).filter(
+          (r) => r.index < roundIndex,
+        );
+        newRound = generateKothNextRound(
+          { ...round, completed: true },
+          prior,
+          nextRound,
+          Object.values(tournament.playerIds ?? {}),
+        );
+      } else {
+        const prior = this.sortedRounds(completedTournament);
+        newRound = this.buildDynamicRound(completedTournament, nextRound, prior);
+      }
+      await withTimeout(
+        set(
+          ref(this.db, `tournaments/${tournamentId}/rounds/${nextRound}`),
+          newRound,
+        ),
       );
     }
+
+    await this.refreshPointsTable(tournamentId);
+  }
+
+  private sortedRounds(t: Tournament): TournamentRound[] {
+    return Object.values(t.rounds ?? {}).sort((a, b) => a.index - b.index);
+  }
+
+  private async getTournament(tournamentId: string): Promise<Tournament> {
+    const snap = await withTimeout(
+      get(ref(this.db, `tournaments/${tournamentId}`)),
+    );
+    const tournament = snap.val() as Tournament | null;
+    if (!tournament) throw new Error('Turnering ikke fundet.');
+    return tournament;
+  }
+
+  /** Recompute and cache the participant → total-points table. */
+  private async refreshPointsTable(tournamentId: string): Promise<void> {
+    const tournament = await this.getTournament(tournamentId);
+    const standings = computeStandings(tournament, (id) =>
+      this.participantName(tournament, id),
+    );
+    const pointsTable: Record<string, number> = {};
+    standings.forEach((row) => (pointsTable[row.participantId] = row.total));
+    await withTimeout(
+      update(ref(this.db, `tournaments/${tournamentId}`), { pointsTable }),
+    );
   }
 
   /** Manually finish a tournament early. */
@@ -471,9 +636,7 @@ export class PadelService {
     // Fetch current ratings for all involved players
     const involved = new Set<string>();
     for (const m of matches) {
-      [m.team1p1, m.team1p2, m.team2p1, m.team2p2].forEach((id) =>
-        involved.add(id),
-      );
+      [m.a1, m.a2, m.b1, m.b2].forEach((id) => involved.add(id));
     }
 
     const ratings: Record<string, number> = {};
@@ -500,32 +663,26 @@ export class PadelService {
       const newRating = Math.max(0, Math.round((ratings[id] ?? 1000) + delta));
       const won = matches.some(
         (m) =>
-          (m.team1p1 === id || m.team1p2 === id) &&
-          (m.score1 ?? 0) > (m.score2 ?? 0),
+          (m.a1 === id || m.a2 === id) && (m.score1 ?? 0) > (m.score2 ?? 0),
       );
       const lost = matches.some(
         (m) =>
-          (m.team1p1 === id || m.team1p2 === id) &&
-          (m.score1 ?? 0) < (m.score2 ?? 0),
+          (m.a1 === id || m.a2 === id) && (m.score1 ?? 0) < (m.score2 ?? 0),
       );
       const played = matches.filter(
-        (m) =>
-          m.team1p1 === id ||
-          m.team1p2 === id ||
-          m.team2p1 === id ||
-          m.team2p2 === id,
+        (m) => m.a1 === id || m.a2 === id || m.b1 === id || m.b2 === id,
       ).length;
       const pf = matches
-        .filter((m) => m.team1p1 === id || m.team1p2 === id)
+        .filter((m) => m.a1 === id || m.a2 === id)
         .reduce((s, m) => s + (m.score1 ?? 0), 0)
         + matches
-          .filter((m) => m.team2p1 === id || m.team2p2 === id)
+          .filter((m) => m.b1 === id || m.b2 === id)
           .reduce((s, m) => s + (m.score2 ?? 0), 0);
       const pa = matches
-        .filter((m) => m.team1p1 === id || m.team1p2 === id)
+        .filter((m) => m.a1 === id || m.a2 === id)
         .reduce((s, m) => s + (m.score2 ?? 0), 0)
         + matches
-          .filter((m) => m.team2p1 === id || m.team2p2 === id)
+          .filter((m) => m.b1 === id || m.b2 === id)
           .reduce((s, m) => s + (m.score1 ?? 0), 0);
 
       updates[`players/${id}/rating`] = newRating;

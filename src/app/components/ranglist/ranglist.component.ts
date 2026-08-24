@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { AudioService } from '../../services/audio.service';
 import { AdminService } from '../../services/admin.service';
-import type { Player, Tournament } from '../../models/padel.model';
+import { FORMAT_LABELS, type Player, type Tournament } from '../../models/padel.model';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -19,6 +19,8 @@ export class RanglistComponent implements OnInit, OnDestroy {
   readonly audioSvc = inject(AudioService);
   readonly admin = inject(AdminService);
   private router = inject(Router);
+
+  readonly FORMAT_LABELS = FORMAT_LABELS;
 
   readonly players = signal<Player[]>([]);
   readonly tournaments = signal<Tournament[]>([]);
@@ -58,6 +60,10 @@ export class RanglistComponent implements OnInit, OnDestroy {
 
   activeTournaments(): Tournament[] {
     return this.tournaments().filter((t) => t.status === 'active');
+  }
+
+  draftTournaments(): Tournament[] {
+    return this.tournaments().filter((t) => t.status === 'draft');
   }
 
   recentTournaments(): Tournament[] {

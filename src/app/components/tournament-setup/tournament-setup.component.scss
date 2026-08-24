@@ -140,3 +140,154 @@
   font-weight: 700;
   flex-shrink: 0;
 }
+
+/* ─── Config sections ─────────────────────────────────────────────────────── */
+.config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pill {
+  padding: 0.45rem 0.85rem;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+
+  &.small { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+  &.selected { border-color: var(--primary); background: rgba(74,143,184,0.15); color: var(--accent); }
+  &:hover:not(.selected) { background: var(--card-hover); }
+}
+
+.scoring-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: flex-end;
+}
+
+.quick-targets { display: flex; gap: 0.35rem; align-items: center; }
+
+label.inline {
+  flex-direction: column;
+  gap: 0.3rem;
+  input {
+    width: 110px;
+    padding: 0.55em 0.7em;
+  }
+}
+
+.toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.switch {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 500;
+  input { width: auto; accent-color: var(--primary); }
+  &.standalone { margin-top: -0.3rem; }
+}
+
+/* ─── Courts ──────────────────────────────────────────────────────────────── */
+.court-list { display: flex; flex-direction: column; gap: 0.45rem; }
+
+.court-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  input[type="text"] { flex: 1; }
+  input[type="number"] { width: 80px; }
+}
+
+.court-num {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.court-name-label { flex: 1; font-weight: 500; font-size: 0.9rem; }
+
+.small-btn { width: auto; align-self: flex-start; padding: 0.5em 1em; }
+
+/* ─── Bonus ───────────────────────────────────────────────────────────────── */
+.bonus-section {
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(232,197,71,0.05);
+}
+
+/* ─── Teams ───────────────────────────────────────────────────────────────── */
+.team-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.team-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  .team-item-name { font-weight: 600; }
+  .muted { flex: 1; }
+}
+
+.team-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.85rem;
+  border-radius: var(--radius);
+}
+
+.team-name-input { width: 100%; }
+
+/* ─── Preview ─────────────────────────────────────────────────────────────── */
+.preview-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius);
+}
+
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.warn { color: var(--gold); margin: 0; }
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+@media (max-width: 460px) {
+  .format-cards { grid-template-columns: 1fr; }
+}
