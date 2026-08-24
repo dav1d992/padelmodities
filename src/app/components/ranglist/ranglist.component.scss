@@ -203,3 +203,60 @@
   font-weight: 800;
   color: var(--primary);
 }
+
+/* ── Decorative side rails (desktop only) ──────────────────────────────────── */
+.side-rail {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 230px;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+
+  &.left { left: 0; }
+  &.right { right: 0; }
+}
+
+.rail-track {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.rail-track img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-bottom: 1rem;
+  opacity: 0.16;
+  filter: grayscale(0.35);
+}
+
+.rail-down { animation: railDown 55s linear infinite; }
+.rail-up   { animation: railUp   55s linear infinite; }
+
+@keyframes railDown {
+  from { transform: translateY(-50%); }
+  to   { transform: translateY(0); }
+}
+@keyframes railUp {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+
+@media (min-width: 1200px) {
+  .side-rail { display: block; }
+}
+
+@media (min-width: 1500px) {
+  .side-rail { width: 320px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-down, .rail-up { animation: none; }
+}

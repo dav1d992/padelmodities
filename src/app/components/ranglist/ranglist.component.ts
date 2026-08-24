@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
@@ -30,6 +30,25 @@ export class RanglistComponent implements OnInit, OnDestroy {
   readonly error = signal('');
 
   private subs: Subscription[] = [];
+
+  /** Portraits used for the decorative side rails (desktop only). */
+  private readonly sideImages = computed(() =>
+    this.players()
+      .filter((p) => p.shortname)
+      .map((p) => `/assets/${p.shortname}-padel.png`),
+  );
+
+  readonly leftImages = computed(() => this.shuffle(this.sideImages()));
+  readonly rightImages = computed(() => this.shuffle(this.sideImages()));
+
+  private shuffle(list: string[]): string[] {
+    const arr = [...list];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
 
   ngOnInit(): void {
     this.subs.push(
