@@ -1,17 +1,15 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PadelService } from '../../services/padel.service';
+import { AdminService } from '../../services/admin.service';
 import {
-  CREATE_PLAYER_CODE,
   DEFAULT_SKILLSET,
   SKILL_LABELS,
   type SkillName,
   type Skillset,
 } from '../../models/padel.model';
 import { CommonModule } from '@angular/common';
-
-type Step = 'code' | 'form';
 
 @Component({
   selector: 'app-create-player',
@@ -20,13 +18,10 @@ type Step = 'code' | 'form';
   templateUrl: './create-player.component.html',
   styleUrl: './create-player.component.scss',
 })
-export class CreatePlayerComponent {
+export class CreatePlayerComponent implements OnInit {
   private service = inject(PadelService);
+  private admin = inject(AdminService);
   private router = inject(Router);
-
-  readonly step = signal<Step>('code');
-  readonly codeInput = signal('');
-  readonly codeError = signal('');
 
   readonly name = signal('');
   readonly shortname = signal('');
@@ -37,12 +32,9 @@ export class CreatePlayerComponent {
   readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
   readonly skillLabels = SKILL_LABELS;
 
-  verifyCode(): void {
-    if (this.codeInput().trim().toUpperCase() === CREATE_PLAYER_CODE) {
-      this.step.set('form');
-      this.codeError.set('');
-    } else {
-      this.codeError.set('Forkert kode. Prøv igen.');
+  ngOnInit(): void {
+    if (!this.admin.isAdmin()) {
+      this.router.navigate(['/']);
     }
   }
 

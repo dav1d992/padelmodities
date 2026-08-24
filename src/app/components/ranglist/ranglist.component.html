@@ -9,7 +9,9 @@
     </div>
     <div class="header-actions">
       <a routerLink="/tournament/new" class="btn btn-ghost">🏆 Ny turnering</a>
-      <a routerLink="/create-player" class="btn btn-primary">＋ Spiller</a>
+      @if (admin.isAdmin()) {
+        <a routerLink="/create-player" class="btn btn-primary">＋ Spiller</a>
+      }
     </div>
   </header>
 
@@ -48,7 +50,9 @@
       <div class="empty glass panel">
         <span class="empty-icon">🎾</span>
         <p>Ingen spillere endnu.</p>
-        <a routerLink="/create-player" class="btn btn-primary">Tilføj første spiller</a>
+        @if (admin.isAdmin()) {
+          <a routerLink="/create-player" class="btn btn-primary">Tilføj første spiller</a>
+        }
       </div>
     } @else {
       <div class="ranglist glass">

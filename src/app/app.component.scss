@@ -7,6 +7,55 @@
   width: 100%;
 }
 
+.admin-bar {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.admin-badge {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 0.35em 0.7em;
+  box-shadow: var(--shadow);
+}
+
+.admin-btn {
+  font-size: 0.85rem;
+  background: var(--card);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  padding: 0.4em 0.7em;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+  &:hover { background: var(--card-hover); transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
+  &.ghost { background: transparent; box-shadow: none; }
+}
+
+.admin-input {
+  font-size: 0.85rem;
+  background: var(--card);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 0.4em 0.8em;
+  width: 8rem;
+  box-shadow: var(--shadow);
+  &.error { border-color: var(--danger, #e05252); }
+  &:focus { outline: none; border-color: var(--primary); }
+}
+
 .audio-fab {
   position: fixed;
   bottom: 1.25rem;

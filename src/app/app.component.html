@@ -1,3 +1,25 @@
+<div class="admin-bar">
+  @if (admin.isAdmin()) {
+    <span class="admin-badge">🔓</span>
+    <button class="admin-btn" (click)="logoutAdmin()">Log ud</button>
+  } @else if (adminInputOpen()) {
+    <input
+      class="admin-input"
+      type="password"
+      placeholder="Kode…"
+      [ngModel]="adminCode()"
+      (ngModelChange)="adminCode.set($event)"
+      (keyup.enter)="submitAdminCode()"
+      [class.error]="adminError()"
+      autofocus
+    >
+    <button class="admin-btn" (click)="submitAdminCode()">OK</button>
+    <button class="admin-btn ghost" (click)="toggleAdminInput()">✕</button>
+  } @else {
+    <button class="admin-btn" (click)="toggleAdminInput()">🔒</button>
+  }
+</div>
+
 <main class="app-shell">
   <router-outlet></router-outlet>
 </main>

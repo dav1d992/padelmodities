@@ -11,13 +11,16 @@ import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { AudioService } from '../../services/audio.service';
+import { AdminService } from '../../services/admin.service';
 import {
   DEFAULT_SKILLSET,
   SKILL_LABELS,
   type Player,
   type SkillName,
+  type Skillset,
 } from '../../models/padel.model';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 export type ImageState = 'idle' | 'entering' | 'shaking' | 'settled';
 
@@ -40,7 +43,7 @@ const DUST_PARTICLES = [
 @Component({
   selector: 'app-player-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './player-detail.component.html',
   styleUrl: './player-detail.component.scss',
 })
@@ -50,6 +53,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   private service = inject(PadelService);
   private router = inject(Router);
   readonly audioSvc = inject(AudioService);
+  readonly admin = inject(AdminService);
 
   readonly player = signal<Player | null>(null);
   readonly loading = signal(true);
@@ -58,6 +62,20 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly visibleSkillIndex = signal(-1);
   readonly skillLabels = SKILL_LABELS;
   readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
+
+  // ── Admin edit state ──────────────────────────────────────────────────────
+  readonly editing = signal(false);
+  readonly saving = signal(false);
+  readonly editError = signal('');
+  readonly editName = signal('');
+  readonly editShortname = signal('');
+  readonly editRating = signal(1000);
+  readonly editSkills = signal<Skillset>({ ...DEFAULT_SKILLSET });
+  readonly editMatchesPlayed = signal(0);
+  readonly editWins = signal(0);
+  readonly editLosses = signal(0);
+  readonly editPointsFor = signal(0);
+  readonly editPointsAgainst = signal(0);
 
   private sub?: Subscription;
   private animationStarted = false;
@@ -148,4 +166,79 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     const pts = hist.map((v, i) => `${(i / (hist.length - 1)) * W},${H - ((v - min) / range) * H}`);
     return `M ${pts.join(' L ')}`;
   });
+
+  // ── Admin edit ─────────────────────────────────────────────────────────────
+
+  startEdit(): void {
+    const p = this.player();
+    if (!p) return;
+    this.editName.set(p.name);
+    this.editShortname.set(p.shortname ?? '');
+    this.editRating.set(p.rating);
+    this.editSkills.set({ ...DEFAULT_SKILLSET, ...p.skillset });
+    this.editMatchesPlayed.set(p.matchesPlayed);
+    this.editWins.set(p.wins);
+    this.editLosses.set(p.losses);
+    this.editPointsFor.set(p.pointsFor);
+    this.editPointsAgainst.set(p.pointsAgainst);
+    this.editError.set('');
+    this.editing.set(true);
+  }
+
+  cancelEdit(): void {
+    this.editing.set(false);
+    this.editError.set('');
+  }
+
+  updateEditSkill(skill: SkillName, rawValue: number): void {
+    const nextValue = Math.max(0, Math.min(10, Math.round(rawValue)));
+    this.editSkills.set({ ...this.editSkills(), [skill]: nextValue });
+  }
+
+  async saveEdit(): Promise<void> {
+    const p = this.player();
+    if (!p) return;
+    if (!this.editName().trim()) {
+      this.editError.set('Navn er påkrævet.');
+      return;
+    }
+    if (this.editShortname().trim() && !/^[a-z0-9_-]+$/i.test(this.editShortname())) {
+      this.editError.set('Kortnavn må kun indeholde bogstaver, tal, - og _.');
+      return;
+    }
+    this.saving.set(true);
+    this.editError.set('');
+    try {
+      await this.service.updatePlayer(p.id, {
+        name: this.editName(),
+        shortname: this.editShortname() || undefined,
+        rating: this.editRating(),
+        skillset: this.editSkills(),
+        matchesPlayed: this.editMatchesPlayed(),
+        wins: this.editWins(),
+        losses: this.editLosses(),
+        pointsFor: this.editPointsFor(),
+        pointsAgainst: this.editPointsAgainst(),
+      });
+      this.editing.set(false);
+    } catch (err) {
+      this.editError.set(err instanceof Error ? err.message : 'Noget gik galt.');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  async deletePlayer(): Promise<void> {
+    const p = this.player();
+    if (!p) return;
+    if (!confirm(`Slet ${p.name}? Dette kan ikke fortrydes.`)) return;
+    this.saving.set(true);
+    try {
+      await this.service.deletePlayer(p.id);
+      this.router.navigate(['/']);
+    } catch (err) {
+      this.editError.set(err instanceof Error ? err.message : 'Noget gik galt.');
+      this.saving.set(false);
+    }
+  }
 }

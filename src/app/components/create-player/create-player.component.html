@@ -4,110 +4,80 @@
   <div class="glass panel form-card">
     <h1>Ny spiller</h1>
 
-    @switch (step()) {
-      @case ('code') {
-        <p class="muted">
-          Indtast adgangskoden for at oprette en ny spiller.
-        </p>
+    <p class="muted">Udfyld spillerens oplysninger.</p>
 
-        @if (codeError()) {
-          <p class="banner-error pop-in">{{ codeError() }}</p>
-        }
-
-        <label>
-          Adgangskode
-          <input
-            type="password"
-            placeholder="••••"
-            [ngModel]="codeInput()"
-            (ngModelChange)="codeInput.set($event)"
-            (keyup.enter)="verifyCode()"
-            autofocus
-          >
-        </label>
-
-        <button class="btn btn-primary big" (click)="verifyCode()">
-          Fortsæt →
-        </button>
-      }
-
-      @case ('form') {
-        <p class="muted">Udfyld spillerens oplysninger.</p>
-
-        @if (submitError()) {
-          <p class="banner-error pop-in">{{ submitError() }}</p>
-        }
-
-        <label>
-          Navn *
-          <input
-            type="text"
-            placeholder="F.eks. Lars Hansen"
-            maxlength="40"
-            [ngModel]="name()"
-            (ngModelChange)="name.set($event)"
-          >
-        </label>
-
-        <label>
-          Kortnavn <span class="muted">(bruges til profilbillede)</span>
-          <input
-            type="text"
-            placeholder="F.eks. men"
-            maxlength="20"
-            [ngModel]="shortname()"
-            (ngModelChange)="shortname.set($event)"
-          >
-          <span class="field-hint muted small">
-            Kun bogstaver/tal/bindestreg. Billede hentes fra
-            <code>assets/&#123;kortnavn&#125;-padel.png</code>.
-          </span>
-        </label>
-
-        <label>
-          Startrating
-          <input
-            type="number"
-            min="0"
-            max="9999"
-            [ngModel]="startingRating()"
-            (ngModelChange)="startingRating.set(+$event)"
-          >
-          <span class="field-hint muted small">Standard: 1000</span>
-        </label>
-
-        <div class="skills-editor">
-          <div class="skills-header">
-            <h3>Skillset</h3>
-            <span class="muted small">0 til 10</span>
-          </div>
-
-          @for (skill of skillNames; track skill) {
-            <label class="skill-field">
-              <div class="skill-row">
-                <span>{{ skillLabels[skill] }}</span>
-                <strong>{{ skills()[skill] }}</strong>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                step="1"
-                [ngModel]="skills()[skill]"
-                (ngModelChange)="updateSkill(skill, +$event)"
-              >
-            </label>
-          }
-        </div>
-
-        <button
-          class="btn btn-primary big"
-          [disabled]="submitting()"
-          (click)="createPlayer()"
-        >
-          {{ submitting() ? 'Opretter…' : '✓ Opret spiller' }}
-        </button>
-      }
+    @if (submitError()) {
+      <p class="banner-error pop-in">{{ submitError() }}</p>
     }
+
+    <label>
+      Navn *
+      <input
+        type="text"
+        placeholder="F.eks. Lars Hansen"
+        maxlength="40"
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+      >
+    </label>
+
+    <label>
+      Kortnavn <span class="muted">(bruges til profilbillede)</span>
+      <input
+        type="text"
+        placeholder="F.eks. men"
+        maxlength="20"
+        [ngModel]="shortname()"
+        (ngModelChange)="shortname.set($event)"
+      >
+      <span class="field-hint muted small">
+        Kun bogstaver/tal/bindestreg. Billede hentes fra
+        <code>assets/&#123;kortnavn&#125;-padel.png</code>.
+      </span>
+    </label>
+
+    <label>
+      Startrating
+      <input
+        type="number"
+        min="0"
+        max="9999"
+        [ngModel]="startingRating()"
+        (ngModelChange)="startingRating.set(+$event)"
+      >
+      <span class="field-hint muted small">Standard: 1000</span>
+    </label>
+
+    <div class="skills-editor">
+      <div class="skills-header">
+        <h3>Skillset</h3>
+        <span class="muted small">0 til 10</span>
+      </div>
+
+      @for (skill of skillNames; track skill) {
+        <label class="skill-field">
+          <div class="skill-row">
+            <span>{{ skillLabels[skill] }}</span>
+            <strong>{{ skills()[skill] }}</strong>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="10"
+            step="1"
+            [ngModel]="skills()[skill]"
+            (ngModelChange)="updateSkill(skill, +$event)"
+          >
+        </label>
+      }
+    </div>
+
+    <button
+      class="btn btn-primary big"
+      [disabled]="submitting()"
+      (click)="createPlayer()"
+    >
+      {{ submitting() ? 'Opretter…' : '✓ Opret spiller' }}
+    </button>
   </div>
 </div>

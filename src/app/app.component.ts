@@ -1,16 +1,44 @@
-import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { AudioService } from './services/audio.service';
+import { AdminService } from './services/admin.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit, OnDestroy {
   readonly audio = inject(AudioService);
+  readonly admin = inject(AdminService);
+
+  readonly adminInputOpen = signal(false);
+  readonly adminCode = signal('');
+  readonly adminError = signal(false);
+
+  toggleAdminInput(): void {
+    this.adminInputOpen.set(!this.adminInputOpen());
+    this.adminError.set(false);
+    this.adminCode.set('');
+  }
+
+  submitAdminCode(): void {
+    if (this.admin.login(this.adminCode())) {
+      this.adminInputOpen.set(false);
+      this.adminCode.set('');
+      this.adminError.set(false);
+    } else {
+      this.adminError.set(true);
+    }
+  }
+
+  logoutAdmin(): void {
+    this.admin.logout();
+    this.adminInputOpen.set(false);
+  }
 
   // Browsers block autoplay until a user gesture — start music on the first interaction of any kind.
   private readonly unlockEvents = ['pointerdown', 'touchstart', 'keydown', 'scroll'] as const;

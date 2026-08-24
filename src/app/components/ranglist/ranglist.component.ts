@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { AudioService } from '../../services/audio.service';
+import { AdminService } from '../../services/admin.service';
 import type { Player, Tournament } from '../../models/padel.model';
 import { CommonModule } from '@angular/common';
 
@@ -16,6 +17,7 @@ import { CommonModule } from '@angular/common';
 export class RanglistComponent implements OnInit, OnDestroy {
   private service = inject(PadelService);
   readonly audioSvc = inject(AudioService);
+  readonly admin = inject(AdminService);
   private router = inject(Router);
 
   readonly players = signal<Player[]>([]);

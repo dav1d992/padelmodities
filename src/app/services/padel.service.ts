@@ -227,6 +227,36 @@ export class PadelService {
     );
   }
 
+  /** Update any editable fields of a player (admin edit). */
+  async updatePlayer(
+    playerId: string,
+    changes: {
+      name: string;
+      shortname?: string;
+      rating: number;
+      skillset: Partial<Skillset>;
+      matchesPlayed: number;
+      wins: number;
+      losses: number;
+      pointsFor: number;
+      pointsAgainst: number;
+    },
+  ): Promise<void> {
+    const trimmedShort = changes.shortname?.trim().toLowerCase();
+    const payload = {
+      name: changes.name.trim(),
+      shortname: trimmedShort ? trimmedShort : null,
+      rating: Math.round(changes.rating),
+      skillset: normaliseSkillset(changes.skillset),
+      matchesPlayed: Math.max(0, Math.round(changes.matchesPlayed)),
+      wins: Math.max(0, Math.round(changes.wins)),
+      losses: Math.max(0, Math.round(changes.losses)),
+      pointsFor: Math.max(0, Math.round(changes.pointsFor)),
+      pointsAgainst: Math.max(0, Math.round(changes.pointsAgainst)),
+    };
+    await withTimeout(update(ref(this.db, `players/${playerId}`), payload));
+  }
+
   async deletePlayer(playerId: string): Promise<void> {
     await withTimeout(remove(ref(this.db, `players/${playerId}`)));
   }

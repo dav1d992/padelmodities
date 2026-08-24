@@ -1,0 +1,58 @@
+name: Build & Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main # Runs on every push/merge to main
+
+# Prevent overlapping deploys if you push several times quickly.
+# Do NOT cancel in progress: an interrupted FTP upload can leave the site
+# in a broken/partial state. Let runs queue instead.
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Inject admin code
+        run: sed -i "s|__ADMIN_CODE__|${{ secrets.ADMIN_CODE }}|" src/app/models/padel.model.ts
+
+      - name: Build (production)
+        run: npm run build
+
+      # Deploy with lftp (robust with Hostinger; handles deep paths in one pass,
+      # unlike the FTP-Deploy-Action which timed out doing per-segment CWD/MKD).
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy to Hostinger via FTP
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+        run: |
+          lftp -c "
+            set ftp:ssl-allow no;
+            set net:timeout 20;
+            set net:max-retries 3;
+            set net:reconnect-interval-base 5;
+            open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" -p \"$FTP_PORT\" \"$FTP_SERVER\";
+            mirror -R --delete --verbose --parallel=2 ./dist/danske-padelmodities/ \"$REMOTE_DIR\";
+          "
