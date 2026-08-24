@@ -322,8 +322,9 @@
   }
 
   .image-wrapper {
-    height: 50vh;
-    min-height: 280px;
+    height: 38vh;
+    min-height: 220px;
+    max-height: 340px;
   }
 
   /* Slide in from above instead of from the side */
