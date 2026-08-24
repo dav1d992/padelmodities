@@ -7,9 +7,6 @@ dist/
 # Firebase cache
 .firebase/
 
-# Environment (contains real API keys — never commit)
-src/environments/environment.ts
-
 # Angular cache
 .angular/
 
