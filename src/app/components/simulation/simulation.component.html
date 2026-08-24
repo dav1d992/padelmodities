@@ -1,0 +1,141 @@
+@if (leftImages().length > 0) {
+  <div class="side-rail left" aria-hidden="true">
+    <div class="rail-track rail-down">
+      @for (img of leftImages(); track $index) {
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+      }
+      @for (img of leftImages(); track $index) {
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+      }
+    </div>
+  </div>
+  <div class="side-rail right" aria-hidden="true">
+    <div class="rail-track rail-up">
+      @for (img of rightImages(); track $index) {
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+      }
+      @for (img of rightImages(); track $index) {
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+      }
+    </div>
+  </div>
+}
+
+<div class="page fade-up">
+  <a routerLink="/" class="back-link">{{ i18n.t('common.back') }}</a>
+
+  <header class="sim-header">
+    <h1>{{ i18n.t('sim.title') }}</h1>
+    <p class="muted small">{{ i18n.t('sim.subtitle') }}</p>
+  </header>
+
+  @if (loading()) {
+    <div class="loader-row">
+      <span class="loader"></span>
+      <span class="muted">{{ i18n.t('rank.loading') }}</span>
+    </div>
+  } @else if (players().length < 4) {
+    <div class="glass panel empty">
+      <span class="empty-icon"></span>
+      <p>{{ i18n.t('sim.needPlayers') }}</p>
+    </div>
+  } @else {
+    <div class="teams">
+      <!-- Team A -->
+      <div class="glass panel team-card team-a">
+        <h3>{{ i18n.t('sim.teamA') }}</h3>
+        <label>
+          {{ i18n.t('sim.player') }} 1
+          <select [value]="a1()" (change)="a1.set($any($event.target).value)">
+            <option value="" disabled hidden></option>
+            @for (p of sortedPlayers(); track p.id) {
+              <option [value]="p.id" [disabled]="isTaken(p.id, 'a1')">{{ p.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          {{ i18n.t('sim.player') }} 2
+          <select [value]="a2()" (change)="a2.set($any($event.target).value)">
+            <option value="" disabled hidden></option>
+            @for (p of sortedPlayers(); track p.id) {
+              <option [value]="p.id" [disabled]="isTaken(p.id, 'a2')">{{ p.name }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <!-- Team B -->
+      <div class="glass panel team-card team-b">
+        <h3>{{ i18n.t('sim.teamB') }}</h3>
+        <label>
+          {{ i18n.t('sim.player') }} 1
+          <select [value]="b1()" (change)="b1.set($any($event.target).value)">
+            <option value="" disabled hidden></option>
+            @for (p of sortedPlayers(); track p.id) {
+              <option [value]="p.id" [disabled]="isTaken(p.id, 'b1')">{{ p.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          {{ i18n.t('sim.player') }} 2
+          <select [value]="b2()" (change)="b2.set($any($event.target).value)">
+            <option value="" disabled hidden></option>
+            @for (p of sortedPlayers(); track p.id) {
+              <option [value]="p.id" [disabled]="isTaken(p.id, 'b2')">{{ p.name }}</option>
+            }
+          </select>
+        </label>
+      </div>
+    </div>
+
+    @if (result(); as r) {
+      <div class="glass panel scoreboard pop-in">
+        <span class="sb-label muted small">{{ i18n.t('sim.estimate') }}</span>
+        <div class="sb-scores">
+          <div class="sb-side" [class.winner]="r.score1 > r.score2">
+            <span class="sb-score">{{ r.score1 }}</span>
+            <span class="sb-team muted small">{{ i18n.t('sim.teamA') }}</span>
+          </div>
+          <span class="sb-dash">–</span>
+          <div class="sb-side" [class.winner]="r.score2 > r.score1">
+            <span class="sb-score">{{ r.score2 }}</span>
+            <span class="sb-team muted small">{{ i18n.t('sim.teamB') }}</span>
+          </div>
+        </div>
+        <span class="sb-total muted small">{{ i18n.t('sim.outOf', { n: 32 }) }}</span>
+      </div>
+
+      <div class="glass panel breakdown">
+        <h3>{{ i18n.t('sim.strength') }}</h3>
+        <div class="bd-group">
+          <span class="bd-team-name muted small">{{ i18n.t('sim.teamA') }}</span>
+          @for (p of teamA(); track p.id) {
+            <div class="bd-row">
+              <span class="bd-name">{{ p.name }}</span>
+              <div class="bd-bar-track">
+                <div class="bd-bar" [style.width.%]="strengthOf(p) * 10"></div>
+              </div>
+              <strong class="bd-val">{{ strengthOf(p) }}</strong>
+            </div>
+          }
+        </div>
+        <div class="bd-group">
+          <span class="bd-team-name muted small">{{ i18n.t('sim.teamB') }}</span>
+          @for (p of teamB(); track p.id) {
+            <div class="bd-row">
+              <span class="bd-name">{{ p.name }}</span>
+              <div class="bd-bar-track">
+                <div class="bd-bar" [style.width.%]="strengthOf(p) * 10"></div>
+              </div>
+              <strong class="bd-val">{{ strengthOf(p) }}</strong>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <p class="muted hint">{{ i18n.t('sim.pickAll') }}</p>
+    }
+
+    <p class="muted small disclaimer">{{ i18n.t('sim.disclaimer') }}</p>
+  }
+</div>

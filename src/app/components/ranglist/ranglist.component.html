@@ -31,6 +31,7 @@
       </div>
     </div>
     <div class="header-actions">
+      <a routerLink="/simulate" class="btn btn-ghost">{{ i18n.t('rank.simulate') }}</a>
       <a routerLink="/tournament/new" class="btn btn-ghost">{{ i18n.t('rank.newTournament') }}</a>
       @if (admin.isAdmin()) {
         <a routerLink="/create-player" class="btn btn-primary">{{ i18n.t('rank.addPlayer') }}</a>

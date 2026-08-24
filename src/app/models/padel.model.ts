@@ -264,3 +264,64 @@ export const ADMIN_CODE = INJECTED_ADMIN_CODE.startsWith('__') ? LOCAL_ADMIN_COD
 
 /** ELO K-factor used when updating global ratings after a match. */
 export const ELO_K = 32;
+
+// ── Match simulation (deterministic, does not affect ratings) ────────────────
+
+/** Total points a simulated match is played to (split across both sides). */
+export const SIM_TOTAL_POINTS = 32;
+
+/**
+ * Deterministic per-player match strength (0–10) derived from skills.
+ *
+ * Strategy is weighted the most. A high agility partly compensates for a lack
+ * of strategy: the lower the strategy, the more agility lifts it. There is no
+ * random factor — the same skillset always yields the same strength.
+ */
+export function playerMatchStrength(skills: Skillset): number {
+  const s = skills.strategy;
+  const a = skills.agility;
+  // Agility fills part of the gap between current strategy and a perfect 10.
+  const effectiveStrategy = Math.min(10, s + (10 - s) * (a / 10) * 0.45);
+  return (
+    0.22 * effectiveStrategy +
+    0.22 * skills.reflexes +
+    0.21 * skills.power +
+    0.2 * skills.stamina +
+    0.15 * a
+  );
+}
+
+export interface EstimatedScore {
+  score1: number;
+  score2: number;
+  strength1: number;
+  strength2: number;
+}
+
+/**
+ * Estimate a match result out of {@link SIM_TOTAL_POINTS} from two teams' skills.
+ * Points are split in proportion to each team's combined strength, with a mild
+ * exponent so clear skill gaps produce more decisive scorelines. Fully
+ * deterministic — no randomness — and never touches player ratings.
+ */
+export function estimateMatchScore(
+  team1: Skillset[],
+  team2: Skillset[],
+  totalPoints = SIM_TOTAL_POINTS,
+): EstimatedScore {
+  const strength1 = team1.reduce((sum, s) => sum + playerMatchStrength(s), 0);
+  const strength2 = team2.reduce((sum, s) => sum + playerMatchStrength(s), 0);
+
+  const exponent = 2;
+  const p1 = Math.pow(strength1, exponent);
+  const p2 = Math.pow(strength2, exponent);
+  const ratio = p1 + p2 > 0 ? p1 / (p1 + p2) : 0.5;
+
+  const score1 = Math.max(0, Math.min(totalPoints, Math.round(totalPoints * ratio)));
+  return {
+    score1,
+    score2: totalPoints - score1,
+    strength1,
+    strength2,
+  };
+}

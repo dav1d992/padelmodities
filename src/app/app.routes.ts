@@ -4,6 +4,7 @@ import { PlayerDetailComponent } from './components/player-detail/player-detail.
 import { CreatePlayerComponent } from './components/create-player/create-player.component';
 import { TournamentSetupComponent } from './components/tournament-setup/tournament-setup.component';
 import { TournamentViewComponent } from './components/tournament-view/tournament-view.component';
+import { SimulationComponent } from './components/simulation/simulation.component';
 
 export const routes: Routes = [
   { path: '', component: RanglistComponent, title: 'title.rank' },
@@ -26,6 +27,11 @@ export const routes: Routes = [
     path: 'tournament/:tournamentId',
     component: TournamentViewComponent,
     title: 'title.view',
+  },
+  {
+    path: 'simulate',
+    component: SimulationComponent,
+    title: 'title.simulate',
   },
   { path: '**', redirectTo: '' },
 ];

@@ -36,6 +36,6 @@
   }
 </div>
 
-<main class="app-shell">
-  <router-outlet></router-outlet>
+<main class="app-shell" [@routeFade]="prepareRoute(outlet)">
+  <router-outlet #outlet="outlet"></router-outlet>
 </main>

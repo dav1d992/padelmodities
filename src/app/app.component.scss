@@ -6,6 +6,12 @@
   min-height: 100dvh;
   width: 100%;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* On phones the fixed sound/admin bar would overlap page content, so push it down. */
+@media (max-width: 640px) {
+  .app-shell { padding-top: 3.25rem; }
 }
 
 .admin-bar {

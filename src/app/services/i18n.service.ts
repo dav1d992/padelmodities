@@ -50,6 +50,7 @@ const DA: Dict = {
   'rank.title': 'Rangliste',
   'rank.brand': 'Danske Padelmodities',
   'rank.newTournament': '＋ Turnering',
+  'rank.simulate': 'Simulator',
   'rank.addPlayer': '＋ Spiller',
   'rank.active': '🟢 Aktive turneringer',
   'rank.drafts': '📝 Udkast',
@@ -227,12 +228,27 @@ const DA: Dict = {
   'err.winnerReach': 'Vinderen skal nå {target} point.',
   'err.kothPlayersGeneric': 'King of the Hill kræver 4 spillere pr. bane.',
 
+  // Simulation
+  'sim.title': 'Kampsimulator',
+  'sim.subtitle': 'Vælg to hold og se et estimeret resultat ud fra spillernes evner.',
+  'sim.teamA': 'Hold A',
+  'sim.teamB': 'Hold B',
+  'sim.player': 'Spiller',
+  'sim.selectPlayer': '— Vælg spiller —',
+  'sim.estimate': 'Estimeret resultat',
+  'sim.outOf': 'ud af {n} point',
+  'sim.strength': 'Spillerstyrke',
+  'sim.needPlayers': 'Du skal bruge mindst 4 spillere for at simulere en kamp.',
+  'sim.pickAll': 'Vælg to spillere på hvert hold for at se resultatet.',
+  'sim.disclaimer': 'Kun et estimat — påvirker ikke rating eller statistik.',
+
   // Route titles (always English, even in Danish UI)
   'title.rank': 'Ranking · Danske Padelmodities',
   'title.player': 'Player · Danske Padelmodities',
   'title.create': 'New player · Danske Padelmodities',
   'title.setup': 'New tournament · Danske Padelmodities',
   'title.view': 'Tournament · Danske Padelmodities',
+  'title.simulate': 'Simulator · Danske Padelmodities',
 };
 
 /** English translations. */
@@ -279,6 +295,7 @@ const EN: Dict = {
   'rank.title': 'Ranking',
   'rank.brand': 'Danske Padelmodities',
   'rank.newTournament': '＋ Tournament',
+  'rank.simulate': 'Simulator',
   'rank.addPlayer': '＋ Player',
   'rank.active': '🟢 Active tournaments',
   'rank.drafts': '📝 Drafts',
@@ -458,12 +475,27 @@ const EN: Dict = {
   'err.winnerReach': 'The winner must reach {target} points.',
   'err.kothPlayersGeneric': 'King of the Hill requires 4 players per court.',
 
+  // Simulation
+  'sim.title': 'Match simulator',
+  'sim.subtitle': 'Pick two teams and see an estimated result based on player abilities.',
+  'sim.teamA': 'Team A',
+  'sim.teamB': 'Team B',
+  'sim.player': 'Player',
+  'sim.selectPlayer': '— Select player —',
+  'sim.estimate': 'Estimated result',
+  'sim.outOf': 'out of {n} points',
+  'sim.strength': 'Player strength',
+  'sim.needPlayers': 'You need at least 4 players to simulate a match.',
+  'sim.pickAll': 'Pick two players on each team to see the result.',
+  'sim.disclaimer': 'Estimate only — does not affect ratings or stats.',
+
   // Route titles
   'title.rank': 'Ranking · Danske Padelmodities',
   'title.player': 'Player · Danske Padelmodities',
   'title.create': 'New player · Danske Padelmodities',
   'title.setup': 'New tournament · Danske Padelmodities',
   'title.view': 'Tournament · Danske Padelmodities',
+  'title.simulate': 'Simulator · Danske Padelmodities',
 };
 
 const DICTS: Record<Lang, Dict> = { da: DA, en: EN };
