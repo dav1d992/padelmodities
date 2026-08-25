@@ -38,7 +38,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
   private readonly sideImages = computed(() =>
     this.players()
       .filter((p) => p.shortname)
-      .map((p) => `/assets/${p.shortname}-padel.png`),
+      .map((p) => `/assets/optimized/${p.shortname}-padel.webp`),
   );
   readonly leftImages = computed(() => this.shuffle(this.sideImages()));
   readonly rightImages = computed(() => this.shuffle(this.sideImages()));

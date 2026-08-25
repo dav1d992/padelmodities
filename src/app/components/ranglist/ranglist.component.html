@@ -101,7 +101,7 @@
 
             <div class="avatar-cell">
               @if (player.shortname) {
-                <img class="avatar" [src]="'/assets/' + player.shortname + '-padel.png'" [alt]="player.name" loading="lazy"
+                <img class="avatar" [src]="'/assets/optimized/' + player.shortname + '-padel-thumb.webp'" [alt]="player.name" loading="lazy"
                      (error)="$any($event.target).style.display='none'">
                 <div class="avatar avatar-placeholder" [style.display]="player.shortname ? 'none' : 'flex'">{{ player.name[0].toUpperCase() }}</div>
               } @else {

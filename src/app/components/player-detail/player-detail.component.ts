@@ -64,6 +64,8 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly loading = signal(true);
   readonly error = signal('');
   readonly visibleSkillIndex = signal(-1);
+  /** True once the portrait bitmap is downloaded and decoded, so it can animate in with pixels ready. */
+  readonly heroReady = signal(false);
   readonly skillLabels = SKILL_LABELS;
   readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
 
@@ -95,7 +97,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
         if (!p) { this.router.navigate(['/']); return; }
         if (!this.animationStarted) {
           this.animationStarted = true;
-          this.startAnimation(!!p.shortname);
+          this.prepareHero(p.shortname);
         }
       },
       error: (err) => {
@@ -111,19 +113,41 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * The portrait slide-in itself is a plain CSS animation (`heroSlideIn`) that
-   * starts the moment the element renders, so it needs no JS on any device.
-   * This only lines the slam sound and skill bars up with it.
+   * The portraits are multi-megabyte PNGs, so on a phone the `<img>` would mount
+   * and run its whole CSS slide-in while still empty, leaving the picture to pop
+   * in afterwards. Fetching and decoding it first means the animation only starts
+   * once there is something to actually see.
    */
-  private startAnimation(hasImage: boolean): void {
-    if (hasImage) {
+  private prepareHero(shortname?: string): void {
+    if (!shortname) {
+      this.heroReady.set(true);
+      this.startSkillBarSequence();
+      return;
+    }
+
+    const begin = () => {
+      if (this.heroReady()) return;
+      this.heroReady.set(true);
       const slam = setTimeout(
         () => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
         IMPACT_MS,
       );
       this.timers.push(slam);
-    }
-    this.startSkillBarSequence();
+      this.startSkillBarSequence();
+    };
+
+    const img = new Image();
+    img.onload = () => {
+      const decoded = typeof img.decode === 'function'
+        ? img.decode().catch(() => undefined)
+        : Promise.resolve();
+      decoded.then(begin);
+    };
+    img.onerror = begin;
+    img.src = `/assets/optimized/${shortname}-padel.webp`;
+
+    // Safety net: a stalled download must never hide the portrait indefinitely.
+    this.timers.push(setTimeout(begin, 8000));
   }
 
   private startSkillBarSequence(): void {
@@ -143,7 +167,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
   readonly imagePath = computed(() => {
     const sn = this.player()?.shortname;
-    return sn ? `/assets/${sn}-padel.png` : null;
+    return sn ? `/assets/optimized/${sn}-padel.webp` : null;
   });
 
   readonly winRate = computed(() => {

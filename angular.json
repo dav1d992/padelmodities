@@ -28,7 +28,12 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               { "glob": "**/*", "input": "public" },
-              { "glob": "**/*", "input": "src/app/assets", "output": "assets" }
+              {
+                "glob": "**/*",
+                "input": "src/app/assets",
+                "output": "assets",
+                "ignore": ["*-padel.png"]
+              }
             ],
             "styles": ["src/styles.scss"],
             "scripts": []

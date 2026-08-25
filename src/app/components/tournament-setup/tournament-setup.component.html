@@ -197,7 +197,7 @@
               <button class="player-chip" [class.selected]="isPicked(p.id)"
                 (click)="toggleTeamPick(p.id)">
                 @if (p.shortname) {
-                  <img class="chip-avatar" [src]="'/assets/' + p.shortname + '-padel.png'" [alt]="p.name" loading="lazy"
+                  <img class="chip-avatar" [src]="'/assets/optimized/' + p.shortname + '-padel-thumb.webp'" [alt]="p.name" loading="lazy"
                        (error)="$any($event.target).style.display='none'">
                 } @else {
                   <div class="chip-avatar chip-avatar-placeholder">{{ p.name[0].toUpperCase() }}</div>
@@ -226,7 +226,7 @@
               <button class="player-chip" [class.selected]="isSelected(p.id)"
                 (click)="togglePlayer(p.id)">
                 @if (p.shortname) {
-                  <img class="chip-avatar" [src]="'/assets/' + p.shortname + '-padel.png'" [alt]="p.name" loading="lazy"
+                  <img class="chip-avatar" [src]="'/assets/optimized/' + p.shortname + '-padel-thumb.webp'" [alt]="p.name" loading="lazy"
                        (error)="$any($event.target).style.display='none'">
                 } @else {
                   <div class="chip-avatar chip-avatar-placeholder">{{ p.name[0].toUpperCase() }}</div>

@@ -35,7 +35,7 @@ export class RanglistComponent implements OnInit, OnDestroy {
   private readonly sideImages = computed(() =>
     this.players()
       .filter((p) => p.shortname)
-      .map((p) => `/assets/${p.shortname}-padel.png`),
+      .map((p) => `/assets/optimized/${p.shortname}-padel-thumb.webp`),
   );
 
   readonly leftImages = computed(() => this.shuffle(this.sideImages()));

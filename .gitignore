@@ -10,6 +10,9 @@ dist/
 # Angular cache
 .angular/
 
+# Generated web-sized portraits (rebuilt by scripts/optimize-images.mjs)
+src/app/assets/optimized/
+
 # Editor
 .vscode/
 *.suo

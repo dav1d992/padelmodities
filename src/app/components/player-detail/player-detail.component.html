@@ -14,11 +14,13 @@
       <div class="image-panel">
         <div class="image-wrapper">
           @if (imagePath()) {
-            <img
-              class="player-img"
-              [src]="imagePath()!"
-              [alt]="player()!.name"
-            >
+            @if (heroReady()) {
+              <img
+                class="player-img"
+                [src]="imagePath()!"
+                [alt]="player()!.name"
+              >
+            }
           } @else {
             <div class="player-img-placeholder">
               {{ player()!.name[0].toUpperCase() }}
