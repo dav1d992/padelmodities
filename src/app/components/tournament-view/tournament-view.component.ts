@@ -78,7 +78,13 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
           this.tournament.set(t);
           this.loading.set(false);
           if (!t) this.router.navigate(['/']);
-          else this.syncScores(t);
+          else {
+            // Finished tournaments always open at round 1 (index 0).
+            if (t.status === 'finished' && this.viewRound() === null) {
+              this.viewRound.set(0);
+            }
+            this.syncScores(t);
+          }
         },
         error: (err) => {
           this.error.set(err?.message ?? 'Fejl.');

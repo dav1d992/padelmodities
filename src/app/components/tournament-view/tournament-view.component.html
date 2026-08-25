@@ -53,13 +53,12 @@
           <button class="btn-icon" [disabled]="!hasPrevRound()" (click)="prevRound()">←</button>
           <span class="round-nav-label">
             {{ i18n.t('view.round') }} {{ displayRound() + 1 }}
-            @if (!isCurrentRound()) { <button class="link-btn" (click)="goToCurrent()">{{ i18n.t('view.goToNow') }}</button> }
           </span>
           <button class="btn-icon" [disabled]="!hasNextRound()" (click)="nextRound()">→</button>
         </div>
       }
 
-      @if (editWarning()) {
+      @if (editWarning() && !isFinished()) {
         <p class="warn small edit-warn">{{ editWarning() }}</p>
       }
 
@@ -117,7 +116,7 @@
               <div class="match-card glass">
                 <div class="court-label muted small">{{ courtName(match.courtIndex) }}</div>
                 <div class="match-teams">
-                  <!-- Side A -->
+                  <!-- Side A players -->
                   <div class="team">
                     <div class="team-players">
                       @if (isTeam()) {
@@ -142,26 +141,25 @@
                         <span>{{ playerName(match.a2) }}</span>
                       </div>
                     </div>
-                    <div class="score-input-wrap">
-                      <input type="number" class="score-input" min="0" max="99"
-                        [disabled]="isFinished()"
-                        [value]="getScore(match.id).score1 ?? ''"
-                        (input)="setScore(match.id, 'score1', $any($event.target).value)"
-                        (change)="saveScore(match.id)">
-                    </div>
                   </div>
 
-                  <div class="vs">VS</div>
+                  <!-- Scores in the centre -->
+                  <div class="score-center">
+                    <input type="number" class="score-input" min="0" max="99"
+                      [disabled]="isFinished()"
+                      [value]="getScore(match.id).score1 ?? ''"
+                      (input)="setScore(match.id, 'score1', $any($event.target).value)"
+                      (change)="saveScore(match.id)">
+                    <span class="vs">VS</span>
+                    <input type="number" class="score-input" min="0" max="99"
+                      [disabled]="isFinished()"
+                      [value]="getScore(match.id).score2 ?? ''"
+                      (input)="setScore(match.id, 'score2', $any($event.target).value)"
+                      (change)="saveScore(match.id)">
+                  </div>
 
-                  <!-- Side B -->
+                  <!-- Side B players -->
                   <div class="team team-right">
-                    <div class="score-input-wrap">
-                      <input type="number" class="score-input" min="0" max="99"
-                        [disabled]="isFinished()"
-                        [value]="getScore(match.id).score2 ?? ''"
-                        (input)="setScore(match.id, 'score2', $any($event.target).value)"
-                        (change)="saveScore(match.id)">
-                    </div>
                     <div class="team-players team-players-right">
                       @if (isTeam()) {
                         <div class="team-title">{{ teamName(match.teamBId) }}</div>
