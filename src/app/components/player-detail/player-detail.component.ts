@@ -23,7 +23,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-export type ImageState = 'idle' | 'entering' | 'shaking' | 'settled';
+/** Moment (ms into the hero animation) the portrait "lands" and the slam sound fires. */
+const IMPACT_MS = 520;
 
 const DUST_PARTICLES = [
   { id: 0,  x: '0%',   top: '18%', driftX: '-28px', fallY: '65px', size: '8px',  delay: '0ms',  color: 'hsl(35,45%,55%)' },
@@ -60,7 +61,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly player = signal<Player | null>(null);
   readonly loading = signal(true);
   readonly error = signal('');
-  readonly imageState = signal<ImageState>('idle');
+  readonly imagePlaying = signal(false);
   readonly visibleSkillIndex = signal(-1);
   readonly skillLabels = SKILL_LABELS;
   readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
@@ -81,6 +82,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
   private sub?: Subscription;
   private animationStarted = false;
+  private imageAnimBegun = false;
   private timers: ReturnType<typeof setTimeout>[] = [];
 
   ngOnInit(): void {
@@ -108,12 +110,41 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   }
 
   private startAnimation(hasImage: boolean): void {
-    if (hasImage) setTimeout(() => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9), 500);
-    const t0 = setTimeout(() => this.imageState.set('entering'), 60);
-    const t1 = setTimeout(() => this.imageState.set('shaking'), 710);
-    const t2 = setTimeout(() => this.imageState.set('settled'), 1160);
-    this.startSkillBarSequence();
-    this.timers.push(t0, t1, t2);
+    if (!hasImage) {
+      // No portrait to wait on — reveal immediately.
+      this.beginImageAnimation(false);
+      return;
+    }
+    // Wait for the portrait to load (onImageLoaded) so its decode doesn't stall
+    // the animation on slower phones. Fallback in case the load event is missed
+    // (e.g. an already-cached image).
+    const fallback = setTimeout(() => this.beginImageAnimation(true), 700);
+    this.timers.push(fallback);
+  }
+
+  onImageLoaded(): void {
+    this.beginImageAnimation(true);
+  }
+
+  /** Kick off the single fall→land→shake animation once, after a frame is painted. */
+  private beginImageAnimation(hasImage: boolean): void {
+    if (this.imageAnimBegun) return;
+    this.imageAnimBegun = true;
+    // Double rAF guarantees the browser paints the off-screen start frame before
+    // the animation class is applied, so the drop is always visible.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        this.imagePlaying.set(true);
+        if (hasImage) {
+          const slam = setTimeout(
+            () => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
+            IMPACT_MS,
+          );
+          this.timers.push(slam);
+        }
+        this.startSkillBarSequence();
+      }),
+    );
   }
 
   private startSkillBarSequence(): void {

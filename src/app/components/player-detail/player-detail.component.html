@@ -16,14 +16,13 @@
           @if (imagePath()) {
             <img
               class="player-img"
-              [class.entering]="imageState() === 'entering'"
-              [class.shaking]="imageState() === 'shaking'"
-              [class.settled]="imageState() === 'settled'"
+              [class.playing]="imagePlaying()"
               [src]="imagePath()!"
               [alt]="player()!.name"
+              (load)="onImageLoaded()"
             >
           } @else {
-            <div class="player-img-placeholder settled">
+            <div class="player-img-placeholder">
               {{ player()!.name[0].toUpperCase() }}
             </div>
           }
