@@ -40,6 +40,8 @@
 
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
+    /* Let the hero + info flow and scroll as one normal page instead of being pinned to the viewport. */
+    height: auto;
   }
 }
 
@@ -315,6 +317,12 @@
     height: 48vh;
     min-height: 300px;
     max-height: none;
+  }
+
+  /* Mobile: fade the portrait in on the spot — no slide / shake / movement. */
+  .player-img,
+  .player-img-placeholder {
+    animation: mobileFadeIn 0.4s ease both;
   }
 
   /* Float the back button over the image, aligned with the fixed app bar row */

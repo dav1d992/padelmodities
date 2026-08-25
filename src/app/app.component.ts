@@ -55,6 +55,20 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly adminCode = signal('');
   readonly adminError = signal(false);
 
+  /** The route crossfade yanks the leaving page to top:0 and looks like a jump on phones, so it's disabled there. */
+  readonly disableRouteAnim = signal(this.matchesMobile());
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.disableRouteAnim.set(this.matchesMobile());
+  }
+
+  private matchesMobile(): boolean {
+    return typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(max-width: 640px)').matches;
+  }
+
   toggleAdminInput(): void {
     this.adminInputOpen.set(!this.adminInputOpen());
     this.adminError.set(false);

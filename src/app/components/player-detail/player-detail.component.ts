@@ -112,6 +112,12 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     this.timers.forEach(clearTimeout);
   }
 
+  private isMobile(): boolean {
+    return typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(max-width: 640px)').matches;
+  }
+
   /**
    * The portraits are multi-megabyte PNGs, so on a phone the `<img>` would mount
    * and run its whole CSS slide-in while still empty, leaving the picture to pop
@@ -128,11 +134,14 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     const begin = () => {
       if (this.heroReady()) return;
       this.heroReady.set(true);
-      const slam = setTimeout(
-        () => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
-        IMPACT_MS,
-      );
-      this.timers.push(slam);
+      // Mobile shows the portrait instantly with no slide-in, so the landing slam sound would make no sense there.
+      if (!this.isMobile()) {
+        const slam = setTimeout(
+          () => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
+          IMPACT_MS,
+        );
+        this.timers.push(slam);
+      }
       this.startSkillBarSequence();
     };
 
