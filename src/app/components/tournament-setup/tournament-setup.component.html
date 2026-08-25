@@ -29,7 +29,6 @@
             [class.selected]="format() === opt.value"
             (click)="selectFormat(opt.value)"
           >
-            <span class="format-emoji">{{ opt.emoji }}</span>
             <strong>{{ i18n.t('format.' + opt.value) }}</strong>
             <span class="muted small">{{ i18n.t('format.' + opt.value + '.desc') }}</span>
           </button>
@@ -258,7 +257,7 @@
         </div>
       }
       @if (fairnessWarning()) {
-        <p class="warn small">⚠️ {{ fairnessWarning() }}</p>
+        <p class="warn small">{{ fairnessWarning() }}</p>
       }
       @if (!validation().ok) {
         @for (msg of validation().messages; track msg) {

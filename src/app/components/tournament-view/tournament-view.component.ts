@@ -289,10 +289,10 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
     const s = this.kothStats()[id];
     if (!s) return '';
     switch (s.lastMovement) {
-      case 'up': return '⬆️';
-      case 'down': return '⬇️';
-      case 'stay-top': return '👑';
-      case 'stay-bottom': return '⬇️';
+      case 'up': return '↑';
+      case 'down': return '↓';
+      case 'stay-top': return '↑';
+      case 'stay-bottom': return '↓';
       default: return '•';
     }
   }

@@ -35,7 +35,6 @@
     <!-- Draft -->
     @if (isDraft()) {
       <div class="glass panel draft-banner">
-        <span class="draft-icon">📝</span>
         <h2>{{ i18n.t('view.draftSaved') }}</h2>
         <p class="muted">{{ i18n.t('view.draftHint') }}</p>
         <div class="action-buttons">
@@ -61,7 +60,7 @@
       }
 
       @if (editWarning()) {
-        <p class="warn small edit-warn">⚠️ {{ editWarning() }}</p>
+        <p class="warn small edit-warn">{{ editWarning() }}</p>
       }
 
       <!-- King of the Hill ladder -->
@@ -73,7 +72,7 @@
               <div class="ladder-court glass" [class.king-court]="court.isKing">
                 <div class="ladder-head">
                   <span class="ladder-name">
-                    @if (court.isKing) { 👑 } {{ court.courtName }}
+                    {{ court.courtName }}
                   </span>
                   @if (court.isKing) { <span class="badge badge-gold">{{ i18n.t('view.kingCourt') }}</span> }
                 </div>
@@ -237,7 +236,6 @@
     <!-- Finished / winner banner -->
     @if (isFinished() && winnerLabel()) {
       <div class="glass panel finished-banner">
-        <span class="finished-icon">{{ isKoth() ? '👑' : '🏆' }}</span>
         <h2>{{ isKoth() ? i18n.t('view.kothWin') : i18n.t('view.finished') }}</h2>
         <p class="winner-name">{{ winnerLabel() }}</p>
       </div>
@@ -269,7 +267,7 @@
               @for (row of standings(); track row.participantId; let i = $index) {
                 <tr>
                   <td class="rank">
-                    @if (i === 0) { 🥇 } @else if (i === 1) { 🥈 } @else if (i === 2) { 🥉 } @else { {{ i + 1 }} }
+                    {{ i + 1 }}
                   </td>
                   <td class="left name">{{ row.name }}</td>
                   <td>{{ row.played }}</td>

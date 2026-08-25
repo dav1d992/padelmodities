@@ -31,7 +31,6 @@ import { CommonModule } from '@angular/common';
 
 interface FormatOption {
   value: TournamentFormat;
-  emoji: string;
 }
 
 @Component({
@@ -48,12 +47,12 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
   readonly i18n = inject(I18nService);
 
   readonly formatOptions: FormatOption[] = [
-    { value: 'americano', emoji: '🔄' },
-    { value: 'team-americano', emoji: '👥' },
-    { value: 'mexicano', emoji: '🌮' },
-    { value: 'team-mexicano', emoji: '🤝' },
-    { value: 'super-mexicano', emoji: '⭐' },
-    { value: 'king-of-the-hill', emoji: '👑' },
+    { value: 'americano' },
+    { value: 'team-americano' },
+    { value: 'mexicano' },
+    { value: 'team-mexicano' },
+    { value: 'super-mexicano' },
+    { value: 'king-of-the-hill' },
   ];
 
   readonly scoringMethods: ScoringMethod[] = [

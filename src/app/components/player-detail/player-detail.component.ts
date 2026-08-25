@@ -161,7 +161,8 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
   private startSkillBarSequence(): void {
     this.visibleSkillIndex.set(-1);
-    const startAfterMs = HERO_DURATION_MS + 250;
+    // Desktop waits for the hero slide to land; mobile has no hero animation, so start almost right away.
+    const startAfterMs = this.isMobile() ? 250 : HERO_DURATION_MS + 250;
     const barAnimationMs = 500;
     const staggerMs = barAnimationMs;
 

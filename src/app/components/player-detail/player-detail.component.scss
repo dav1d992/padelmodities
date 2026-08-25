@@ -339,8 +339,8 @@
 
   .info-panel {
     padding-top: 1.25rem;
-    /* opacity-only fade avoids translateY overflow that creates a phantom scrollbar */
-    animation: mobileFadeIn 0.45s ease 1.15s both;
+    /* No hero drop to wait for on mobile, so fade the details in almost immediately. */
+    animation: mobileFadeIn 0.35s ease 0.1s both;
   }
 }
 
