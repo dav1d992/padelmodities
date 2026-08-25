@@ -63,15 +63,10 @@
   object-fit: cover;
   object-position: top center;
   display: block;
-  /* Start off-screen to the left of the panel (desktop) */
+  /* Start off-screen (desktop: left). The drop-in is run via the Web Animations
+     API in the component, which sets the resting transform when it finishes. */
   transform: translateX(-110%);
   will-change: transform;
-
-  /* One self-contained animation: slide/fall in, land, then shake. Driven by a
-     single class so intermediate phases can never be skipped on slow devices. */
-  &.playing {
-    animation: heroSlamX 1.05s forwards;
-  }
 }
 
 /* Placeholder when no shortname / image */
@@ -264,26 +259,6 @@
 
 /* ── Keyframe animations ─────────────────────────────────────────────────── */
 
-@keyframes heroSlamX {
-  0%   { transform: translateX(-110%);            animation-timing-function: cubic-bezier(0.5, 0, 0.85, 0.4); }
-  48%  { transform: translateX(0);                animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  58%  { transform: translateX(-8px) rotate(-1.3deg); }
-  70%  { transform: translateX(6px)  rotate(1deg);    }
-  80%  { transform: translateX(-4px) rotate(-0.6deg); }
-  90%  { transform: translateX(2px)  rotate(0.3deg);  }
-  100% { transform: translateX(0)    rotate(0deg);    }
-}
-
-@keyframes heroSlamY {
-  0%   { transform: translateY(-115%);            animation-timing-function: cubic-bezier(0.5, 0, 0.85, 0.4); }
-  48%  { transform: translateY(0);                animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  58%  { transform: translateY(-8px) rotate(-1.3deg); }
-  70%  { transform: translateY(5px)  rotate(1deg);    }
-  80%  { transform: translateY(-4px) rotate(-0.6deg); }
-  90%  { transform: translateY(2px)  rotate(0.3deg);  }
-  100% { transform: translateY(0)    rotate(0deg);    }
-}
-
 @keyframes skillGrow {
   from { transform: scaleX(0); }
   to   { transform: scaleX(var(--skill-scale)); }
@@ -326,12 +301,11 @@
     max-height: none;
   }
 
-  /* Fall in from above, land, then shake */
+  /* Fall in from above; the drop-in animation itself is run via the Web
+     Animations API in the component (vertical on phones). */
   .player-img {
     transform: translateY(-115%);
     will-change: transform;
-
-    &.playing { animation: heroSlamY 1.05s forwards; }
   }
 
   /* Float the back button over the image, aligned with the fixed app bar row */

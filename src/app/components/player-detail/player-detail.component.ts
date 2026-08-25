@@ -1,11 +1,13 @@
 ﻿import {
   Component,
   computed,
+  ElementRef,
   inject,
   input,
   OnDestroy,
   OnInit,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -23,8 +25,10 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+/** Total length of the hero drop→land→shake animation. */
+const HERO_DURATION_MS = 1050;
 /** Moment (ms into the hero animation) the portrait "lands" and the slam sound fires. */
-const IMPACT_MS = 520;
+const IMPACT_MS = 500;
 
 const DUST_PARTICLES = [
   { id: 0,  x: '0%',   top: '18%', driftX: '-28px', fallY: '65px', size: '8px',  delay: '0ms',  color: 'hsl(35,45%,55%)' },
@@ -61,10 +65,12 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly player = signal<Player | null>(null);
   readonly loading = signal(true);
   readonly error = signal('');
-  readonly imagePlaying = signal(false);
   readonly visibleSkillIndex = signal(-1);
   readonly skillLabels = SKILL_LABELS;
   readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
+
+  /** The portrait (or placeholder) element that gets the drop-in animation. */
+  @ViewChild('heroEl') private heroEl?: ElementRef<HTMLElement>;
 
   // ── Admin edit state ──────────────────────────────────────────────────────
   readonly editing = signal(false);
@@ -111,40 +117,74 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
   private startAnimation(hasImage: boolean): void {
     if (!hasImage) {
-      // No portrait to wait on — reveal immediately.
-      this.beginImageAnimation(false);
+      // No portrait to wait on — animate the placeholder once it's rendered.
+      requestAnimationFrame(() => this.runHeroAnimation(this.heroEl?.nativeElement, false));
       return;
     }
-    // Wait for the portrait to load (onImageLoaded) so its decode doesn't stall
-    // the animation on slower phones. Fallback in case the load event is missed
-    // (e.g. an already-cached image).
-    const fallback = setTimeout(() => this.beginImageAnimation(true), 700);
+    // The image's (load) event drives the animation so its decode never stalls
+    // the drop on slow phones. This fallback covers a missed/cached load event.
+    const fallback = setTimeout(
+      () => this.runHeroAnimation(this.heroEl?.nativeElement, true),
+      700,
+    );
     this.timers.push(fallback);
   }
 
-  onImageLoaded(): void {
-    this.beginImageAnimation(true);
+  onImageLoaded(event: Event): void {
+    this.runHeroAnimation(event.target as HTMLElement, true);
   }
 
-  /** Kick off the single fall→land→shake animation once, after a frame is painted. */
-  private beginImageAnimation(hasImage: boolean): void {
+  /**
+   * Runs the whole fall→land→shake as a single Web Animations API animation on
+   * the real DOM element. This bypasses Angular change detection, class-toggle
+   * timing races and phase-skipping, and runs transforms on the compositor, so
+   * it plays reliably on every device.
+   */
+  private runHeroAnimation(el: HTMLElement | null | undefined, hasImage: boolean): void {
     if (this.imageAnimBegun) return;
     this.imageAnimBegun = true;
-    // Double rAF guarantees the browser paints the off-screen start frame before
-    // the animation class is applied, so the drop is always visible.
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
-        this.imagePlaying.set(true);
-        if (hasImage) {
-          const slam = setTimeout(
-            () => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
-            IMPACT_MS,
-          );
-          this.timers.push(slam);
-        }
-        this.startSkillBarSequence();
-      }),
-    );
+
+    if (!el) {
+      this.startSkillBarSequence();
+      return;
+    }
+
+    if (typeof el.animate !== 'function') {
+      // Ancient browser without WAAPI: just reveal the portrait.
+      el.style.transform = 'none';
+      this.startSkillBarSequence();
+      return;
+    }
+
+    const phone =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(max-width: 640px)').matches;
+    const off = phone ? 'translateY(-115%)' : 'translateX(-110%)';
+    const j = (px: number) => (phone ? `translateY(${px}px)` : `translateX(${px}px)`);
+
+    const keyframes: Keyframe[] = [
+      { offset: 0, transform: off, easing: 'cubic-bezier(0.5,0,0.85,0.4)' },
+      { offset: 0.48, transform: 'translate3d(0,0,0)', easing: 'cubic-bezier(0.3,0,0.2,1)' },
+      { offset: 0.58, transform: `${j(-8)} rotate(-1.3deg)` },
+      { offset: 0.70, transform: `${j(5)} rotate(1deg)` },
+      { offset: 0.80, transform: `${j(-4)} rotate(-0.6deg)` },
+      { offset: 0.90, transform: `${j(2)} rotate(0.3deg)` },
+      { offset: 1, transform: 'translate3d(0,0,0) rotate(0deg)' },
+    ];
+
+    const anim = el.animate(keyframes, { duration: HERO_DURATION_MS, fill: 'forwards' });
+    // Persist the resting position even after the animation is discarded.
+    anim.onfinish = () => { el.style.transform = 'translate3d(0,0,0)'; };
+
+    if (hasImage) {
+      const slam = setTimeout(
+        () => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
+        IMPACT_MS,
+      );
+      this.timers.push(slam);
+    }
+    this.startSkillBarSequence();
   }
 
   private startSkillBarSequence(): void {
