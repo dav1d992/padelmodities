@@ -38,7 +38,7 @@
   height: 100vh;
   height: 100dvh;
 
-  @media (max-width: 560px) {
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 }
@@ -144,7 +144,7 @@
 
   h1 { font-size: clamp(1.3rem, 4vw, 2rem); }
 
-  @media (max-width: 560px) { display: none; }
+  @media (max-width: 640px) { display: none; }
 }
 
 .rating-row {
@@ -288,18 +288,20 @@
 }
 
 @keyframes slideInTop {
-  from { transform: translateY(-110%); }
-  to   { transform: translateY(0); }
+  0%   { transform: translateY(-115%); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.35); }
+  70%  { transform: translateY(0); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
+  84%  { transform: translateY(-7%); }
+  100% { transform: translateY(0); }
 }
 
 @keyframes impactDrop {
-  0%   { transform: translateY(-10px) rotate(-1deg); }
-  18%  { transform: translateY(7px)   rotate(0.8deg);  }
-  36%  { transform: translateY(-5px)  rotate(-0.6deg); }
-  54%  { transform: translateY(3px)   rotate(0.4deg);  }
-  72%  { transform: translateY(-2px)  rotate(-0.2deg); }
-  90%  { transform: translateY(1px)   rotate(0.1deg);  }
-  100% { transform: translateY(0)     rotate(0deg);    }
+  0%   { transform: translateY(0)    rotate(0deg);    }
+  16%  { transform: translateY(-6px) rotate(-1.4deg); }
+  32%  { transform: translateY(4px)  rotate(1.1deg);  }
+  48%  { transform: translateY(-4px) rotate(-0.8deg); }
+  64%  { transform: translateY(2px)  rotate(0.5deg);  }
+  80%  { transform: translateY(-1px) rotate(-0.2deg); }
+  100% { transform: translateY(0)    rotate(0deg);    }
 }
 
 @keyframes skillGrow {
@@ -321,7 +323,7 @@
   :host { margin-top: -3.25rem; }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   /* Allow natural scroll on mobile */
   .page {
     height: auto;
@@ -344,11 +346,12 @@
     max-height: none;
   }
 
-  /* Slide in from above instead of from the side */
+  /* Fall in from above, land, then shake */
   .player-img {
-    transform: translateY(-110%);
+    transform: translateY(-115%);
+    will-change: transform;
 
-    &.entering { animation: slideInTop 0.65s cubic-bezier(0.15, 0, 0.4, 1) forwards; }
+    &.entering { animation: slideInTop 0.7s forwards; }
     &.shaking  { animation: impactDrop 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards; }
     &.settled  { transform: translateY(0); }
   }

@@ -113,7 +113,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: none; backgroun
 .back-arrow { margin-right: 0.4em; }
 
 /* On phone the back-to-ranking button collapses to just the arrow. */
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .back-arrow { margin-right: 0; }
   .back-label { display: none; }
 }
