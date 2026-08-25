@@ -72,13 +72,6 @@ export class RanglistComponent implements OnInit, OnDestroy {
     this.subs.forEach((s) => s.unsubscribe());
   }
 
-  rankMedal(rank: number): string {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return '';
-  }
-
   activeTournaments(): Tournament[] {
     return this.tournaments().filter((t) => t.status === 'active');
   }

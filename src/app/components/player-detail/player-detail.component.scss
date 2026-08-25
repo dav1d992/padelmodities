@@ -292,6 +292,16 @@
   to   { transform: translateY(0); }
 }
 
+@keyframes impactDrop {
+  0%   { transform: translateY(-10px) rotate(-1deg); }
+  18%  { transform: translateY(7px)   rotate(0.8deg);  }
+  36%  { transform: translateY(-5px)  rotate(-0.6deg); }
+  54%  { transform: translateY(3px)   rotate(0.4deg);  }
+  72%  { transform: translateY(-2px)  rotate(-0.2deg); }
+  90%  { transform: translateY(1px)   rotate(0.1deg);  }
+  100% { transform: translateY(0)     rotate(0deg);    }
+}
+
 @keyframes skillGrow {
   from { transform: scaleX(0); }
   to   { transform: scaleX(var(--skill-scale)); }
@@ -305,6 +315,12 @@
 }
 
 /* ── Mobile adjustments ──────────────────────────────────────────────────── */
+/* Cancel the app shell's top padding so the portrait is a full-bleed hero that
+   reaches the very top of the viewport, with the app controls floating over it. */
+@media (max-width: 640px) {
+  :host { margin-top: -3.25rem; }
+}
+
 @media (max-width: 560px) {
   /* Allow natural scroll on mobile */
   .page {
@@ -321,10 +337,11 @@
     background: var(--bg);
   }
 
+  /* Full-bleed hero covering the whole top */
   .image-wrapper {
-    height: 38vh;
-    min-height: 220px;
-    max-height: 340px;
+    height: 48vh;
+    min-height: 300px;
+    max-height: none;
   }
 
   /* Slide in from above instead of from the side */
@@ -332,7 +349,20 @@
     transform: translateY(-110%);
 
     &.entering { animation: slideInTop 0.65s cubic-bezier(0.15, 0, 0.4, 1) forwards; }
+    &.shaking  { animation: impactDrop 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards; }
     &.settled  { transform: translateY(0); }
+  }
+
+  /* Float the back button over the image, aligned with the fixed app bar row */
+  .back-link {
+    top: 0.75rem;
+    left: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 0.35em 0.75em;
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+    &:hover { color: #fff; background: rgba(0, 0, 0, 0.6); }
   }
 
   .info-panel {

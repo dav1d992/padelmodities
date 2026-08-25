@@ -1,5 +1,5 @@
 ﻿<div class="page">
-  <a routerLink="/" class="back-link fade-up">{{ i18n.t('common.back') }}</a>
+  <a routerLink="/" class="back-link fade-up" [attr.aria-label]="i18n.t('common.back')"><span class="back-arrow" aria-hidden="true">←</span><span class="back-label">{{ i18n.t('common.back') }}</span></a>
 
 
   @if (error()) {

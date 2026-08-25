@@ -111,10 +111,6 @@
   padding: 2.5rem 1.5rem;
 }
 
-.empty-icon {
-  font-size: 3rem;
-}
-
 /* Ranglist table */
 .ranglist {
   overflow: hidden;
@@ -140,8 +136,6 @@
   text-align: center;
 }
 
-.medal { font-size: 1.4rem; line-height: 1; }
-
 .rank-num {
   font-size: 0.85rem;
   font-weight: 700;
@@ -151,6 +145,8 @@
 /* Avatar */
 .avatar-cell {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .avatar {
@@ -159,6 +155,7 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--border);
+  display: block;
 }
 
 .avatar-placeholder {
@@ -264,4 +261,9 @@
 @media (max-width: 640px) {
   .shortname-tag { display: none; }
   .page { padding-top: 0.5rem; }
+
+  .rank-cell {
+    min-width: 0;
+    text-align: left;
+  }
 }

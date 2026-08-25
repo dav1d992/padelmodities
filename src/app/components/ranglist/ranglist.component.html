@@ -86,7 +86,6 @@
       </div>
     } @else if (players().length === 0) {
       <div class="empty glass panel">
-        <span class="empty-icon">🎾</span>
         <p>{{ i18n.t('rank.empty') }}</p>
         @if (admin.isAdmin()) {
           <a routerLink="/create-player" class="btn btn-primary">{{ i18n.t('rank.addFirst') }}</a>
@@ -97,11 +96,7 @@
         @for (player of players(); track player.id; let rank = $index) {
           <a class="ranglist-row" [routerLink]="['/player', player.id]" (mouseenter)="audioSvc.playHover()">
             <div class="rank-cell">
-              @if (rankMedal(rank + 1)) {
-                <span class="medal">{{ rankMedal(rank + 1) }}</span>
-              } @else {
-                <span class="rank-num">#{{ rank + 1 }}</span>
-              }
+              <span class="rank-num">#{{ rank + 1 }}</span>
             </div>
 
             <div class="avatar-cell">

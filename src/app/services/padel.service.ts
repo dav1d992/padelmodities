@@ -74,7 +74,7 @@ function normaliseSkillset(skillset?: Partial<Skillset>): Skillset {
     power: clampSkillValue(skillset?.power ?? DEFAULT_SKILLSET.power),
     agility: clampSkillValue(skillset?.agility ?? DEFAULT_SKILLSET.agility),
     stamina: clampSkillValue(skillset?.stamina ?? DEFAULT_SKILLSET.stamina),
-    reflexes: clampSkillValue(skillset?.reflexes ?? DEFAULT_SKILLSET.reflexes),
+    control: clampSkillValue(skillset?.control ?? DEFAULT_SKILLSET.control),
     strategy: clampSkillValue(skillset?.strategy ?? DEFAULT_SKILLSET.strategy),
   };
 }

@@ -13,11 +13,11 @@
         "shortname":      { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20 && newData.val().matches(/^[a-z0-9_-]+$/)" },
         "rating":         { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999" },
         "skillset": {
-          ".validate": "newData.hasChildren(['power','agility','stamina','reflexes','strategy'])",
+          ".validate": "newData.hasChildren(['power','agility','stamina','control','strategy'])",
           "power":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
           "agility":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
           "stamina":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
-          "reflexes":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
+          "control":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
           "strategy":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
           "$other":    { ".validate": false }
         },

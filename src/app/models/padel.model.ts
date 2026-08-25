@@ -5,14 +5,14 @@ export type SkillName =
   | 'power'
   | 'agility'
   | 'stamina'
-  | 'reflexes'
+  | 'control'
   | 'strategy';
 
 export interface Skillset {
   power: number;
   agility: number;
   stamina: number;
-  reflexes: number;
+  control: number;
   strategy: number;
 }
 
@@ -20,7 +20,7 @@ export const SKILL_LABELS: Record<SkillName, string> = {
   power: 'Power',
   agility: 'Agility',
   stamina: 'Stamina',
-  reflexes: 'Reflexes',
+  control: 'Control',
   strategy: 'Strategy',
 };
 
@@ -28,7 +28,7 @@ export const DEFAULT_SKILLSET: Skillset = {
   power: 5,
   agility: 5,
   stamina: 5,
-  reflexes: 5,
+  control: 5,
   strategy: 5,
 };
 
@@ -273,9 +273,10 @@ export const SIM_TOTAL_POINTS = 32;
 /**
  * Deterministic per-player match strength (0–10) derived from skills.
  *
- * Strategy is weighted the most. A high agility partly compensates for a lack
- * of strategy: the lower the strategy, the more agility lifts it. There is no
- * random factor — the same skillset always yields the same strength.
+ * Control is weighted the most, followed by strategy. A high agility partly
+ * compensates for a lack of strategy: the lower the strategy, the more agility
+ * lifts it. There is no random factor — the same skillset always yields the
+ * same strength.
  */
 export function playerMatchStrength(skills: Skillset): number {
   const s = skills.strategy;
@@ -283,8 +284,8 @@ export function playerMatchStrength(skills: Skillset): number {
   // Agility fills part of the gap between current strategy and a perfect 10.
   const effectiveStrategy = Math.min(10, s + (10 - s) * (a / 10) * 0.45);
   return (
-    0.22 * effectiveStrategy +
-    0.22 * skills.reflexes +
+    0.264 * skills.control +
+    0.242 * effectiveStrategy +
     0.21 * skills.power +
     0.2 * skills.stamina +
     0.15 * a

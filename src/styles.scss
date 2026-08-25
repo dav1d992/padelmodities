@@ -109,6 +109,15 @@ button { font: inherit; color: inherit; cursor: pointer; border: none; backgroun
 
 .btn.big { padding: 0.8em 1.3em; font-size: 1.05rem; width: 100%; }
 
+/* ─── Back link ──────────────────────────────────────────────────────────── */
+.back-arrow { margin-right: 0.4em; }
+
+/* On phone the back-to-ranking button collapses to just the arrow. */
+@media (max-width: 560px) {
+  .back-arrow { margin-right: 0; }
+  .back-label { display: none; }
+}
+
 /* ─── Cards / Glass panels ───────────────────────────────────────────────── */
 .glass {
   background: var(--card);
