@@ -301,10 +301,10 @@
     max-height: none;
   }
 
-  /* Fall in from above; the drop-in animation itself is run via the Web
-     Animations API in the component (vertical on phones). */
+  /* Slide in from the side; the drop-in animation itself is run via the Web
+     Animations API in the component. */
   .player-img {
-    transform: translateY(-115%);
+    transform: translateX(-110%);
     will-change: transform;
   }
 

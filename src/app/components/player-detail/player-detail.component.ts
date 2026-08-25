@@ -156,12 +156,8 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const phone =
-      typeof window !== 'undefined' &&
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(max-width: 640px)').matches;
-    const off = phone ? 'translateY(-115%)' : 'translateX(-110%)';
-    const j = (px: number) => (phone ? `translateY(${px}px)` : `translateX(${px}px)`);
+    const off = 'translateX(-110%)';
+    const j = (px: number) => `translateX(${px}px)`;
 
     const keyframes: Keyframe[] = [
       { offset: 0, transform: off, easing: 'cubic-bezier(0.5,0,0.85,0.4)' },
