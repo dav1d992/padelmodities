@@ -15,14 +15,12 @@
         <div class="image-wrapper">
           @if (imagePath()) {
             <img
-              #heroEl
               class="player-img"
               [src]="imagePath()!"
               [alt]="player()!.name"
-              (load)="onImageLoaded($event)"
             >
           } @else {
-            <div #heroEl class="player-img-placeholder">
+            <div class="player-img-placeholder">
               {{ player()!.name[0].toUpperCase() }}
             </div>
           }

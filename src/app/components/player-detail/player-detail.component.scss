@@ -63,10 +63,9 @@
   object-fit: cover;
   object-position: top center;
   display: block;
-  /* Start off-screen (desktop: left). The drop-in is run via the Web Animations
-     API in the component, which sets the resting transform when it finishes. */
-  transform: translateX(-110%);
-  will-change: transform;
+  /* `both` fill mode means the element always ends up at rest, so a skipped or
+     unsupported animation can never leave the portrait stranded off-screen. */
+  animation: heroSlideIn 1.05s linear 60ms both;
 }
 
 /* Placeholder when no shortname / image */
@@ -80,6 +79,7 @@
   font-weight: 800;
   color: var(--primary);
   background: var(--card);
+  animation: heroSlideIn 1.05s linear 60ms both;
 }
 
 /* Name overlay (sits at bottom of image, mainly for mobile) */
@@ -259,6 +259,22 @@
 
 /* ── Keyframe animations ─────────────────────────────────────────────────── */
 
+@keyframes heroSlideIn {
+  0% {
+    transform: translate3d(-110%, 0, 0);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.85, 0.4);
+  }
+  48% {
+    transform: translate3d(0, 0, 0);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+  }
+  58% { transform: translate3d(-8px, 0, 0) rotate(-1.3deg); }
+  70% { transform: translate3d(5px, 0, 0) rotate(1deg); }
+  80% { transform: translate3d(-4px, 0, 0) rotate(-0.6deg); }
+  90% { transform: translate3d(2px, 0, 0) rotate(0.3deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+
 @keyframes skillGrow {
   from { transform: scaleX(0); }
   to   { transform: scaleX(var(--skill-scale)); }
@@ -299,13 +315,6 @@
     height: 48vh;
     min-height: 300px;
     max-height: none;
-  }
-
-  /* Slide in from the side; the drop-in animation itself is run via the Web
-     Animations API in the component. */
-  .player-img {
-    transform: translateX(-110%);
-    will-change: transform;
   }
 
   /* Float the back button over the image, aligned with the fixed app bar row */

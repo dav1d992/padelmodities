@@ -1,13 +1,11 @@
 ﻿import {
   Component,
   computed,
-  ElementRef,
   inject,
   input,
   OnDestroy,
   OnInit,
   signal,
-  ViewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -25,10 +23,10 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-/** Total length of the hero drop→land→shake animation. */
+/** Length of the hero slide→land→shake animation (must match `heroSlideIn` in the SCSS). */
 const HERO_DURATION_MS = 1050;
-/** Moment (ms into the hero animation) the portrait "lands" and the slam sound fires. */
-const IMPACT_MS = 500;
+/** Moment (ms after the portrait renders) it "lands" and the slam sound fires. */
+const IMPACT_MS = 560;
 
 const DUST_PARTICLES = [
   { id: 0,  x: '0%',   top: '18%', driftX: '-28px', fallY: '65px', size: '8px',  delay: '0ms',  color: 'hsl(35,45%,55%)' },
@@ -69,8 +67,6 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly skillLabels = SKILL_LABELS;
   readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
 
-  /** The portrait (or placeholder) element that gets the drop-in animation. */
-  @ViewChild('heroEl') private heroEl?: ElementRef<HTMLElement>;
 
   // ── Admin edit state ──────────────────────────────────────────────────────
   readonly editing = signal(false);
@@ -88,7 +84,6 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
   private sub?: Subscription;
   private animationStarted = false;
-  private imageAnimBegun = false;
   private timers: ReturnType<typeof setTimeout>[] = [];
 
   ngOnInit(): void {
@@ -115,64 +110,12 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     this.timers.forEach(clearTimeout);
   }
 
-  private startAnimation(hasImage: boolean): void {
-    if (!hasImage) {
-      // No portrait to wait on — animate the placeholder once it's rendered.
-      requestAnimationFrame(() => this.runHeroAnimation(this.heroEl?.nativeElement, false));
-      return;
-    }
-    // The image's (load) event drives the animation so its decode never stalls
-    // the drop on slow phones. This fallback covers a missed/cached load event.
-    const fallback = setTimeout(
-      () => this.runHeroAnimation(this.heroEl?.nativeElement, true),
-      700,
-    );
-    this.timers.push(fallback);
-  }
-
-  onImageLoaded(event: Event): void {
-    this.runHeroAnimation(event.target as HTMLElement, true);
-  }
-
   /**
-   * Runs the whole fall→land→shake as a single Web Animations API animation on
-   * the real DOM element. This bypasses Angular change detection, class-toggle
-   * timing races and phase-skipping, and runs transforms on the compositor, so
-   * it plays reliably on every device.
+   * The portrait slide-in itself is a plain CSS animation (`heroSlideIn`) that
+   * starts the moment the element renders, so it needs no JS on any device.
+   * This only lines the slam sound and skill bars up with it.
    */
-  private runHeroAnimation(el: HTMLElement | null | undefined, hasImage: boolean): void {
-    if (this.imageAnimBegun) return;
-    this.imageAnimBegun = true;
-
-    if (!el) {
-      this.startSkillBarSequence();
-      return;
-    }
-
-    if (typeof el.animate !== 'function') {
-      // Ancient browser without WAAPI: just reveal the portrait.
-      el.style.transform = 'none';
-      this.startSkillBarSequence();
-      return;
-    }
-
-    const off = 'translateX(-110%)';
-    const j = (px: number) => `translateX(${px}px)`;
-
-    const keyframes: Keyframe[] = [
-      { offset: 0, transform: off, easing: 'cubic-bezier(0.5,0,0.85,0.4)' },
-      { offset: 0.48, transform: 'translate3d(0,0,0)', easing: 'cubic-bezier(0.3,0,0.2,1)' },
-      { offset: 0.58, transform: `${j(-8)} rotate(-1.3deg)` },
-      { offset: 0.70, transform: `${j(5)} rotate(1deg)` },
-      { offset: 0.80, transform: `${j(-4)} rotate(-0.6deg)` },
-      { offset: 0.90, transform: `${j(2)} rotate(0.3deg)` },
-      { offset: 1, transform: 'translate3d(0,0,0) rotate(0deg)' },
-    ];
-
-    const anim = el.animate(keyframes, { duration: HERO_DURATION_MS, fill: 'forwards' });
-    // Persist the resting position even after the animation is discarded.
-    anim.onfinish = () => { el.style.transform = 'translate3d(0,0,0)'; };
-
+  private startAnimation(hasImage: boolean): void {
     if (hasImage) {
       const slam = setTimeout(
         () => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
@@ -185,7 +128,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
   private startSkillBarSequence(): void {
     this.visibleSkillIndex.set(-1);
-    const startAfterMs = 1300;
+    const startAfterMs = HERO_DURATION_MS + 250;
     const barAnimationMs = 500;
     const staggerMs = barAnimationMs;
 
