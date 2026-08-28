@@ -147,7 +147,7 @@
         }
 
         <div class="rating-row">
-          <span class="rating-value">{{ player()!.rating }}</span>
+          <span class="rating-value">{{ player()!.matchesPlayed > 0 ? player()!.rating : '--' }}</span>
           <span class="muted">{{ i18n.t('common.pts') }}</span>
           @if (winRate() !== null) {
             <span class="badge badge-green">{{ i18n.t('detail.winRate', { n: winRate()! }) }}</span>
