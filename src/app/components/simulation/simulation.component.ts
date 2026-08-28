@@ -40,13 +40,16 @@ export class SimulationComponent implements OnInit, OnDestroy {
       .filter((p) => p.shortname)
       .map((p) => `/assets/optimized/${p.shortname}-padel.webp`),
   );
+  /** Shuffled once so the two rails never share an image. */
+  private readonly shuffledImages = computed(() => this.shuffle(this.sideImages()));
+
   readonly leftImages = computed(() => {
-    const shuffled = this.shuffle(this.sideImages());
-    return shuffled.slice(0, Math.ceil(shuffled.length / 2));
+    const all = this.shuffledImages();
+    return all.slice(0, Math.ceil(all.length / 2));
   });
   readonly rightImages = computed(() => {
-    const shuffled = this.shuffle(this.sideImages());
-    return shuffled.slice(Math.ceil(shuffled.length / 2));
+    const all = this.shuffledImages();
+    return all.slice(Math.ceil(all.length / 2));
   });
 
   private shuffle(list: string[]): string[] {

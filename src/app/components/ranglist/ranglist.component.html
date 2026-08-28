@@ -93,7 +93,7 @@
       </div>
     } @else {
       <div class="ranglist glass">
-        @for (player of players(); track player.id; let rank = $index) {
+        @for (player of activePlayers(); track player.id; let rank = $index) {
           <a class="ranglist-row" [routerLink]="['/player', player.id]" (mouseenter)="audioSvc.playHover()">
             <div class="rank-cell">
               <span class="rank-num">#{{ rank + 1 }}</span>
@@ -126,6 +126,45 @@
       </div>
     }
   </section>
+
+  <!-- Inactive players (no matches played yet) -->
+  @if (!loading() && inactivePlayers().length > 0) {
+    <section class="section">
+      <h2 class="section-title">{{ i18n.t('rank.inactive') }}</h2>
+      <div class="ranglist glass">
+        @for (player of inactivePlayers(); track player.id) {
+          <a class="ranglist-row" [routerLink]="['/player', player.id]" (mouseenter)="audioSvc.playHover()">
+            <div class="rank-cell">
+              <span class="rank-num muted">–</span>
+            </div>
+
+            <div class="avatar-cell">
+              @if (player.shortname) {
+                <img class="avatar" [src]="'/assets/optimized/' + player.shortname + '-padel-thumb.webp'" [alt]="player.name" loading="lazy"
+                     (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
+                <div class="avatar avatar-placeholder" [style.display]="player.shortname ? 'none' : 'flex'">{{ player.name[0].toUpperCase() }}</div>
+              } @else {
+                <div class="avatar avatar-placeholder">{{ player.name[0].toUpperCase() }}</div>
+              }
+            </div>
+
+            <div class="info-cell">
+              <span class="player-name">{{ player.name }}</span>
+              <span class="player-record muted small">
+                @if (player.shortname) { <span class="shortname-tag">{{ player.shortname }} · </span> }
+                {{ i18n.t('rank.record', { w: player.wins, l: player.losses, m: player.matchesPlayed }) }}
+              </span>
+            </div>
+
+            <div class="rating-cell">
+              <span class="rating">--</span>
+              <span class="muted small">{{ i18n.t('common.pts') }}</span>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
 
   <!-- Recent tournaments -->
   @if (recentTournaments().length > 0) {

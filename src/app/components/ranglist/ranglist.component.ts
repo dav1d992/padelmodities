@@ -31,6 +31,16 @@ export class RanglistComponent implements OnInit, OnDestroy {
 
   private subs: Subscription[] = [];
 
+  /** Ranked players who have played at least one match. */
+  readonly activePlayers = computed(() =>
+    this.players().filter((p) => p.matchesPlayed > 0),
+  );
+
+  /** Players with no matches yet; shown separately with a '--' rating. */
+  readonly inactivePlayers = computed(() =>
+    this.players().filter((p) => p.matchesPlayed === 0),
+  );
+
   /** Portraits used for the decorative side rails (desktop only). */
   private readonly sideImages = computed(() =>
     this.players()
@@ -38,13 +48,16 @@ export class RanglistComponent implements OnInit, OnDestroy {
       .map((p) => `/assets/optimized/${p.shortname}-padel-thumb.webp`),
   );
 
+  /** Shuffled once so the two rails never share an image. */
+  private readonly shuffledImages = computed(() => this.shuffle(this.sideImages()));
+
   readonly leftImages = computed(() => {
-    const shuffled = this.shuffle(this.sideImages());
-    return shuffled.slice(0, Math.ceil(shuffled.length / 2));
+    const all = this.shuffledImages();
+    return all.slice(0, Math.ceil(all.length / 2));
   });
   readonly rightImages = computed(() => {
-    const shuffled = this.shuffle(this.sideImages());
-    return shuffled.slice(Math.ceil(shuffled.length / 2));
+    const all = this.shuffledImages();
+    return all.slice(Math.ceil(all.length / 2));
   });
 
   private shuffle(list: string[]): string[] {
