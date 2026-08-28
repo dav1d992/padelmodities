@@ -7,11 +7,13 @@ import { AdminService } from '../../services/admin.service';
 import { I18nService } from '../../services/i18n.service';
 import { FORMAT_LABELS, type Player, type Tournament } from '../../models/padel.model';
 import { CommonModule } from '@angular/common';
+import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
+import { RAIL_PHOTOS } from '../../generated/rail-photos';
 
 @Component({
   selector: 'app-ranglist',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ImgFallbackDirective],
   templateUrl: './ranglist.component.html',
   styleUrl: './ranglist.component.scss',
 })
@@ -43,9 +45,7 @@ export class RanglistComponent implements OnInit, OnDestroy {
 
   /** Portraits used for the decorative side rails (desktop only). */
   private readonly sideImages = computed(() =>
-    this.players()
-      .filter((p) => p.shortname)
-      .map((p) => `/assets/optimized/${p.shortname}-padel-thumb.webp`),
+    RAIL_PHOTOS.map((name) => `/assets/optimized/${name}-padel-thumb.webp`),
   );
 
   /** Shuffled once so the two rails never share an image. */

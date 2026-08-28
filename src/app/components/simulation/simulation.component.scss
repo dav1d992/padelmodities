@@ -219,8 +219,8 @@ select option {
   filter: grayscale(0.35);
 }
 
-.rail-down { animation: railDown 55s linear infinite; }
-.rail-up   { animation: railUp   55s linear infinite; }
+.rail-down { animation: railDown 45s linear infinite; }
+.rail-up   { animation: railUp   45s linear infinite; }
 
 @keyframes railDown {
   from { transform: translateY(-50%); }

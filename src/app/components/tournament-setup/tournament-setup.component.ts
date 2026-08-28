@@ -29,6 +29,7 @@ import {
   type TournamentTeam,
 } from '../../models/padel.model';
 import { CommonModule } from '@angular/common';
+import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
 
 interface FormatOption {
   value: TournamentFormat;
@@ -37,7 +38,7 @@ interface FormatOption {
 @Component({
   selector: 'app-tournament-setup',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ImgFallbackDirective],
   templateUrl: './tournament-setup.component.html',
   styleUrl: './tournament-setup.component.scss',
 })

@@ -1,6 +1,8 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
+import { RAIL_PHOTOS } from '../../generated/rail-photos';
 import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { I18nService } from '../../services/i18n.service';
@@ -14,7 +16,7 @@ import {
 @Component({
   selector: 'app-simulation',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ImgFallbackDirective],
   templateUrl: './simulation.component.html',
   styleUrl: './simulation.component.scss',
 })
@@ -36,9 +38,7 @@ export class SimulationComponent implements OnInit, OnDestroy {
 
   /** Portraits used for the decorative side rails (desktop only). */
   private readonly sideImages = computed(() =>
-    this.players()
-      .filter((p) => p.shortname)
-      .map((p) => `/assets/optimized/${p.shortname}-padel.webp`),
+    RAIL_PHOTOS.map((name) => `/assets/optimized/${name}-padel.webp`),
   );
   /** Shuffled once so the two rails never share an image. */
   private readonly shuffledImages = computed(() => this.shuffle(this.sideImages()));

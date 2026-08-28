@@ -2,20 +2,20 @@
   <div class="side-rail left" aria-hidden="true">
     <div class="rail-track rail-down">
       @for (img of leftImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
+        <img appImgFallback [src]="img" alt="" loading="lazy">
       }
       @for (img of leftImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
+        <img appImgFallback [src]="img" alt="" loading="lazy">
       }
     </div>
   </div>
   <div class="side-rail right" aria-hidden="true">
     <div class="rail-track rail-up">
       @for (img of rightImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
+        <img appImgFallback [src]="img" alt="" loading="lazy">
       }
       @for (img of rightImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
+        <img appImgFallback [src]="img" alt="" loading="lazy">
       }
     </div>
   </div>
@@ -101,8 +101,7 @@
 
             <div class="avatar-cell">
               @if (player.shortname) {
-                <img class="avatar" [src]="'/assets/optimized/' + player.shortname + '-padel-thumb.webp'" [alt]="player.name" loading="lazy"
-                     (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
+                <img class="avatar" appImgFallback [src]="'/assets/optimized/' + player.shortname + '-padel-thumb.webp'" [alt]="player.name" loading="lazy">
                 <div class="avatar avatar-placeholder" [style.display]="player.shortname ? 'none' : 'flex'">{{ player.name[0].toUpperCase() }}</div>
               } @else {
                 <div class="avatar avatar-placeholder">{{ player.name[0].toUpperCase() }}</div>
@@ -140,8 +139,7 @@
 
             <div class="avatar-cell">
               @if (player.shortname) {
-                <img class="avatar" [src]="'/assets/optimized/' + player.shortname + '-padel-thumb.webp'" [alt]="player.name" loading="lazy"
-                     (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
+                <img class="avatar" appImgFallback [src]="'/assets/optimized/' + player.shortname + '-padel-thumb.webp'" [alt]="player.name" loading="lazy">
                 <div class="avatar avatar-placeholder" [style.display]="player.shortname ? 'none' : 'flex'">{{ player.name[0].toUpperCase() }}</div>
               } @else {
                 <div class="avatar avatar-placeholder">{{ player.name[0].toUpperCase() }}</div>

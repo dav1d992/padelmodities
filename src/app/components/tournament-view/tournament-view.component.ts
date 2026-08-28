@@ -29,6 +29,7 @@ import {
   validateScore,
 } from '../../services/tournament-engine';
 import { CommonModule } from '@angular/common';
+import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
 
 interface MatchScore {
   score1: number | null;
@@ -45,7 +46,7 @@ interface LadderCourt {
 @Component({
   selector: 'app-tournament-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ImgFallbackDirective],
   templateUrl: './tournament-view.component.html',
   styleUrl: './tournament-view.component.scss',
 })

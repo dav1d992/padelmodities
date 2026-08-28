@@ -1,14 +1,6 @@
 import { Component, HostListener, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import {
-  animate,
-  animateChild,
-  query,
-  style,
-  transition,
-  trigger,
-} from '@angular/animations';
 import { AudioService } from './services/audio.service';
 import { AdminService } from './services/admin.service';
 import { I18nService } from './services/i18n.service';
@@ -19,55 +11,15 @@ import { I18nService } from './services/i18n.service';
   imports: [RouterOutlet, FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
-  animations: [
-    trigger('routeFade', [
-      transition('* <=> *', [
-        query(':enter', [style({ opacity: 0 })], { optional: true }),
-        query(
-          ':leave',
-          [
-            style({ position: 'absolute', top: 0, left: 0, right: 0 }),
-            animate('200ms ease', style({ opacity: 0 })),
-          ],
-          { optional: true },
-        ),
-        query(
-          ':enter',
-          [animate('320ms 100ms ease', style({ opacity: 1 })), animateChild()],
-          { optional: true },
-        ),
-      ]),
-    ]),
-  ],
 })
 export class AppComponent implements OnInit, OnDestroy {
   readonly audio = inject(AudioService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
 
-  prepareRoute(outlet: RouterOutlet): string {
-    return outlet?.isActivated
-      ? outlet.activatedRoute.snapshot.routeConfig?.path ?? ''
-      : '';
-  }
-
   readonly adminInputOpen = signal(false);
   readonly adminCode = signal('');
   readonly adminError = signal(false);
-
-  /** The route crossfade yanks the leaving page to top:0 and looks like a jump on phones, so it's disabled there. */
-  readonly disableRouteAnim = signal(this.matchesMobile());
-
-  @HostListener('window:resize')
-  onResize(): void {
-    this.disableRouteAnim.set(this.matchesMobile());
-  }
-
-  private matchesMobile(): boolean {
-    return typeof window !== 'undefined'
-      && typeof window.matchMedia === 'function'
-      && window.matchMedia('(max-width: 640px)').matches;
-  }
 
   toggleAdminInput(): void {
     this.adminInputOpen.set(!this.adminInputOpen());

@@ -225,3 +225,17 @@ label {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── Route crossfade (native View Transitions) ──────────────────────────── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+  animation-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
