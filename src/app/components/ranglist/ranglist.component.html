@@ -2,20 +2,20 @@
   <div class="side-rail left" aria-hidden="true">
     <div class="rail-track rail-down">
       @for (img of leftImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
       }
       @for (img of leftImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
       }
     </div>
   </div>
   <div class="side-rail right" aria-hidden="true">
     <div class="rail-track rail-up">
       @for (img of rightImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
       }
       @for (img of rightImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
       }
     </div>
   </div>
@@ -32,8 +32,8 @@
     </div>
     <div class="header-actions">
       <a routerLink="/simulate" class="btn btn-ghost">{{ i18n.t('rank.simulate') }}</a>
-      <a routerLink="/tournament/new" class="btn btn-ghost">{{ i18n.t('rank.newTournament') }}</a>
       @if (admin.isAdmin()) {
+        <a routerLink="/tournament/new" class="btn btn-ghost">{{ i18n.t('rank.newTournament') }}</a>
         <a routerLink="/create-player" class="btn btn-primary">{{ i18n.t('rank.addPlayer') }}</a>
       }
     </div>
@@ -102,7 +102,7 @@
             <div class="avatar-cell">
               @if (player.shortname) {
                 <img class="avatar" [src]="'/assets/optimized/' + player.shortname + '-padel-thumb.webp'" [alt]="player.name" loading="lazy"
-                     (error)="$any($event.target).style.display='none'">
+                     (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
                 <div class="avatar avatar-placeholder" [style.display]="player.shortname ? 'none' : 'flex'">{{ player.name[0].toUpperCase() }}</div>
               } @else {
                 <div class="avatar avatar-placeholder">{{ player.name[0].toUpperCase() }}</div>

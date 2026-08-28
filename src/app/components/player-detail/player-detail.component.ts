@@ -66,6 +66,8 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly visibleSkillIndex = signal(-1);
   /** True once the portrait bitmap is downloaded and decoded, so it can animate in with pixels ready. */
   readonly heroReady = signal(false);
+  /** True when the player's portrait failed to load, so the anonymous fallback is shown. */
+  readonly heroFailed = signal(false);
   readonly skillLabels = SKILL_LABELS;
   readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
 
@@ -152,7 +154,10 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
         : Promise.resolve();
       decoded.then(begin);
     };
-    img.onerror = begin;
+    img.onerror = () => {
+      this.heroFailed.set(true);
+      begin();
+    };
     img.src = `/assets/optimized/${shortname}-padel.webp`;
 
     // Safety net: a stalled download must never hide the portrait indefinitely.
@@ -176,6 +181,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   }
 
   readonly imagePath = computed(() => {
+    if (this.heroFailed()) return '/assets/anonimous-padel.png';
     const sn = this.player()?.shortname;
     return sn ? `/assets/optimized/${sn}-padel.webp` : null;
   });

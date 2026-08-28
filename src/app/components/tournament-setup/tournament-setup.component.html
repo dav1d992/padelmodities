@@ -197,7 +197,7 @@
                 (click)="toggleTeamPick(p.id)">
                 @if (p.shortname) {
                   <img class="chip-avatar" [src]="'/assets/optimized/' + p.shortname + '-padel-thumb.webp'" [alt]="p.name" loading="lazy"
-                       (error)="$any($event.target).style.display='none'">
+                       (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
                 } @else {
                   <div class="chip-avatar chip-avatar-placeholder">{{ p.name[0].toUpperCase() }}</div>
                 }
@@ -226,7 +226,7 @@
                 (click)="togglePlayer(p.id)">
                 @if (p.shortname) {
                   <img class="chip-avatar" [src]="'/assets/optimized/' + p.shortname + '-padel-thumb.webp'" [alt]="p.name" loading="lazy"
-                       (error)="$any($event.target).style.display='none'">
+                       (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
                 } @else {
                   <div class="chip-avatar chip-avatar-placeholder">{{ p.name[0].toUpperCase() }}</div>
                 }

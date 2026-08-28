@@ -2,20 +2,20 @@
   <div class="side-rail left" aria-hidden="true">
     <div class="rail-track rail-down">
       @for (img of leftImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
       }
       @for (img of leftImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
       }
     </div>
   </div>
   <div class="side-rail right" aria-hidden="true">
     <div class="rail-track rail-up">
       @for (img of rightImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
       }
       @for (img of rightImages(); track $index) {
-        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).style.display='none'">
+        <img [src]="img" alt="" loading="lazy" (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
       }
     </div>
   </div>

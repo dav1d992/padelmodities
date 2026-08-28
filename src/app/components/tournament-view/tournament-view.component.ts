@@ -11,6 +11,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
+import { AdminService } from '../../services/admin.service';
 import { I18nService } from '../../services/i18n.service';
 import {
   isDynamicFormat,
@@ -53,6 +54,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
 
   private service = inject(PadelService);
   private router = inject(Router);
+  readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
 
   readonly tournament = signal<Tournament | null>(null);
@@ -348,6 +350,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
   }
 
   async saveScore(matchId: string): Promise<void> {
+    if (!this.admin.isAdmin()) return;
     const s = this.getScore(matchId);
     if (s.score1 === null || s.score2 === null) return;
     const t = this.tournament();
@@ -373,6 +376,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
   }
 
   async resetScore(matchId: string): Promise<void> {
+    if (!this.admin.isAdmin()) return;
     this.scores.set({
       ...this.scores(),
       [matchId]: { score1: null, score2: null },
@@ -391,6 +395,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
   // ── Round actions ───────────────────────────────────────────────────────
 
   async completeRound(): Promise<void> {
+    if (!this.admin.isAdmin()) return;
     if (!this.allScoresEntered()) return;
     this.completing.set(true);
     this.error.set('');
@@ -421,6 +426,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
   });
 
   async regenerate(): Promise<void> {
+    if (!this.admin.isAdmin()) return;
     if (!this.canRegenerate()) return;
     this.regenerating.set(true);
     this.error.set('');
@@ -435,6 +441,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
   }
 
   async finishEarly(): Promise<void> {
+    if (!this.admin.isAdmin()) return;
     if (
       !window.confirm(this.i18n.t('view.finishConfirm'))
     )
@@ -450,6 +457,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
   }
 
   async startDraft(): Promise<void> {
+    if (!this.admin.isAdmin()) return;
     this.completing.set(true);
     this.error.set('');
     try {
@@ -462,6 +470,7 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
   }
 
   editDraft(): void {
+    if (!this.admin.isAdmin()) return;
     this.router.navigate(['/tournament/new'], {
       queryParams: { draft: this.tournamentId() },
     });

@@ -38,10 +38,12 @@
         <h2>{{ i18n.t('view.draftSaved') }}</h2>
         <p class="muted">{{ i18n.t('view.draftHint') }}</p>
         <div class="action-buttons">
-          <button class="btn btn-ghost" (click)="editDraft()">{{ i18n.t('common.edit') }}</button>
-          <button class="btn btn-primary" [disabled]="completing()" (click)="startDraft()">
-            {{ completing() ? i18n.t('setup.starting') : i18n.t('setup.start') }}
-          </button>
+          @if (admin.isAdmin()) {
+            <button class="btn btn-ghost" (click)="editDraft()">{{ i18n.t('common.edit') }}</button>
+            <button class="btn btn-primary" [disabled]="completing()" (click)="startDraft()">
+              {{ completing() ? i18n.t('setup.starting') : i18n.t('setup.start') }}
+            </button>
+          }
         </div>
       </div>
     }
@@ -82,7 +84,7 @@
                       <span class="koth-player">{{ kothMovementIcon(court.match.a2) }} {{ playerName(court.match.a2) }}</span>
                     </div>
                     <input type="number" class="score-input" min="0" max="99"
-                      [disabled]="isFinished()"
+                      [disabled]="isFinished() || !admin.isAdmin()"
                       [value]="getScore(court.match.id).score1 ?? ''"
                       (input)="setScore(court.match.id, 'score1', $any($event.target).value)"
                       (change)="saveScore(court.match.id)">
@@ -90,7 +92,7 @@
                   <div class="vs">VS</div>
                   <div class="team team-right">
                     <input type="number" class="score-input" min="0" max="99"
-                      [disabled]="isFinished()"
+                      [disabled]="isFinished() || !admin.isAdmin()"
                       [value]="getScore(court.match.id).score2 ?? ''"
                       (input)="setScore(court.match.id, 'score2', $any($event.target).value)"
                       (change)="saveScore(court.match.id)">
@@ -125,7 +127,7 @@
                       <div class="team-player">
                         @if (playerImage(match.a1)) {
                           <img class="mini-avatar" [src]="'/assets/optimized/' + playerImage(match.a1) + '-padel-thumb.webp'" [alt]="playerName(match.a1)" loading="lazy"
-                               (error)="$any($event.target).style.display='none'">
+                               (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
                         } @else {
                           <div class="mini-avatar mini-avatar-ph">{{ playerName(match.a1)[0] }}</div>
                         }
@@ -134,7 +136,7 @@
                       <div class="team-player">
                         @if (playerImage(match.a2)) {
                           <img class="mini-avatar" [src]="'/assets/optimized/' + playerImage(match.a2) + '-padel-thumb.webp'" [alt]="playerName(match.a2)" loading="lazy"
-                               (error)="$any($event.target).style.display='none'">
+                               (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
                         } @else {
                           <div class="mini-avatar mini-avatar-ph">{{ playerName(match.a2)[0] }}</div>
                         }
@@ -146,13 +148,13 @@
                   <!-- Scores in the centre -->
                   <div class="score-center">
                     <input type="number" class="score-input" min="0" max="99"
-                      [disabled]="isFinished()"
+                      [disabled]="isFinished() || !admin.isAdmin()"
                       [value]="getScore(match.id).score1 ?? ''"
                       (input)="setScore(match.id, 'score1', $any($event.target).value)"
                       (change)="saveScore(match.id)">
                     <span class="vs">VS</span>
                     <input type="number" class="score-input" min="0" max="99"
-                      [disabled]="isFinished()"
+                      [disabled]="isFinished() || !admin.isAdmin()"
                       [value]="getScore(match.id).score2 ?? ''"
                       (input)="setScore(match.id, 'score2', $any($event.target).value)"
                       (change)="saveScore(match.id)">
@@ -168,7 +170,7 @@
                         <span>{{ playerName(match.b1) }}</span>
                         @if (playerImage(match.b1)) {
                           <img class="mini-avatar" [src]="'/assets/optimized/' + playerImage(match.b1) + '-padel-thumb.webp'" [alt]="playerName(match.b1)" loading="lazy"
-                               (error)="$any($event.target).style.display='none'">
+                               (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
                         } @else {
                           <div class="mini-avatar mini-avatar-ph">{{ playerName(match.b1)[0] }}</div>
                         }
@@ -177,7 +179,7 @@
                         <span>{{ playerName(match.b2) }}</span>
                         @if (playerImage(match.b2)) {
                           <img class="mini-avatar" [src]="'/assets/optimized/' + playerImage(match.b2) + '-padel-thumb.webp'" [alt]="playerName(match.b2)" loading="lazy"
-                               (error)="$any($event.target).style.display='none'">
+                               (error)="$any($event.target).onerror=null; $any($event.target).src='/assets/anonimous-padel.png'">
                         } @else {
                           <div class="mini-avatar mini-avatar-ph">{{ playerName(match.b2)[0] }}</div>
                         }
@@ -188,7 +190,7 @@
                 @if (scoreError(match.id)) {
                   <p class="warn small">{{ scoreError(match.id) }}</p>
                 }
-                @if ((getScore(match.id).score1 !== null || getScore(match.id).score2 !== null) && !isFinished()) {
+                @if (admin.isAdmin() && (getScore(match.id).score1 !== null || getScore(match.id).score2 !== null) && !isFinished()) {
                   <button class="link-btn reset-btn" (click)="resetScore(match.id)">{{ i18n.t('view.resetResult') }}</button>
                 }
               </div>
@@ -208,7 +210,7 @@
       }
 
       <!-- Round actions -->
-      @if (isActive() && isCurrentRound()) {
+      @if (admin.isAdmin() && isActive() && isCurrentRound()) {
         <button class="btn btn-primary big" [disabled]="!allScoresEntered() || completing()"
           (click)="completeRound()">
           {{ completing() ? i18n.t('common.saving') : i18n.t('view.completeRound') }}

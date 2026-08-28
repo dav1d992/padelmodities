@@ -13,6 +13,7 @@ import {
   PadelService,
   type CreateTournamentInput,
 } from '../../services/padel.service';
+import { AdminService } from '../../services/admin.service';
 import { I18nService } from '../../services/i18n.service';
 import {
   DEFAULT_BONUS,
@@ -42,6 +43,7 @@ interface FormatOption {
 })
 export class TournamentSetupComponent implements OnInit, OnDestroy {
   private service = inject(PadelService);
+  private admin = inject(AdminService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   readonly i18n = inject(I18nService);
@@ -99,6 +101,10 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
   private subs: Subscription[] = [];
 
   ngOnInit(): void {
+    if (!this.admin.isAdmin()) {
+      this.router.navigate(['/']);
+      return;
+    }
     this.draftId = this.route.snapshot.queryParamMap.get('draft');
     this.subs.push(
       this.service.watchPlayers().subscribe((list) => {

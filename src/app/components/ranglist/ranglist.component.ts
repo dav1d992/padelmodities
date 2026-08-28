@@ -38,8 +38,14 @@ export class RanglistComponent implements OnInit, OnDestroy {
       .map((p) => `/assets/optimized/${p.shortname}-padel-thumb.webp`),
   );
 
-  readonly leftImages = computed(() => this.shuffle(this.sideImages()));
-  readonly rightImages = computed(() => this.shuffle(this.sideImages()));
+  readonly leftImages = computed(() => {
+    const shuffled = this.shuffle(this.sideImages());
+    return shuffled.slice(0, Math.ceil(shuffled.length / 2));
+  });
+  readonly rightImages = computed(() => {
+    const shuffled = this.shuffle(this.sideImages());
+    return shuffled.slice(Math.ceil(shuffled.length / 2));
+  });
 
   private shuffle(list: string[]): string[] {
     const arr = [...list];

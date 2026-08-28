@@ -5,8 +5,8 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
 
-const SOURCE_DIR = path.join('src', 'app', 'assets');
-const OUTPUT_DIR = path.join(SOURCE_DIR, 'optimized');
+const SOURCE_DIR = path.join('src', 'app', 'assets', 'player-photos');
+const OUTPUT_DIR = path.join('src', 'app', 'assets', 'optimized');
 const QUALITY = 78;
 
 /** Full-size hero portrait, and a thumbnail for the small round avatars. */
