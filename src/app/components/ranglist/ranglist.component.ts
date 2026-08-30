@@ -10,6 +10,9 @@ import { CommonModule } from '@angular/common';
 import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
 import { RAIL_PHOTOS } from '../../generated/rail-photos';
 
+/** Lives outside the component so the offset survives the component being destroyed on navigation. */
+let savedScrollY = 0;
+
 @Component({
   selector: 'app-ranglist',
   standalone: true,
@@ -32,6 +35,8 @@ export class RanglistComponent implements OnInit, OnDestroy {
   readonly error = signal('');
 
   private subs: Subscription[] = [];
+  private scrollRestored = false;
+  private readonly rememberScroll = () => { savedScrollY = window.scrollY; };
 
   /** Ranked players who have played at least one match. */
   readonly activePlayers = computed(() =>
@@ -70,11 +75,13 @@ export class RanglistComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    window.addEventListener('scroll', this.rememberScroll, { passive: true });
     this.subs.push(
       this.service.watchPlayers().subscribe({
         next: (list) => {
           this.players.set(list);
           this.loading.set(false);
+          this.restoreScroll();
         },
         error: (err) => {
           this.error.set(err?.message ? this.i18n.t(err.message) : this.i18n.t('err.loadPlayers'));
@@ -88,7 +95,32 @@ export class RanglistComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    window.removeEventListener('scroll', this.rememberScroll);
     this.subs.forEach((s) => s.unsubscribe());
+  }
+
+  /**
+   * The router scrolls to the top on every navigation and the rows only arrive
+   * once Firebase responds, so the old offset is reapplied by hand and retried
+   * until the list is tall enough to actually reach it.
+   */
+  private restoreScroll(): void {
+    if (this.scrollRestored) return;
+    this.scrollRestored = true;
+    const target = savedScrollY;
+    if (target <= 0) return;
+
+    let attempts = 0;
+    const apply = () => {
+      const reachable = document.documentElement.scrollHeight - window.innerHeight >= target;
+      if (reachable || attempts++ > 20) {
+        window.scrollTo(0, target);
+        savedScrollY = target;
+        return;
+      }
+      requestAnimationFrame(apply);
+    };
+    requestAnimationFrame(apply);
   }
 
   activeTournaments(): Tournament[] {

@@ -46,6 +46,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly unlockEvents = ['pointerdown', 'touchstart', 'keydown', 'scroll'] as const;
   private readonly unlockMusic = () => {
     this.audio.startBackground();
+    this.audio.primeSfx();
     if (this.audio.isPlaying()) this.removeUnlockListeners();
   };
 

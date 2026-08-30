@@ -284,6 +284,23 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Mobile variant of the slam: the portrait drops in from above instead of sliding in sideways. */
+@keyframes heroDropIn {
+  0% {
+    transform: translate3d(0, -110%, 0);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.85, 0.4);
+  }
+  48% {
+    transform: translate3d(0, 0, 0);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+  }
+  58% { transform: translate3d(0, -10px, 0); }
+  70% { transform: translate3d(0, 6px, 0); }
+  80% { transform: translate3d(0, -4px, 0); }
+  90% { transform: translate3d(0, 2px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
 @keyframes mobileFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -319,10 +336,10 @@
     max-height: none;
   }
 
-  /* Mobile: fade the portrait in on the spot — no slide / shake / movement. */
+  /* Mobile: the portrait slams down from the top instead of in from the side. */
   .player-img,
   .player-img-placeholder {
-    animation: mobileFadeIn 0.4s ease both;
+    animation: heroDropIn 1.05s linear 60ms both;
   }
 
   /* Float the back button over the image, aligned with the fixed app bar row */
@@ -339,8 +356,8 @@
 
   .info-panel {
     padding-top: 1.25rem;
-    /* No hero drop to wait for on mobile, so fade the details in almost immediately. */
-    animation: mobileFadeIn 0.35s ease 0.1s both;
+    /* Wait for the hero drop to land, same as desktop. */
+    animation: mobileFadeIn 0.35s ease 1.15s both;
   }
 }
 

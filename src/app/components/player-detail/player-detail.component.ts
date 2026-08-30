@@ -114,12 +114,6 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     this.timers.forEach(clearTimeout);
   }
 
-  private isMobile(): boolean {
-    return typeof window !== 'undefined'
-      && typeof window.matchMedia === 'function'
-      && window.matchMedia('(max-width: 640px)').matches;
-  }
-
   /**
    * The portraits are multi-megabyte PNGs, so on a phone the `<img>` would mount
    * and run its whole CSS slide-in while still empty, leaving the picture to pop
@@ -136,14 +130,11 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     const begin = () => {
       if (this.heroReady()) return;
       this.heroReady.set(true);
-      // Mobile shows the portrait instantly with no slide-in, so the landing slam sound would make no sense there.
-      if (!this.isMobile()) {
-        const slam = setTimeout(
-          () => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
-          IMPACT_MS,
-        );
-        this.timers.push(slam);
-      }
+      const slam = setTimeout(
+        () => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
+        IMPACT_MS,
+      );
+      this.timers.push(slam);
       this.startSkillBarSequence();
     };
 
@@ -166,8 +157,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
   private startSkillBarSequence(): void {
     this.visibleSkillIndex.set(-1);
-    // Desktop waits for the hero slide to land; mobile has no hero animation, so start almost right away.
-    const startAfterMs = this.isMobile() ? 250 : HERO_DURATION_MS + 250;
+    const startAfterMs = HERO_DURATION_MS + 250;
     const barAnimationMs = 500;
     const staggerMs = barAnimationMs;
 
