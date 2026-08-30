@@ -13,6 +13,9 @@ dist/
 # Generated web-sized portraits (rebuilt by scripts/optimize-images.mjs)
 src/app/assets/optimized/
 
+# Generated photo manifest for decorative rails
+src/app/generated/rail-photos.ts
+
 # Editor
 .vscode/
 *.suo
