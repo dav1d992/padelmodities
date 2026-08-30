@@ -14,6 +14,19 @@
   gap: 1.5rem;
 }
 
+.tour-description {
+  white-space: pre-wrap;
+  color: var(--text-muted);
+}
+
+.danger-zone {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
 .back-link {
   color: var(--text-muted);
   text-decoration: none;
@@ -43,6 +56,14 @@
   color: var(--text-muted);
   flex-shrink: 0;
   strong { color: var(--text); }
+}
+
+.tour-header-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* Section */
@@ -332,21 +353,7 @@
   font-weight: 500;
 }
 
-/* ─── Draft banner ─────────────────────────────────────────────────────────── */
-.draft-banner {
-  align-items: center;
-  text-align: center;
-  gap: 0.6rem;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  width: 100%;
-}
-
+/* ─── Winner ───────────────────────────────────────────────────────────── */
 .winner-name {
   font-size: 1.4rem;
   font-weight: 800;

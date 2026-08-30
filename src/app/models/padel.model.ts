@@ -225,6 +225,8 @@ export interface KothStats {
 export interface Tournament {
   id: string;
   name: string;
+  /** Free-text notes shown read-only to everyone; admin-editable while drafting. */
+  description?: string;
   format: TournamentFormat;
   status: TournamentStatus;
   /** Player IDs keyed by insertion index (RTDB-safe) — individual formats. */

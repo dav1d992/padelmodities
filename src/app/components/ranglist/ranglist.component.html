@@ -59,22 +59,6 @@
     </section>
   }
 
-  <!-- Draft tournaments -->
-  @if (draftTournaments().length > 0) {
-    <section class="section">
-      <h2 class="section-title">{{ i18n.t('rank.drafts') }}</h2>
-      <div class="tournament-chips">
-        @for (t of draftTournaments(); track t.id) {
-          <button class="chip glass" (click)="goToTournament(t.id)">
-            <span class="chip-format badge badge-gold">{{ FORMAT_LABELS[t.format] }}</span>
-            <span class="chip-name">{{ t.name }}</span>
-            <span class="badge badge-gold">{{ i18n.t('badge.draft') }}</span>
-          </button>
-        }
-      </div>
-    </section>
-  }
-
   <!-- Ranglist table -->
   <section class="section">
     <h2 class="section-title">{{ i18n.t('rank.players') }}</h2>
@@ -159,6 +143,22 @@
               <span class="muted small">{{ i18n.t('common.pts') }}</span>
             </div>
           </a>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Upcoming tournaments -->
+  @if (draftTournaments().length > 0) {
+    <section class="section">
+      <h2 class="section-title">{{ i18n.t('rank.drafts') }}</h2>
+      <div class="tournament-chips">
+        @for (t of draftTournaments(); track t.id) {
+          <button class="chip glass" (click)="goToTournament(t.id)">
+            <span class="chip-format badge badge-gold">{{ FORMAT_LABELS[t.format] }}</span>
+            <span class="chip-name">{{ t.name }}</span>
+            <span class="badge badge-gold">{{ i18n.t('badge.draft') }}</span>
+          </button>
         }
       </div>
     </section>

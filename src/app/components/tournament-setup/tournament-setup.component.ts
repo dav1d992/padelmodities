@@ -68,6 +68,7 @@ export class TournamentSetupComponent implements OnInit {
 
   // Core config
   readonly tournamentName = signal('');
+  readonly description = signal('');
   readonly format = signal<TournamentFormat>('americano');
   readonly seeded = signal(false);
   readonly courtNames = signal<string[]>([
@@ -128,6 +129,7 @@ export class TournamentSetupComponent implements OnInit {
 
   private populateFromDraft(t: Tournament): void {
     this.tournamentName.set(t.name);
+    this.description.set(t.description ?? '');
     this.format.set(t.format);
     this.seeded.set(t.seeded);
     this.courtNames.set(
@@ -335,6 +337,7 @@ export class TournamentSetupComponent implements OnInit {
   private buildInput(status: 'draft' | 'active'): CreateTournamentInput {
     return {
       name: this.tournamentName(),
+      description: this.description(),
       format: this.format(),
       playerIds: this.isTeam() ? [] : [...this.selectedIds()],
       teams: this.isTeam() ? this.teams() : undefined,

@@ -41,6 +41,7 @@
         ".validate": "newData.hasChildren(['id','name','format','status','currentRound','createdAt'])",
         "id":           { ".validate": "newData.isString() && newData.val().length <= 64" },
         "name":         { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 60" },
+        "description":  { ".validate": "newData.isString() && newData.val().length <= 500" },
         "format":       { ".validate": "newData.isString() && newData.val().matches(/^(americano|mexicano)$/)" },
         "status":       { ".validate": "newData.isString() && newData.val().matches(/^(setup|active|finished)$/)" },
         "currentRound": { ".validate": "newData.isNumber() && newData.val() >= 0" },

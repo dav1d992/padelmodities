@@ -138,6 +138,7 @@ input[type="text"],
 input[type="number"],
 input[type="url"],
 input[type="password"],
+textarea,
 select {
   width: 100%;
   background: var(--surface);
@@ -152,6 +153,12 @@ select {
 
   &:focus { border-color: var(--primary); }
   &::placeholder { color: var(--text-muted); }
+}
+
+textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+  line-height: 1.5;
 }
 
 /* Remove up/down spinners on number inputs (all browsers). */

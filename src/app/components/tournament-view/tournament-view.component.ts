@@ -64,6 +64,7 @@ export class TournamentViewComponent implements OnInit {
   readonly completing = signal(false);
   readonly finishing = signal(false);
   readonly regenerating = signal(false);
+  readonly deleting = signal(false);
 
   /** Round the user is currently viewing (null → follow current round). */
   readonly viewRound = signal<number | null>(null);
@@ -474,5 +475,19 @@ export class TournamentViewComponent implements OnInit {
     this.router.navigate(['/tournament/new'], {
       queryParams: { draft: this.tournamentId() },
     });
+  }
+
+  async deleteTournament(): Promise<void> {
+    const t = this.tournament();
+    if (!this.admin.isAdmin() || !t) return;
+    if (!window.confirm(this.i18n.t('view.deleteConfirm', { name: t.name }))) return;
+    this.deleting.set(true);
+    try {
+      await this.service.deleteTournament(t.id);
+      this.router.navigate(['/']);
+    } catch (err) {
+      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
+      this.deleting.set(false);
+    }
   }
 }

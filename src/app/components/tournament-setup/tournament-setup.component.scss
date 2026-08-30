@@ -28,6 +28,19 @@
   font-weight: 500;
 }
 
+.label-hint-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.label-hint {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
 /* Format cards */
 .format-section {
   display: flex;

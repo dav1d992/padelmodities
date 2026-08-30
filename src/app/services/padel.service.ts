@@ -41,6 +41,7 @@ import {
 /** Everything needed to create or update a tournament (draft or active). */
 export interface CreateTournamentInput {
   name: string;
+  description?: string;
   format: TournamentFormat;
   /** Individual formats. */
   playerIds: string[];
@@ -317,6 +318,12 @@ export class PadelService {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
+
+    // RTDB rejects undefined, so only attach the key when there is text.
+    const description = input.description?.trim();
+    if (description) {
+      record.description = description;
+    }
 
     if (team) {
       const teamsRecord: Record<string, TournamentTeam> = {};

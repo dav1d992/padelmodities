@@ -19,6 +19,19 @@
       >
     </label>
 
+    <label>
+      <span class="label-hint-row">
+        {{ i18n.t('setup.description') }}
+        <span class="label-hint">{{ i18n.t('setup.descriptionHint') }}</span>
+      </span>
+      <textarea
+        rows="3"
+        maxlength="500"
+        [ngModel]="description()"
+        (ngModelChange)="description.set($event)"
+      ></textarea>
+    </label>
+
     <!-- Format -->
     <div class="format-section">
       <span class="field-label muted">{{ i18n.t('setup.format') }}</span>

@@ -30,21 +30,20 @@
           <span class="muted">/ {{ t.totalRounds }}</span>
         </div>
       }
+
+      @if (isDraft() && admin.isAdmin()) {
+        <div class="tour-header-actions">
+          <button class="btn btn-ghost" (click)="editDraft()">{{ i18n.t('common.edit') }}</button>
+          <button class="btn btn-primary" [disabled]="completing()" (click)="startDraft()">
+            {{ completing() ? i18n.t('setup.starting') : i18n.t('setup.start') }}
+          </button>
+        </div>
+      }
     </header>
 
-    <!-- Draft -->
-    @if (isDraft()) {
-      <div class="glass panel draft-banner">
-        <h2>{{ i18n.t('view.draftSaved') }}</h2>
-        <p class="muted">{{ i18n.t('view.draftHint') }}</p>
-        <div class="action-buttons">
-          @if (admin.isAdmin()) {
-            <button class="btn btn-ghost" (click)="editDraft()">{{ i18n.t('common.edit') }}</button>
-            <button class="btn btn-primary" [disabled]="completing()" (click)="startDraft()">
-              {{ completing() ? i18n.t('setup.starting') : i18n.t('setup.start') }}
-            </button>
-          }
-        </div>
+    @if (t.description) {
+      <div class="glass panel tour-description">
+        <p>{{ t.description }}</p>
       </div>
     }
 
@@ -323,6 +322,14 @@
           </table>
         </div>
       </section>
+    }
+
+    @if (admin.isAdmin()) {
+      <div class="danger-zone">
+        <button class="btn btn-danger" [disabled]="deleting()" (click)="deleteTournament()">
+          {{ i18n.t('view.deleteTournament') }}
+        </button>
+      </div>
     }
   }
 </div>
