@@ -7,6 +7,7 @@ import { I18nService } from '../../services/i18n.service';
 import {
   DEFAULT_SKILLSET,
   SKILL_LABELS,
+  SKILL_NAMES,
   type SkillName,
   type Skillset,
 } from '../../models/padel.model';
@@ -14,7 +15,6 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-create-player',
-  standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './create-player.component.html',
   styleUrl: './create-player.component.scss',
@@ -31,7 +31,7 @@ export class CreatePlayerComponent implements OnInit {
   readonly skills = signal<Skillset>({ ...DEFAULT_SKILLSET });
   readonly submitting = signal(false);
   readonly submitError = signal('');
-  readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
+  readonly skillNames = SKILL_NAMES;
   readonly skillLabels = SKILL_LABELS;
 
   ngOnInit(): void {

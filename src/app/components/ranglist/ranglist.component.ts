@@ -1,6 +1,6 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { AudioService } from '../../services/audio.service';
 import { AdminService } from '../../services/admin.service';
@@ -15,7 +15,6 @@ let savedScrollY = 0;
 
 @Component({
   selector: 'app-ranglist',
-  standalone: true,
   imports: [CommonModule, RouterLink, ImgFallbackDirective],
   templateUrl: './ranglist.component.html',
   styleUrl: './ranglist.component.scss',
@@ -34,7 +33,7 @@ export class RanglistComponent implements OnInit, OnDestroy {
   readonly loading = signal(true);
   readonly error = signal('');
 
-  private subs: Subscription[] = [];
+  private readonly destroyRef = inject(DestroyRef);
   private scrollRestored = false;
   private readonly rememberScroll = () => { savedScrollY = window.scrollY; };
 
@@ -76,8 +75,10 @@ export class RanglistComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     window.addEventListener('scroll', this.rememberScroll, { passive: true });
-    this.subs.push(
-      this.service.watchPlayers().subscribe({
+    this.service
+      .watchPlayers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
         next: (list) => {
           this.players.set(list);
           this.loading.set(false);
@@ -87,16 +88,15 @@ export class RanglistComponent implements OnInit, OnDestroy {
           this.error.set(err?.message ? this.i18n.t(err.message) : this.i18n.t('err.loadPlayers'));
           this.loading.set(false);
         },
-      }),
-      this.service.watchTournaments().subscribe({
-        next: (list) => this.tournaments.set(list),
-      }),
-    );
+      });
+    this.service
+      .watchTournaments()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((list) => this.tournaments.set(list));
   }
 
   ngOnDestroy(): void {
     window.removeEventListener('scroll', this.rememberScroll);
-    this.subs.forEach((s) => s.unsubscribe());
   }
 
   /**
@@ -123,19 +123,19 @@ export class RanglistComponent implements OnInit, OnDestroy {
     requestAnimationFrame(apply);
   }
 
-  activeTournaments(): Tournament[] {
-    return this.tournaments().filter((t) => t.status === 'active');
-  }
+  readonly activeTournaments = computed<Array<Tournament>>(() =>
+    this.tournaments().filter((t) => t.status === 'active'),
+  );
 
-  draftTournaments(): Tournament[] {
-    return this.tournaments().filter((t) => t.status === 'draft');
-  }
+  readonly draftTournaments = computed<Array<Tournament>>(() =>
+    this.tournaments().filter((t) => t.status === 'draft'),
+  );
 
-  recentTournaments(): Tournament[] {
-    return this.tournaments()
+  readonly recentTournaments = computed<Array<Tournament>>(() =>
+    this.tournaments()
       .filter((t) => t.status === 'finished')
-      .slice(0, 5);
-  }
+      .slice(0, 5),
+  );
 
   goToTournament(id: string): void {
     this.router.navigate(['/tournament', id]);

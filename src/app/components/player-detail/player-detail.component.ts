@@ -1,14 +1,15 @@
 ﻿import {
   Component,
   computed,
+  DestroyRef,
   inject,
   input,
   OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { AudioService } from '../../services/audio.service';
 import { AdminService } from '../../services/admin.service';
@@ -16,6 +17,7 @@ import { I18nService } from '../../services/i18n.service';
 import {
   DEFAULT_SKILLSET,
   SKILL_LABELS,
+  SKILL_NAMES,
   type Player,
   type SkillName,
   type Skillset,
@@ -46,7 +48,6 @@ const DUST_PARTICLES = [
 
 @Component({
   selector: 'app-player-detail',
-  standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './player-detail.component.html',
   styleUrl: './player-detail.component.scss',
@@ -56,6 +57,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
   private service = inject(PadelService);
   private router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   readonly audioSvc = inject(AudioService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
@@ -69,7 +71,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   /** True when the player's portrait failed to load, so the anonymous fallback is shown. */
   readonly heroFailed = signal(false);
   readonly skillLabels = SKILL_LABELS;
-  readonly skillNames = Object.keys(SKILL_LABELS) as SkillName[];
+  readonly skillNames = SKILL_NAMES;
 
 
   // ── Admin edit state ──────────────────────────────────────────────────────
@@ -86,31 +88,32 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly editPointsFor = signal(0);
   readonly editPointsAgainst = signal(0);
 
-  private sub?: Subscription;
   private animationStarted = false;
   private timers: ReturnType<typeof setTimeout>[] = [];
 
   ngOnInit(): void {
     this.audioSvc.startBackground();
-    this.sub = this.service.watchPlayer(this.playerId()).subscribe({
-      next: (p) => {
-        this.player.set(p);
-        this.loading.set(false);
-        if (!p) { this.router.navigate(['/']); return; }
-        if (!this.animationStarted) {
-          this.animationStarted = true;
-          this.prepareHero(p.shortname);
-        }
-      },
-      error: (err) => {
-        this.error.set(err?.message ? this.i18n.t(err.message) : this.i18n.t('err.loadPlayer'));
-        this.loading.set(false);
-      },
-    });
+    this.service
+      .watchPlayer(this.playerId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (p) => {
+          this.player.set(p);
+          this.loading.set(false);
+          if (!p) { this.router.navigate(['/']); return; }
+          if (!this.animationStarted) {
+            this.animationStarted = true;
+            this.prepareHero(p.shortname);
+          }
+        },
+        error: (err) => {
+          this.error.set(err?.message ? this.i18n.t(err.message) : this.i18n.t('err.loadPlayer'));
+          this.loading.set(false);
+        },
+      });
   }
 
   ngOnDestroy(): void {
-    this.sub?.unsubscribe();
     this.timers.forEach(clearTimeout);
   }
 

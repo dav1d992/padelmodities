@@ -1,9 +1,9 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
 import { RAIL_PHOTOS } from '../../generated/rail-photos';
-import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { I18nService } from '../../services/i18n.service';
 import {
@@ -15,13 +15,13 @@ import {
 
 @Component({
   selector: 'app-simulation',
-  standalone: true,
   imports: [CommonModule, RouterLink, ImgFallbackDirective],
   templateUrl: './simulation.component.html',
   styleUrl: './simulation.component.scss',
 })
-export class SimulationComponent implements OnInit, OnDestroy {
+export class SimulationComponent implements OnInit {
   private service = inject(PadelService);
+  private readonly destroyRef = inject(DestroyRef);
   readonly i18n = inject(I18nService);
 
   readonly players = signal<Player[]>([]);
@@ -61,20 +61,17 @@ export class SimulationComponent implements OnInit, OnDestroy {
     return arr;
   }
 
-  private sub?: Subscription;
-
   ngOnInit(): void {
-    this.sub = this.service.watchPlayers().subscribe({
-      next: (list) => {
-        this.players.set(list);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+    this.service
+      .watchPlayers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => {
+          this.players.set(list);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   private byId(id: string): Player | undefined {

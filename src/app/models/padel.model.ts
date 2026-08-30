@@ -24,6 +24,14 @@ export const SKILL_LABELS: Record<SkillName, string> = {
   strategy: 'Strategy',
 };
 
+export const SKILL_NAMES: ReadonlyArray<SkillName> = [
+  'power',
+  'agility',
+  'stamina',
+  'control',
+  'strategy',
+];
+
 export const DEFAULT_SKILLSET: Skillset = {
   power: 5,
   agility: 5,

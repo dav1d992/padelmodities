@@ -1,15 +1,15 @@
 import {
   Component,
   computed,
+  DestroyRef,
   inject,
   input,
-  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
 import { PadelService } from '../../services/padel.service';
 import { AdminService } from '../../services/admin.service';
 import { I18nService } from '../../services/i18n.service';
@@ -45,12 +45,11 @@ interface LadderCourt {
 
 @Component({
   selector: 'app-tournament-view',
-  standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, ImgFallbackDirective],
   templateUrl: './tournament-view.component.html',
   styleUrl: './tournament-view.component.scss',
 })
-export class TournamentViewComponent implements OnInit, OnDestroy {
+export class TournamentViewComponent implements OnInit {
   readonly tournamentId = input.required<string>();
 
   private service = inject(PadelService);
@@ -72,11 +71,13 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
   /** Local score state: matchId → { score1, score2 } */
   readonly scores = signal<Record<string, MatchScore>>({});
 
-  private subs: Subscription[] = [];
+  private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
-    this.subs.push(
-      this.service.watchTournament(this.tournamentId()).subscribe({
+    this.service
+      .watchTournament(this.tournamentId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
         next: (t) => {
           this.tournament.set(t);
           this.loading.set(false);
@@ -93,13 +94,11 @@ export class TournamentViewComponent implements OnInit, OnDestroy {
           this.error.set(err?.message ?? 'Fejl.');
           this.loading.set(false);
         },
-      }),
-      this.service.watchPlayers().subscribe((list) => this.players.set(list)),
-    );
-  }
-
-  ngOnDestroy(): void {
-    this.subs.forEach((s) => s.unsubscribe());
+      });
+    this.service
+      .watchPlayers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((list) => this.players.set(list));
   }
 
   /** Pre-populate local scores from saved values for the displayed round. */

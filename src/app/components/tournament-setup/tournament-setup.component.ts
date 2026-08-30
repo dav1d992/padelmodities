@@ -1,14 +1,14 @@
 import {
   Component,
   computed,
+  DestroyRef,
   inject,
-  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
 import {
   PadelService,
   type CreateTournamentInput,
@@ -37,12 +37,11 @@ interface FormatOption {
 
 @Component({
   selector: 'app-tournament-setup',
-  standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, ImgFallbackDirective],
   templateUrl: './tournament-setup.component.html',
   styleUrl: './tournament-setup.component.scss',
 })
-export class TournamentSetupComponent implements OnInit, OnDestroy {
+export class TournamentSetupComponent implements OnInit {
   private service = inject(PadelService);
   private admin = inject(AdminService);
   private router = inject(Router);
@@ -99,7 +98,7 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
 
   private draftId: string | null = null;
   private draftLoaded = false;
-  private subs: Subscription[] = [];
+  private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
     if (!this.admin.isAdmin()) {
@@ -107,26 +106,24 @@ export class TournamentSetupComponent implements OnInit, OnDestroy {
       return;
     }
     this.draftId = this.route.snapshot.queryParamMap.get('draft');
-    this.subs.push(
-      this.service.watchPlayers().subscribe((list) => {
+    this.service
+      .watchPlayers()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((list) => {
         this.players.set(list);
         this.maybeLoadDraft();
-      }),
-    );
-  }
-
-  ngOnDestroy(): void {
-    this.subs.forEach((s) => s.unsubscribe());
+      });
   }
 
   private maybeLoadDraft(): void {
     if (!this.draftId || this.draftLoaded) return;
     this.draftLoaded = true;
-    this.subs.push(
-      this.service.watchTournament(this.draftId).subscribe((t) => {
+    this.service
+      .watchTournament(this.draftId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((t) => {
         if (t) this.populateFromDraft(t);
-      }),
-    );
+      });
   }
 
   private populateFromDraft(t: Tournament): void {

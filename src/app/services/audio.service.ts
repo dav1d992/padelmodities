@@ -10,10 +10,26 @@ const SFX_SOURCES = [
   '/assets/sounds-effects/hover.mp3',
 ];
 
+function readMuted(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function writeMuted(key: string, value: boolean): void {
+  try {
+    localStorage.setItem(key, String(value));
+  } catch {
+    /* storage unavailable — ignore */
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class AudioService {
-  readonly musicMuted = signal(localStorage.getItem(KEY_MUSIC) === 'true');
-  readonly sfxMuted   = signal(localStorage.getItem(KEY_SFX)   === 'true');
+  readonly musicMuted = signal(readMuted(KEY_MUSIC));
+  readonly sfxMuted   = signal(readMuted(KEY_SFX));
 
   private bg: HTMLAudioElement | null = null;
   private sfx = new Map<string, HTMLAudioElement>();
@@ -71,7 +87,7 @@ export class AudioService {
   toggleMusic(): void {
     const next = !this.musicMuted();
     this.musicMuted.set(next);
-    localStorage.setItem(KEY_MUSIC, String(next));
+    writeMuted(KEY_MUSIC, next);
     if (this.bg) {
       this.bg.muted = next;
       if (!next) this.bg.play().catch(() => {});
@@ -83,7 +99,7 @@ export class AudioService {
   toggleSfx(): void {
     const next = !this.sfxMuted();
     this.sfxMuted.set(next);
-    localStorage.setItem(KEY_SFX, String(next));
+    writeMuted(KEY_SFX, next);
   }
 
   playOneShot(src: string, volume = 0.8, stopAfterMs?: number): void {
