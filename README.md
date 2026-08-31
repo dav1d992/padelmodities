@@ -13,7 +13,7 @@ A **mobile-first padel ranking & tournament app** for Danske Padelmodities.
 
 ## Features
 
-### Ranglist (home)
+### Leaderboard (home)
 - All registered players sorted by ELO rating
 - 🥇🥈🥉 medals for top 3
 - Player avatars, W/L record, and point total at a glance
@@ -65,7 +65,7 @@ src/app/
   models/            padel.model.ts — TypeScript interfaces & constants
   services/          padel.service.ts — all Realtime DB reads & writes
   components/
-    ranglist/          Home / ranking list
+    leaderboard/       Home / leaderboard
     player-detail/     Player stats & sparkline
     create-player/     Code-gated player creation form
     tournament-setup/  Create tournament (format + player selection)

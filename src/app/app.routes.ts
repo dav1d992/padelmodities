@@ -1,5 +1,5 @@
 import type { Routes } from '@angular/router';
-import { RanglistComponent } from './components/ranglist/ranglist.component';
+import { LeaderboardComponent } from './components/leaderboard/leaderboard.component';
 import { PlayerDetailComponent } from './components/player-detail/player-detail.component';
 import { CreatePlayerComponent } from './components/create-player/create-player.component';
 import { TournamentSetupComponent } from './components/tournament-setup/tournament-setup.component';
@@ -7,7 +7,7 @@ import { TournamentViewComponent } from './components/tournament-view/tournament
 import { SimulationComponent } from './components/simulation/simulation.component';
 
 export const routes: Routes = [
-  { path: '', component: RanglistComponent, title: 'title.rank' },
+  { path: '', component: LeaderboardComponent, title: 'title.rank' },
   {
     path: 'player/:playerId',
     component: PlayerDetailComponent,
