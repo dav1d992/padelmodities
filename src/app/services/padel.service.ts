@@ -129,12 +129,12 @@ export class PadelService {
       const unsubscribe = onValue(
         playersRef,
         (snapshot) => {
-          const val = snapshot.val() as Record<string, Player> | null;
-          const list = val ? Object.values(val) : [];
+          const value = snapshot.val() as Record<string, Player> | null;
+          const list = value ? Object.values(value) : [];
           list.sort((a, b) => b.rating - a.rating);
           subscriber.next(list);
         },
-        (err) => subscriber.error(err),
+        (error) => subscriber.error(error),
       );
       return () => unsubscribe();
     });
@@ -146,7 +146,7 @@ export class PadelService {
       const unsubscribe = onValue(
         playerRef,
         (snapshot) => subscriber.next(snapshot.val() as Player | null),
-        (err) => subscriber.error(err),
+        (error) => subscriber.error(error),
       );
       return () => unsubscribe();
     });
@@ -225,12 +225,12 @@ export class PadelService {
       const unsubscribe = onValue(
         tourRef,
         (snapshot) => {
-          const val = snapshot.val() as Record<string, Tournament> | null;
-          const list = val ? Object.values(val) : [];
+          const value = snapshot.val() as Record<string, Tournament> | null;
+          const list = value ? Object.values(value) : [];
           list.sort((a, b) => b.createdAt - a.createdAt);
           subscriber.next(list);
         },
-        (err) => subscriber.error(err),
+        (error) => subscriber.error(error),
       );
       return () => unsubscribe();
     });
@@ -242,7 +242,7 @@ export class PadelService {
       const unsubscribe = onValue(
         tourRef,
         (snapshot) => subscriber.next(snapshot.val() as Tournament | null),
-        (err) => subscriber.error(err),
+        (error) => subscriber.error(error),
       );
       return () => unsubscribe();
     });

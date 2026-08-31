@@ -58,7 +58,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   private service = inject(PadelService);
   private router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
-  readonly audioSvc = inject(AudioService);
+  readonly audioService = inject(AudioService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
 
@@ -92,7 +92,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   private timers: ReturnType<typeof setTimeout>[] = [];
 
   ngOnInit(): void {
-    this.audioSvc.startBackground();
+    this.audioService.startBackground();
     this.service
       .watchPlayer(this.playerId())
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -106,8 +106,8 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
             this.prepareHero(p.shortname);
           }
         },
-        error: (err) => {
-          this.error.set(err?.message ? this.i18n.t(err.message) : this.i18n.t('err.loadPlayer'));
+        error: (error) => {
+          this.error.set(error?.message ? this.i18n.t(error.message) : this.i18n.t('err.loadPlayer'));
           this.loading.set(false);
         },
       });
@@ -134,25 +134,25 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
       if (this.heroReady()) return;
       this.heroReady.set(true);
       const slam = setTimeout(
-        () => this.audioSvc.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
+        () => this.audioService.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
         IMPACT_MS,
       );
       this.timers.push(slam);
       this.startSkillBarSequence();
     };
 
-    const img = new Image();
-    img.onload = () => {
-      const decoded = typeof img.decode === 'function'
-        ? img.decode().catch(() => undefined)
+    const image = new Image();
+    image.onload = () => {
+      const decoded = typeof image.decode === 'function'
+        ? image.decode().catch(() => undefined)
         : Promise.resolve();
       decoded.then(begin);
     };
-    img.onerror = () => {
+    image.onerror = () => {
       this.heroFailed.set(true);
       begin();
     };
-    img.src = `/assets/optimized/${shortname}-padel.webp`;
+    image.src = `/assets/optimized/${shortname}-padel.webp`;
 
     // Safety net: a stalled download must never hide the portrait indefinitely.
     this.timers.push(setTimeout(begin, 8000));
@@ -167,7 +167,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     this.skillNames.forEach((_, index) => {
       const timer = setTimeout(() => {
         this.visibleSkillIndex.set(index);
-        this.audioSvc.playOneShot('/assets/sounds-effects/scifi.mp3', 0.3, barAnimationMs);
+        this.audioService.playOneShot('/assets/sounds-effects/scifi.mp3', 0.3, barAnimationMs);
       }, startAfterMs + index * staggerMs);
       this.timers.push(timer);
     });
@@ -266,8 +266,8 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
         pointsAgainst: this.editPointsAgainst(),
       });
       this.editing.set(false);
-    } catch (err) {
-      this.editError.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
+    } catch (error) {
+      this.editError.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
     } finally {
       this.saving.set(false);
     }
@@ -281,8 +281,8 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     try {
       await this.service.deletePlayer(p.id);
       this.router.navigate(['/']);
-    } catch (err) {
-      this.editError.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
+    } catch (error) {
+      this.editError.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
       this.saving.set(false);
     }
   }

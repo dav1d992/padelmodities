@@ -71,9 +71,9 @@ export class CreatePlayerComponent implements OnInit {
         this.skills(),
       );
       this.router.navigate(['/player', id]);
-    } catch (err) {
+    } catch (error) {
       this.submitError.set(
-        err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'),
+        error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'),
       );
       this.submitting.set(false);
     }

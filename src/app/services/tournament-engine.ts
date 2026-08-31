@@ -22,12 +22,12 @@ import {
 
 /** Fisher–Yates shuffle returning a new array. */
 export function shuffle<T>(input: readonly T[]): T[] {
-  const arr = [...input];
-  for (let i = arr.length - 1; i > 0; i--) {
+  const shuffled = [...input];
+  for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  return arr;
+  return shuffled;
 }
 
 function pairKey(a: string, b: string): string {
@@ -153,7 +153,7 @@ function bestFourSplit(
 ): { a1: string; a2: string; b1: string; b2: string } {
   let best = PAIRINGS[preferIndex];
   let bestCost = Number.POSITIVE_INFINITY;
-  PAIRINGS.forEach((pairing, idx) => {
+  PAIRINGS.forEach((pairing, index) => {
     const [[i, j], [k, l]] = pairing;
     const cost =
       partnerRepeat(h, four[i], four[j]) * 3 +
@@ -162,7 +162,7 @@ function bestFourSplit(
       opponentRepeat(h, four[i], four[l]) +
       opponentRepeat(h, four[j], four[k]) +
       opponentRepeat(h, four[j], four[l]) +
-      (idx === preferIndex ? -0.5 : 0); // slight tie-break toward preferred
+      (index === preferIndex ? -0.5 : 0); // slight tie-break toward preferred
     if (cost < bestCost) {
       bestCost = cost;
       best = pairing;
@@ -591,7 +591,7 @@ export function computeKothStats(
     };
   });
 
-  const prevCourt: Record<string, number> = {};
+  const previousCourt: Record<string, number> = {};
   for (const round of rounds) {
     const matches = Object.values(round.matches ?? {});
     for (const m of matches) {
@@ -608,10 +608,10 @@ export function computeKothStats(
         if (court < st.highestCourt) st.highestCourt = court;
         if (court === 0 && round.completed) st.kingAppearances++;
         // movement vs previous round
-        const prev = prevCourt[id];
-        if (prev === undefined) st.lastMovement = 'none';
-        else if (court < prev) st.lastMovement = 'up';
-        else if (court > prev) st.lastMovement = 'down';
+        const previous = previousCourt[id];
+        if (previous === undefined) st.lastMovement = 'none';
+        else if (court < previous) st.lastMovement = 'up';
+        else if (court > previous) st.lastMovement = 'down';
         else st.lastMovement = court === 0 ? 'stay-top' : 'stay-bottom';
       }
 
@@ -633,7 +633,7 @@ export function computeKothStats(
         for (const id of loseSide) stats[id].losses++;
       }
 
-      for (const id of [...sideA, ...sideB]) prevCourt[id] = court;
+      for (const id of [...sideA, ...sideB]) previousCourt[id] = court;
     }
   }
 

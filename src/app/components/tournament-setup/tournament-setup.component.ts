@@ -295,11 +295,11 @@ export class TournamentSetupComponent implements OnInit {
   // ── Team building ───────────────────────────────────────────────────────
 
   toggleTeamPick(id: string): void {
-    const cur = this.teamPick();
-    if (cur.includes(id)) {
-      this.teamPick.set(cur.filter((x) => x !== id));
-    } else if (cur.length < 2) {
-      this.teamPick.set([...cur, id]);
+    const current = this.teamPick();
+    if (current.includes(id)) {
+      this.teamPick.set(current.filter((x) => x !== id));
+    } else if (current.length < 2) {
+      this.teamPick.set([...current, id]);
     }
   }
 
@@ -364,8 +364,8 @@ export class TournamentSetupComponent implements OnInit {
         await this.service.createTournament(this.buildInput('draft'));
       }
       this.router.navigate(['/']);
-    } catch (err) {
-      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
+    } catch (error) {
+      this.error.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
     } finally {
       this.submitting.set(false);
     }
@@ -385,8 +385,8 @@ export class TournamentSetupComponent implements OnInit {
         id = await this.service.createTournament(this.buildInput('active'));
       }
       this.router.navigate(['/tournament', id]);
-    } catch (err) {
-      this.error.set(err instanceof Error ? this.i18n.t(err.message) : this.i18n.t('common.error'));
+    } catch (error) {
+      this.error.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
       this.submitting.set(false);
     }
   }

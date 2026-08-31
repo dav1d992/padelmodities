@@ -21,7 +21,7 @@ let savedScrollY = 0;
 })
 export class RanglistComponent implements OnInit, OnDestroy {
   private service = inject(PadelService);
-  readonly audioSvc = inject(AudioService);
+  readonly audioService = inject(AudioService);
   readonly admin = inject(AdminService);
   private router = inject(Router);
   readonly i18n = inject(I18nService);
@@ -65,12 +65,12 @@ export class RanglistComponent implements OnInit, OnDestroy {
   });
 
   private shuffle(list: string[]): string[] {
-    const arr = [...list];
-    for (let i = arr.length - 1; i > 0; i--) {
+    const shuffled = [...list];
+    for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    return arr;
+    return shuffled;
   }
 
   ngOnInit(): void {
@@ -84,8 +84,8 @@ export class RanglistComponent implements OnInit, OnDestroy {
           this.loading.set(false);
           this.restoreScroll();
         },
-        error: (err) => {
-          this.error.set(err?.message ? this.i18n.t(err.message) : this.i18n.t('err.loadPlayers'));
+        error: (error) => {
+          this.error.set(error?.message ? this.i18n.t(error.message) : this.i18n.t('err.loadPlayers'));
           this.loading.set(false);
         },
       });

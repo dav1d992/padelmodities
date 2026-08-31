@@ -271,8 +271,8 @@
         <p class="warn small">{{ fairnessWarning() }}</p>
       }
       @if (!validation().ok) {
-        @for (msg of validation().messages; track msg) {
-          <p class="warn small">• {{ msg }}</p>
+        @for (message of validation().messages; track message) {
+          <p class="warn small">• {{ message }}</p>
         }
       }
     </div>

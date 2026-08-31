@@ -24,29 +24,29 @@ export class AudioService {
   readonly musicMuted = signal(readMuted(KEY_MUSIC));
   readonly sfxMuted   = signal(readMuted(KEY_SFX));
 
-  private bg: HTMLAudioElement | null = null;
+  private backgroundMusic: HTMLAudioElement | null = null;
 
   startBackground(): void {
-    if (!this.bg) {
-      this.bg = new Audio('/assets/sounds-effects/background');
-      this.bg.loop = true;
-      this.bg.volume = 0.3;
-      this.bg.muted = this.musicMuted();
+    if (!this.backgroundMusic) {
+      this.backgroundMusic = new Audio('/assets/sounds-effects/background');
+      this.backgroundMusic.loop = true;
+      this.backgroundMusic.volume = 0.3;
+      this.backgroundMusic.muted = this.musicMuted();
     }
-    if (!this.musicMuted()) this.bg.play().catch(() => {});
+    if (!this.musicMuted()) this.backgroundMusic.play().catch(() => {});
   }
 
   isPlaying(): boolean {
-    return !!this.bg && !this.bg.paused;
+    return !!this.backgroundMusic && !this.backgroundMusic.paused;
   }
 
   toggleMusic(): void {
     const next = !this.musicMuted();
     this.musicMuted.set(next);
     writeMuted(KEY_MUSIC, next);
-    if (this.bg) {
-      this.bg.muted = next;
-      if (!next) this.bg.play().catch(() => {});
+    if (this.backgroundMusic) {
+      this.backgroundMusic.muted = next;
+      if (!next) this.backgroundMusic.play().catch(() => {});
     } else if (!next) {
       this.startBackground();
     }
@@ -60,16 +60,16 @@ export class AudioService {
 
   playOneShot(src: string, volume = 0.8, stopAfterMs?: number): void {
     if (this.sfxMuted()) return;
-    const a = new Audio(src);
-    a.volume = volume;
+    const audio = new Audio(src);
+    audio.volume = volume;
     if (stopAfterMs && stopAfterMs > 0) {
       const stopTimer = setTimeout(() => {
-        a.pause();
-        a.currentTime = 0;
+        audio.pause();
+        audio.currentTime = 0;
       }, stopAfterMs);
-      a.addEventListener('ended', () => clearTimeout(stopTimer), { once: true });
+      audio.addEventListener('ended', () => clearTimeout(stopTimer), { once: true });
     }
-    a.play().catch(() => {});
+    audio.play().catch(() => {});
   }
 
   playClick(): void { this.playOneShot('/assets/sounds-effects/click.mp3', 0.25); }

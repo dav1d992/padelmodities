@@ -50,8 +50,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.audio.startBackground();
-    for (const evt of this.unlockEvents) {
-      window.addEventListener(evt, this.unlockMusic, { passive: true });
+    for (const event of this.unlockEvents) {
+      window.addEventListener(event, this.unlockMusic, { passive: true });
     }
   }
 
@@ -60,16 +60,16 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private removeUnlockListeners(): void {
-    for (const evt of this.unlockEvents) {
-      window.removeEventListener(evt, this.unlockMusic);
+    for (const event of this.unlockEvents) {
+      window.removeEventListener(event, this.unlockMusic);
     }
   }
 
   @HostListener('document:click', ['$event'])
-  onDocumentClick(e: MouseEvent): void {
+  onDocumentClick(event: MouseEvent): void {
     this.audio.startBackground();
-    const el = (e.target as Element).closest('button, a, input, select, textarea, [role="button"]');
-    if (el && !el.hasAttribute('disabled')) {
+    const element = (event.target as Element).closest('button, a, input, select, textarea, [role="button"]');
+    if (element && !element.hasAttribute('disabled')) {
       this.audio.playClick();
     }
   }

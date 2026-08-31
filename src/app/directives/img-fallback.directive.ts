@@ -8,12 +8,12 @@ import { Directive, ElementRef, HostListener, inject } from '@angular/core';
 export class ImgFallbackDirective {
   private static readonly FALLBACK = '/assets/anonimous-padel.png';
 
-  private readonly el = inject<ElementRef<HTMLImageElement>>(ElementRef);
+  private readonly element = inject<ElementRef<HTMLImageElement>>(ElementRef);
 
   @HostListener('error')
   onError(): void {
-    const img = this.el.nativeElement;
-    if (img.src.endsWith('anonimous-padel.png')) return;
-    img.src = ImgFallbackDirective.FALLBACK;
+    const image = this.element.nativeElement;
+    if (image.src.endsWith('anonimous-padel.png')) return;
+    image.src = ImgFallbackDirective.FALLBACK;
   }
 }

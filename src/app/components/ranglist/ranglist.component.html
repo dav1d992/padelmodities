@@ -78,7 +78,7 @@
     } @else {
       <div class="ranglist glass">
         @for (player of activePlayers(); track player.id; let rank = $index) {
-          <a class="ranglist-row" [routerLink]="['/player', player.id]" (mouseenter)="audioSvc.playHover()">
+          <a class="ranglist-row" [routerLink]="['/player', player.id]" (mouseenter)="audioService.playHover()">
             <div class="rank-cell">
               <span class="rank-num">#{{ rank + 1 }}</span>
             </div>
@@ -116,7 +116,7 @@
       <h2 class="section-title">{{ i18n.t('rank.inactive') }}</h2>
       <div class="ranglist glass">
         @for (player of inactivePlayers(); track player.id) {
-          <a class="ranglist-row" [routerLink]="['/player', player.id]" (mouseenter)="audioSvc.playHover()">
+          <a class="ranglist-row" [routerLink]="['/player', player.id]" (mouseenter)="audioService.playHover()">
             <div class="rank-cell">
               <span class="rank-num muted">–</span>
             </div>

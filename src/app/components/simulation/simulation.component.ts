@@ -53,12 +53,12 @@ export class SimulationComponent implements OnInit {
   });
 
   private shuffle(list: string[]): string[] {
-    const arr = [...list];
-    for (let i = arr.length - 1; i > 0; i--) {
+    const shuffled = [...list];
+    for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    return arr;
+    return shuffled;
   }
 
   ngOnInit(): void {
