@@ -261,6 +261,8 @@ const DA: Dict = {
   'sim.needPlayers': 'Du skal bruge mindst 4 spillere for at simulere en kamp.',
   'sim.pickAll': 'Vælg to spillere på hvert hold for at se resultatet.',
   'sim.disclaimer': 'Kun et estimat — påvirker ikke rating eller statistik.',
+  'sim.historyTitle': 'Tidligere opgør',
+  'sim.historySubtitle': 'Gange disse to hold har mødt hinanden før.',
 
   // Test sandbox
   'test.title': 'Turneringssandkasse',
@@ -549,6 +551,8 @@ const EN: Dict = {
   'sim.needPlayers': 'You need at least 4 players to simulate a match.',
   'sim.pickAll': 'Pick two players on each team to see the result.',
   'sim.disclaimer': 'Estimate only — does not affect ratings or stats.',
+  'sim.historyTitle': 'Previous meetings',
+  'sim.historySubtitle': 'Times these two teams have faced each other before.',
 
   // Test sandbox
   'test.title': 'Tournament Sandbox',

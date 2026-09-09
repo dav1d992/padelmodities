@@ -132,6 +132,27 @@
           }
         </div>
       </div>
+
+      @if (previousMatchups(); as history) {
+        @if (history.length > 0) {
+          <div class="glass panel history pop-in">
+            <h3>{{ i18n.t('sim.historyTitle') }}</h3>
+            <span class="muted small">{{ i18n.t('sim.historySubtitle') }}</span>
+            <ul class="history-list">
+              @for (m of history; track $index) {
+                <li class="history-row">
+                  <span class="history-name">{{ m.tournamentName }}</span>
+                  <span class="history-score">
+                    <span [class.winner]="m.teamAScore > m.teamBScore">{{ m.teamAScore }}</span>
+                    <span class="history-dash">–</span>
+                    <span [class.winner]="m.teamBScore > m.teamAScore">{{ m.teamBScore }}</span>
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      }
     } @else {
       <p class="muted hint">{{ i18n.t('sim.pickAll') }}</p>
     }
