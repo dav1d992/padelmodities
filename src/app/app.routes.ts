@@ -5,6 +5,7 @@ import { CreatePlayerComponent } from './pages/create-player/create-player.compo
 import { TournamentSetupComponent } from './pages/tournament-setup/tournament-setup.component';
 import { TournamentViewComponent } from './pages/tournament-view/tournament-view.component';
 import { SimulationComponent } from './pages/simulation/simulation.component';
+import { MexericanoTestComponent } from './pages/mexericano-test/mexericano-test.component';
 
 export const routes: Routes = [
   { path: '', component: LeaderboardComponent, title: 'title.rank' },
@@ -33,5 +34,7 @@ export const routes: Routes = [
     component: SimulationComponent,
     title: 'title.simulate',
   },
+  // Hidden: in-memory Mexericano sandbox. Not linked anywhere.
+  { path: 'test', component: MexericanoTestComponent, title: 'Mexericano Test' },
   { path: '**', redirectTo: '' },
 ];

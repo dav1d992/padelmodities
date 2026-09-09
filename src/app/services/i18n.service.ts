@@ -130,12 +130,14 @@ const DA: Dict = {
   'format.mexicano': 'Mexicano',
   'format.team-mexicano': 'Team Mexicano',
   'format.super-mexicano': 'Super Mexicano',
+  'format.mexericano': 'Mexericano',
   'format.king-of-the-hill': 'King of the Hill',
   'format.americano.desc': 'Individuelt. Roterende makkere, maks variation.',
   'format.team-americano.desc': 'Faste hold. Alle møder alle (round robin).',
   'format.mexicano.desc': 'Individuelt. Runder efter aktuel stilling.',
   'format.team-mexicano.desc': 'Faste hold. Møder efter stilling.',
   'format.super-mexicano.desc': 'Mexicano med bane-bonuspoint.',
+  'format.mexericano.desc': 'Konkurrencepræget matchmaking med roterende makkere og modstandere.',
   'format.king-of-the-hill.desc': 'Bane-stige. Vindere op, tabere ned.',
 
   // Scoring
@@ -190,6 +192,14 @@ const DA: Dict = {
   'view.editWarn':
     'Redigering af en tidligere runde opdaterer stillingen, men senere runder blev genereret ud fra det gamle resultat.',
   'view.finishConfirm': 'Afslut turneringen? Aktuelle resultater bevares.',
+  'view.runFinal': '🏆 Kør finalerunde',
+  'view.finalGenerating': 'Genererer finale…',
+  'view.finalGenerated': '✓ Finalerunde genereret',
+  'view.finalRound': 'Finalerunde',
+  'view.finalBadge': 'Finale',
+  'view.nextNormal': 'Næste: normal runde',
+  'view.nextFinal': 'Næste: finalerunde',
+  'view.finalConfirm': 'Kør finalerunden nu? Stillingen låses og den nuværende runde erstattes af finalen.',
 
   // Table headers
   'th.team': 'Hold',
@@ -225,6 +235,11 @@ const DA: Dict = {
   'err.invalidScore': 'Ugyldigt resultat.',
   'err.tournamentNotFound': 'Turnering ikke fundet.',
   'err.americano4': 'Americano kræver mindst 4 spillere.',
+  'err.mexericano4': 'Mexericano kræver mindst 4 spillere.',
+  'err.mexericanoOnly': 'Kun Mexericano-turneringer har en finalerunde.',
+  'err.notActive': 'Turneringen er ikke aktiv.',
+  'err.finalNeedsRound': 'Mindst én runde skal være fuldført før finalen.',
+  'err.finalExists': 'Finalerunden er allerede genereret.',
   'err.kothWinner': 'King of the Hill kræver en vinder.',
   'err.negative': 'Point kan ikke være negative.',
   'err.kothTie': 'King of the Hill kan ikke ende uafgjort — brug golden point.',
@@ -246,6 +261,27 @@ const DA: Dict = {
   'sim.needPlayers': 'Du skal bruge mindst 4 spillere for at simulere en kamp.',
   'sim.pickAll': 'Vælg to spillere på hvert hold for at se resultatet.',
   'sim.disclaimer': 'Kun et estimat — påvirker ikke rating eller statistik.',
+
+  // Test sandbox
+  'test.title': 'Turneringssandkasse',
+  'test.subtitle': 'Testside in-memory — intet gemmes.',
+  'test.config': 'Opsætning',
+  'test.players': 'Spillere',
+  'test.playersTeam': 'Spillere (2 pr. hold)',
+  'test.courts': 'Baner',
+  'test.pointsPerMatch': 'Point pr. kamp',
+  'test.rounds': 'Runder',
+  'test.randomResults': 'Tilfældige resultater',
+  'test.roundCompleted': 'Runde fuldført.',
+  'test.diagnostics': 'Rotationsdiagnostik',
+  'test.backToBack': 'makkere i træk',
+  'test.partnerRepeats': 'makkerpar gentaget',
+  'test.opponentRepeats': 'modstanderpar gentaget',
+  'test.foursomeRepeats': 'præcise opgør gentaget',
+  'test.diagnosticsHint': 'Lavere er bedre. Gentagelser sker kun når de er uundgåelige.',
+  'test.reset': 'Nulstil sandkasse',
+  'test.playerName': 'Spiller {n}',
+  'test.teamName': 'Hold {n}',
 
   // Route titles (always English, even in Danish UI)
   'title.rank': 'Ranking · Danske Padelmodities',
@@ -380,6 +416,7 @@ const EN: Dict = {
   'format.mexicano': 'Mexicano',
   'format.team-mexicano': 'Team Mexicano',
   'format.super-mexicano': 'Super Mexicano',
+  'format.mexericano': 'Mexericano',
   'format.king-of-the-hill': 'King of the Hill',
   'format.americano.desc': 'Individual. Rotating partners, maximum variety.',
   'format.team-americano.desc':
@@ -387,6 +424,7 @@ const EN: Dict = {
   'format.mexicano.desc': 'Individual. Rounds based on current standings.',
   'format.team-mexicano.desc': 'Fixed teams. Matchups by standings.',
   'format.super-mexicano.desc': 'Mexicano with court bonus points.',
+  'format.mexericano.desc': 'Competitive matchmaking with rotating partners and opponents.',
   'format.king-of-the-hill.desc': 'Court ladder. Winners move up, losers down.',
 
   // Scoring
@@ -441,6 +479,14 @@ const EN: Dict = {
   'view.editWarn':
     'Editing an earlier round updates the standings, but later rounds were generated from the old result.',
   'view.finishConfirm': 'Finish the tournament? Current results are kept.',
+  'view.runFinal': '🏆 Run final round',
+  'view.finalGenerating': 'Generating final…',
+  'view.finalGenerated': '✓ Final round generated',
+  'view.finalRound': 'Final round',
+  'view.finalBadge': 'Final',
+  'view.nextNormal': 'Next: normal round',
+  'view.nextFinal': 'Next: final round',
+  'view.finalConfirm': 'Run the final round now? Standings are frozen and the current round is replaced by the final.',
 
   // Table headers
   'th.team': 'Team',
@@ -477,6 +523,11 @@ const EN: Dict = {
   'err.invalidScore': 'Invalid result.',
   'err.tournamentNotFound': 'Tournament not found.',
   'err.americano4': 'Americano requires at least 4 players.',
+  'err.mexericano4': 'Mexericano requires at least 4 players.',
+  'err.mexericanoOnly': 'Only Mexericano tournaments have a final round.',
+  'err.notActive': 'The tournament is not active.',
+  'err.finalNeedsRound': 'At least one round must be completed before the final.',
+  'err.finalExists': 'The final round has already been generated.',
   'err.kothWinner': 'King of the Hill requires a winner.',
   'err.negative': 'Points cannot be negative.',
   'err.kothTie': 'King of the Hill cannot end in a draw — use golden point.',
@@ -498,6 +549,27 @@ const EN: Dict = {
   'sim.needPlayers': 'You need at least 4 players to simulate a match.',
   'sim.pickAll': 'Pick two players on each team to see the result.',
   'sim.disclaimer': 'Estimate only — does not affect ratings or stats.',
+
+  // Test sandbox
+  'test.title': 'Tournament Sandbox',
+  'test.subtitle': 'In-memory test page — nothing is saved.',
+  'test.config': 'Configuration',
+  'test.players': 'Players',
+  'test.playersTeam': 'Players (2 per team)',
+  'test.courts': 'Courts',
+  'test.pointsPerMatch': 'Points per match',
+  'test.rounds': 'Rounds',
+  'test.randomResults': 'Random results',
+  'test.roundCompleted': 'Round completed.',
+  'test.diagnostics': 'Rotation diagnostics',
+  'test.backToBack': 'back-to-back partners',
+  'test.partnerRepeats': 'partner pairs repeated',
+  'test.opponentRepeats': 'opponent pairs repeated',
+  'test.foursomeRepeats': 'exact matchups repeated',
+  'test.diagnosticsHint': 'Lower is better. Repeats only occur when unavoidable.',
+  'test.reset': 'Reset sandbox',
+  'test.playerName': 'Player {n}',
+  'test.teamName': 'Team {n}',
 
   // Route titles
   'title.rank': 'Ranking · Danske Padelmodities',

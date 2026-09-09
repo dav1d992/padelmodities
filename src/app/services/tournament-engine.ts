@@ -300,6 +300,297 @@ export function generateMexicanoRound(
   };
 }
 
+// ── Mexericano (dynamic hybrid of Mexicano + Americano) ──────────────────────
+
+/**
+ * Tunable penalties/rewards for Mexericano matchmaking. Higher = stronger
+ * avoidance. All are additive costs the search minimises; the best (lowest
+ * cost) candidate round is kept.
+ */
+export interface MexericanoWeights {
+  /** Repeating the immediately-previous round's partner (very strong). */
+  samePartnerLastRound: number;
+  /** Repeating any earlier partner, scaled by how often (strong). */
+  samePartnerRecent: number;
+  /** Facing the same opponent again, scaled by how often (medium). */
+  repeatedOpponent: number;
+  /** Reproducing an identical four-player matchup (very strong). */
+  repeatedFoursome: number;
+  /** Penalty per rank-position of spread within a court (keeps scores close). */
+  scoreSpread: number;
+  /** Penalty per rank-unit of imbalance between the two teams on a court. */
+  teamImbalance: number;
+  /** Magnitude of the random tie-breaker so equal states vary. */
+  random: number;
+}
+
+export const DEFAULT_MEXERICANO_WEIGHTS: MexericanoWeights = {
+  samePartnerLastRound: 1000,
+  samePartnerRecent: 60,
+  repeatedOpponent: 25,
+  repeatedFoursome: 800,
+  scoreSpread: 2,
+  teamImbalance: 1.5,
+  random: 5,
+};
+
+/** Default ranking window: how far players may drift from their rank slot. */
+export const DEFAULT_RANKING_WINDOW = 6;
+
+export interface MexericanoOptions {
+  weights?: Partial<MexericanoWeights>;
+  /** How far (in rank positions) players may move when forming courts. */
+  rankingWindow?: number;
+  /** Optional real strength per player for team balance; falls back to rank. */
+  ratingByPlayer?: Record<string, number>;
+  /** Randomised search attempts per round. */
+  attempts?: number;
+}
+
+/** Mexericano history: partner/opponent/sit-out plus last-round partner + foursomes. */
+interface MexHistory extends ScheduleHistory {
+  /** playerId → partner id in the most recent prior round (undefined if none). */
+  lastPartner: Record<string, string>;
+  /** Set of sorted four-player matchup keys already played. */
+  foursomes: Set<string>;
+}
+
+function foursomeKey(ids: readonly string[]): string {
+  return [...ids].sort().join('|');
+}
+
+function buildMexHistory(
+  rounds: TournamentRound[],
+  playerIds: string[],
+): MexHistory {
+  const base = buildHistory(rounds, playerIds);
+  const lastPartner: Record<string, string> = {};
+  const foursomes = new Set<string>();
+
+  const ordered = [...rounds].sort((a, b) => a.index - b.index);
+  ordered.forEach((round) => {
+    for (const m of Object.values(round.matches ?? {})) {
+      foursomes.add(foursomeKey([m.a1, m.a2, m.b1, m.b2]));
+      // Later rounds overwrite, leaving the most recent partner.
+      lastPartner[m.a1] = m.a2;
+      lastPartner[m.a2] = m.a1;
+      lastPartner[m.b1] = m.b2;
+      lastPartner[m.b2] = m.b1;
+    }
+  });
+
+  return { ...base, lastPartner, foursomes };
+}
+
+/** Permutation keeping every element within ~`window` positions of its rank. */
+function windowedShuffle(order: readonly string[], window: number): string[] {
+  if (window <= 0) return [...order];
+  return order
+    .map((id, i) => ({ id, k: i + (Math.random() - 0.5) * 2 * window }))
+    .sort((a, b) => a.k - b.k)
+    .map((x) => x.id);
+}
+
+function partnerPairCost(
+  h: MexHistory,
+  w: MexericanoWeights,
+  x: string,
+  y: string,
+): number {
+  let cost = w.samePartnerRecent * partnerRepeat(h, x, y);
+  if (h.lastPartner[x] === y) cost += w.samePartnerLastRound;
+  return cost;
+}
+
+/** Cost of one concrete split of four players into two teams. */
+function splitCost(
+  split: { a1: string; a2: string; b1: string; b2: string },
+  h: MexHistory,
+  w: MexericanoWeights,
+  rankOf: (id: string) => number,
+  ratingOf: (id: string) => number,
+): number {
+  const { a1, a2, b1, b2 } = split;
+  let cost =
+    partnerPairCost(h, w, a1, a2) +
+    partnerPairCost(h, w, b1, b2) +
+    w.repeatedOpponent *
+      (opponentRepeat(h, a1, b1) +
+        opponentRepeat(h, a1, b2) +
+        opponentRepeat(h, a2, b1) +
+        opponentRepeat(h, a2, b2));
+
+  if (h.foursomes.has(foursomeKey([a1, a2, b1, b2]))) {
+    cost += w.repeatedFoursome;
+  }
+
+  const ranks = [rankOf(a1), rankOf(a2), rankOf(b1), rankOf(b2)];
+  cost += w.scoreSpread * (Math.max(...ranks) - Math.min(...ranks));
+
+  const teamA = ratingOf(a1) + ratingOf(a2);
+  const teamB = ratingOf(b1) + ratingOf(b2);
+  cost += w.teamImbalance * Math.abs(teamA - teamB);
+
+  return cost;
+}
+
+/** Pick the lowest-cost split of four players into two teams. */
+function bestMexSplit(
+  four: string[],
+  h: MexHistory,
+  w: MexericanoWeights,
+  rankOf: (id: string) => number,
+  ratingOf: (id: string) => number,
+): { a1: string; a2: string; b1: string; b2: string; cost: number } {
+  let best = { a1: four[0], a2: four[1], b1: four[2], b2: four[3] };
+  let bestCost = Number.POSITIVE_INFINITY;
+  for (const [[i, j], [k, l]] of PAIRINGS) {
+    const split = { a1: four[i], a2: four[j], b1: four[k], b2: four[l] };
+    const cost = splitCost(split, h, w, rankOf, ratingOf);
+    if (cost < bestCost) {
+      bestCost = cost;
+      best = split;
+    }
+  }
+  return { ...best, cost: bestCost };
+}
+
+function buildBestMexRound(
+  active: string[],
+  courts: number,
+  roundIndex: number,
+  h: MexHistory,
+  w: MexericanoWeights,
+  window: number,
+  rankOf: (id: string) => number,
+  ratingOf: (id: string) => number,
+  attempts: number,
+): TournamentMatch[] {
+  let best: TournamentMatch[] = [];
+  let bestCost = Number.POSITIVE_INFINITY;
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const order = windowedShuffle(active, window);
+    const matches: TournamentMatch[] = [];
+    let cost = 0;
+    for (let c = 0; c < courts; c++) {
+      const four = order.slice(c * 4, c * 4 + 4);
+      const split = bestMexSplit(four, h, w, rankOf, ratingOf);
+      cost += split.cost + Math.random() * w.random;
+      matches.push({
+        id: `r${roundIndex}_c${c}`,
+        courtIndex: c,
+        a1: split.a1,
+        a2: split.a2,
+        b1: split.b1,
+        b2: split.b2,
+      });
+    }
+    if (cost < bestCost) {
+      bestCost = cost;
+      best = matches;
+      if (bestCost === 0) break;
+    }
+  }
+  return best;
+}
+
+function rankLookup(
+  standingsOrder: string[],
+  playerIds: string[],
+): (id: string) => number {
+  const rank = new Map<string, number>();
+  standingsOrder.forEach((id, i) => rank.set(id, i));
+  // Any player missing from standings sorts to the back.
+  return (id: string) => rank.get(id) ?? playerIds.length;
+}
+
+/**
+ * Generate one Mexericano round. Round 0 is random; later rounds group players
+ * by standings within a ranking window, then choose team splits that avoid
+ * repeated partners/opponents/foursomes while keeping courts competitive.
+ * Always returns a valid round — anti-repeat rules are soft (lowest-cost wins),
+ * so impossible-to-avoid repeats degrade gracefully instead of failing.
+ */
+export function generateMexericanoRound(
+  playerIds: string[],
+  courtCount: number,
+  roundIndex: number,
+  priorRounds: TournamentRound[],
+  standingsOrder: string[],
+  options: MexericanoOptions = {},
+): TournamentRound {
+  const n = playerIds.length;
+  const perRound = 4 * Math.min(courtCount, Math.floor(n / 4));
+  if (perRound < 4) throw new Error('err.mexericano4');
+  const sitCount = n - perRound;
+
+  const h = buildMexHistory(priorRounds, playerIds);
+  const w = { ...DEFAULT_MEXERICANO_WEIGHTS, ...(options.weights ?? {}) };
+  const window = options.rankingWindow ?? DEFAULT_RANKING_WINDOW;
+  const attempts = options.attempts ?? 60;
+
+  const baseOrder =
+    roundIndex === 0 ? shuffle(playerIds) : [...standingsOrder];
+  const sitters = pickSitters(
+    baseOrder,
+    sitCount,
+    h,
+    roundIndex,
+    roundIndex === 0 ? undefined : standingsOrder,
+  );
+  const active = baseOrder.filter((id) => !sitters.includes(id));
+
+  const rankOf = rankLookup(standingsOrder, playerIds);
+  const ratingOf = (id: string) => options.ratingByPlayer?.[id] ?? rankOf(id);
+
+  const courts = Math.min(courtCount, Math.floor(active.length / 4));
+  const matches = buildBestMexRound(
+    active,
+    courts,
+    roundIndex,
+    h,
+    w,
+    window,
+    rankOf,
+    ratingOf,
+    attempts,
+  );
+
+  return {
+    index: roundIndex,
+    completed: false,
+    matches: toMatchRecord(matches),
+    sitOutIds: toIdRecord(sitters),
+  };
+}
+
+/**
+ * Generate the decisive Mexericano final round. Uses a rigid ranking window
+ * (top players grouped together) to determine the strongest player, while still
+ * choosing the team split that best avoids repeated partners/opponents and
+ * keeps teams balanced. The round is flagged {@link TournamentRound.isFinal}.
+ */
+export function generateMexericanoFinalRound(
+  playerIds: string[],
+  courtCount: number,
+  roundIndex: number,
+  priorRounds: TournamentRound[],
+  standingsOrder: string[],
+  options: MexericanoOptions = {},
+): TournamentRound {
+  const round = generateMexericanoRound(
+    playerIds,
+    courtCount,
+    roundIndex,
+    priorRounds,
+    standingsOrder,
+    { ...options, rankingWindow: 0 },
+  );
+  round.isFinal = true;
+  return round;
+}
+
 // ── Team Americano (static round-robin) ──────────────────────────────────────
 
 /** Circle-method round-robin producing conflict-free logical rounds of pairs. */

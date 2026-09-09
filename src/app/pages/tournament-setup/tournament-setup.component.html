@@ -1,5 +1,6 @@
+<a routerLink="/" class="back-link" [attr.aria-label]="i18n.t('common.back')"><span class="back-arrow" aria-hidden="true">←</span><span class="back-label">{{ i18n.t('common.back') }}</span></a>
+
 <div class="page fade-up">
-  <a routerLink="/" class="back-link" [attr.aria-label]="i18n.t('common.back')"><span class="back-arrow" aria-hidden="true">←</span><span class="back-label">{{ i18n.t('common.back') }}</span></a>
 
   <div class="glass panel form-card">
     <h1>{{ i18n.t('setup.title') }}</h1>
@@ -66,7 +67,7 @@
         @if (scoring().method === 'fixed-points' || scoring().method === 'first-to') {
           <label class="inline">
             {{ scoring().method === 'fixed-points' ? i18n.t('setup.totalPoints') : i18n.t('setup.pointsToReach') }}
-            <input type="number" min="1" max="99"
+            <input type="number"
               [ngModel]="scoring().pointTarget"
               (ngModelChange)="patchScoring('pointTarget', +$event)">
           </label>
@@ -80,13 +81,13 @@
         @if (scoring().method === 'games-sets') {
           <label class="inline">
             {{ i18n.t('setup.gamesPerSet') }}
-            <input type="number" min="1" max="9"
+            <input type="number"
               [ngModel]="scoring().gamesPerSet"
               (ngModelChange)="patchScoring('gamesPerSet', +$event)">
           </label>
           <label class="inline">
             {{ i18n.t('setup.setsToWin') }}
-            <input type="number" min="1" max="5"
+            <input type="number"
               [ngModel]="scoring().setsToWin"
               (ngModelChange)="patchScoring('setsToWin', +$event)">
           </label>
@@ -94,7 +95,7 @@
         @if (scoring().method === 'timed') {
           <label class="inline">
             {{ i18n.t('setup.minutesPerRound') }}
-            <input type="number" min="1" max="60"
+            <input type="number"
               [ngModel]="scoring().minutesPerRound"
               (ngModelChange)="patchScoring('minutesPerRound', +$event)">
           </label>
@@ -137,7 +138,7 @@
     @if (!isRoundRobin()) {
       <label class="inline">
         {{ i18n.t('setup.numRounds') }}
-        <input type="number" min="1" max="50"
+        <input type="number"
           [ngModel]="totalRounds()" (ngModelChange)="totalRounds.set(+$event)">
       </label>
     } @else {
@@ -162,7 +163,7 @@
         @if (bonus().enabled) {
           <label class="inline">
             {{ i18n.t('setup.bonusFromRound') }}
-            <input type="number" min="1" max="50"
+            <input type="number"
               [ngModel]="bonus().startRound" (ngModelChange)="patchBonus('startRound', +$event)">
           </label>
           <label class="switch">
@@ -174,7 +175,7 @@
             @for (name of courtNames(); track $index) {
               <div class="court-row">
                 <span class="court-name-label">{{ name }}</span>
-                <input type="number" min="0" max="20"
+                <input type="number"
                   [ngModel]="bonusForCourt($index)"
                   (ngModelChange)="setBonusForCourt($index, +$event)">
                 <span class="muted small">{{ i18n.t('setup.pt') }}</span>

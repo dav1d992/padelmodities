@@ -1,0 +1,243 @@
+<a routerLink="/" class="back-link" [attr.aria-label]="i18n.t('common.back')"><span class="back-arrow" aria-hidden="true">←</span><span class="back-label">{{ i18n.t('common.back') }}</span></a>
+
+<div class="page fade-up">
+  @if (error()) {
+    <p class="banner-error pop-in">{{ error() }}</p>
+  }
+
+  <!-- Header -->
+  <header class="tour-header glass panel">
+    <div class="tour-meta">
+      <h1>{{ i18n.t('test.title') }}</h1>
+      <div class="tour-badges">
+        <span class="badge badge-blue">{{ formatLabel(format()) }}</span>
+        @if (started()) {
+          <span class="badge badge-green">{{ i18n.t('status.active') }}</span>
+        } @else {
+          <span class="badge badge-muted">{{ i18n.t('status.draft') }}</span>
+        }
+      </div>
+      <p class="muted small">{{ i18n.t('test.subtitle') }}</p>
+    </div>
+
+    @if (started()) {
+      <div class="round-indicator">
+        {{ i18n.t('view.round') }} <strong>{{ currentIndex() + 1 }}</strong>
+        <span class="muted">/ {{ totalRounds() }}</span>
+      </div>
+    }
+  </header>
+
+  @if (!started()) {
+    <!-- Format -->
+    <section class="section">
+      <span class="section-title">{{ i18n.t('setup.format') }}</span>
+      <div class="format-cards">
+        @for (f of formats; track f) {
+          <button class="format-card glass" [class.selected]="format() === f" (click)="selectFormat(f)">
+            <strong>{{ formatLabel(f) }}</strong>
+            <span class="muted small">{{ formatDesc(f) }}</span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- Config -->
+    <section class="section">
+      <span class="section-title">{{ i18n.t('test.config') }}</span>
+      <div class="glass panel config-grid">
+        <label>
+          <span class="muted small">{{ isTeam() ? i18n.t('test.playersTeam') : i18n.t('test.players') }}</span>
+          <input type="number" [value]="numPlayers()" (input)="setNumPlayers($any($event.target).value)">
+        </label>
+        <label>
+          <span class="muted small">{{ i18n.t('test.courts') }}</span>
+          <input type="number" [value]="numCourts()" (input)="setNumCourts($any($event.target).value)">
+        </label>
+        <label>
+          <span class="muted small">{{ i18n.t('test.pointsPerMatch') }}</span>
+          <input type="number" [value]="target()" (input)="setTarget($any($event.target).value)">
+        </label>
+        @if (format() !== 'team-americano') {
+          <label>
+            <span class="muted small">{{ i18n.t('test.rounds') }}</span>
+            <input type="number" [value]="totalRounds()" (input)="setTotalRounds($any($event.target).value)">
+          </label>
+        }
+      </div>
+      <button class="btn btn-primary big" (click)="start()">{{ i18n.t('setup.start') }}</button>
+    </section>
+  } @else {
+    <!-- Round navigation -->
+    @if (rounds().length > 1) {
+      <div class="round-tabs">
+        @for (r of rounds(); track r.index) {
+          <button class="pill small" [class.selected]="r.index === currentIndex()" (click)="goToRound(r.index)">
+            {{ i18n.t('view.round') }} {{ r.index + 1 }}@if (r.isFinal) { · {{ i18n.t('view.finalBadge') }} }
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Matches -->
+    <section class="section">
+      <h2 class="section-title">
+        {{ i18n.t('view.roundTitle', { n: currentIndex() + 1 }) }}
+        @if (isFinalRound()) { <span class="badge badge-gold">{{ i18n.t('view.finalBadge') }}</span> }
+      </h2>
+
+      <div class="matches">
+        @for (m of currentMatches(); track m.id) {
+          <div class="match-card glass">
+            <div class="court-label muted small">{{ courtName(m.courtIndex) }}</div>
+            <div class="match-teams">
+              <div class="team">
+                <div class="team-players">
+                  @if (isTeam()) { <div class="team-title">{{ teamName(m.teamAId) }}</div> }
+                  <div class="team-player"><span>{{ playerName(m.a1) }}</span></div>
+                  <div class="team-player"><span>{{ playerName(m.a2) }}</span></div>
+                </div>
+              </div>
+
+              <div class="score-center">
+                <input type="number" class="score-input"
+                  [disabled]="currentRound()?.completed"
+                  [value]="getScore(m.id).s1 ?? ''"
+                  (input)="setScore(m.id, 's1', $any($event.target).value)">
+                <span class="vs">VS</span>
+                <input type="number" class="score-input"
+                  [disabled]="currentRound()?.completed"
+                  [value]="getScore(m.id).s2 ?? ''"
+                  (input)="setScore(m.id, 's2', $any($event.target).value)">
+              </div>
+
+              <div class="team team-right">
+                <div class="team-players team-players-right">
+                  @if (isTeam()) { <div class="team-title">{{ teamName(m.teamBId) }}</div> }
+                  <div class="team-player team-player-right"><span>{{ playerName(m.b1) }}</span></div>
+                  <div class="team-player team-player-right"><span>{{ playerName(m.b2) }}</span></div>
+                </div>
+              </div>
+            </div>
+            @if (scoreError(m.id)) {
+              <p class="warn small">{{ scoreError(m.id) }}</p>
+            }
+          </div>
+        }
+      </div>
+
+      @if (sitOuts().length > 0) {
+        <div class="sitouts glass">
+          <span class="muted small">{{ i18n.t('view.sittingOut') }}</span>
+          @for (id of sitOuts(); track id) {
+            <span class="sitout-chip">{{ participantName(id) }}</span>
+          }
+        </div>
+      }
+
+      <!-- Actions -->
+      @if (!currentRound()?.completed && !finished()) {
+        <div class="action-row">
+          <button class="btn btn-ghost" (click)="randomResults()">{{ i18n.t('test.randomResults') }}</button>
+          @if (canRunFinal()) {
+            <button class="btn btn-gold" (click)="runFinal()">{{ i18n.t('view.runFinal') }}</button>
+          } @else if (finalGenerated() && !finished()) {
+            <button class="btn btn-ghost" disabled>{{ i18n.t('view.finalGenerated') }}</button>
+          }
+        </div>
+        <button class="btn btn-primary big" [disabled]="!allEntered()" (click)="completeRound()">
+          {{ isFinalRound() ? i18n.t('view.finish') : i18n.t('view.completeRound') }}
+        </button>
+        @if (!allEntered()) {
+          <p class="hint muted small">{{ i18n.t('view.enterAll') }}</p>
+        }
+      } @else if (currentRound()?.completed && !finished()) {
+        <p class="muted small">{{ i18n.t('test.roundCompleted') }}</p>
+      }
+
+      @if (finished()) {
+        <div class="glass panel finished-banner">
+          <h2>{{ i18n.t('view.finished') }}</h2>
+          <p class="winner-name">{{ winnerName() }}</p>
+        </div>
+      }
+    </section>
+
+    <!-- Standings -->
+    @if (standings().length > 0) {
+      <section class="section">
+        <h2 class="section-title">{{ i18n.t('view.standings') }}</h2>
+        <div class="standings-wrap glass">
+          <table class="standings">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th class="left">{{ isTeam() ? i18n.t('th.team') : i18n.t('th.player') }}</th>
+                <th>{{ i18n.t('th.played') }}</th>
+                <th>{{ i18n.t('th.wins') }}</th>
+                <th>{{ i18n.t('th.losses') }}</th>
+                @if (!isKoth()) { <th>{{ i18n.t('th.draws') }}</th> }
+                <th>+</th>
+                <th>−</th>
+                <th>{{ i18n.t('stat.diff') }}</th>
+                @if (isSuperMex()) { <th>{{ i18n.t('th.match') }}</th><th>{{ i18n.t('th.bonus') }}</th> }
+                <th>{{ i18n.t('th.total') }}</th>
+                <th>{{ i18n.t('th.sitouts') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of standings(); track row.participantId; let i = $index) {
+                <tr>
+                  <td class="rank">{{ i + 1 }}</td>
+                  <td class="left name">{{ row.name }}</td>
+                  <td>{{ row.played }}</td>
+                  <td>{{ row.wins }}</td>
+                  <td>{{ row.losses }}</td>
+                  @if (!isKoth()) { <td>{{ row.draws }}</td> }
+                  <td>{{ row.pointsFor }}</td>
+                  <td>{{ row.pointsAgainst }}</td>
+                  <td [class.pos]="row.diff > 0" [class.neg]="row.diff < 0">
+                    {{ row.diff > 0 ? '+' : '' }}{{ row.diff }}
+                  </td>
+                  @if (isSuperMex()) { <td>{{ row.matchPoints }}</td><td>{{ row.bonus }}</td> }
+                  <td class="total">{{ row.total }}</td>
+                  <td>{{ row.sitOuts }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+
+    <!-- Diagnostics (individual formats only) -->
+    @if (!isTeam()) {
+      <section class="section">
+        <h2 class="section-title">{{ i18n.t('test.diagnostics') }}</h2>
+        <div class="diag glass">
+          <div class="diag-item">
+            <span class="diag-num">{{ diagnostics().backToBackPartners }}</span>
+            <span class="muted small">{{ i18n.t('test.backToBack') }}</span>
+          </div>
+          <div class="diag-item">
+            <span class="diag-num">{{ diagnostics().partnerRepeats }}</span>
+            <span class="muted small">{{ i18n.t('test.partnerRepeats') }}</span>
+          </div>
+          <div class="diag-item">
+            <span class="diag-num">{{ diagnostics().opponentRepeats }}</span>
+            <span class="muted small">{{ i18n.t('test.opponentRepeats') }}</span>
+          </div>
+          <div class="diag-item">
+            <span class="diag-num">{{ diagnostics().foursomeRepeats }}</span>
+            <span class="muted small">{{ i18n.t('test.foursomeRepeats') }}</span>
+          </div>
+        </div>
+        <p class="muted small">{{ i18n.t('test.diagnosticsHint') }}</p>
+      </section>
+    }
+
+    <div class="danger-zone">
+      <button class="btn btn-ghost" (click)="reset()">{{ i18n.t('test.reset') }}</button>
+    </div>
+  }
+</div>

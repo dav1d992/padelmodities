@@ -64,6 +64,7 @@ export class TournamentViewComponent implements OnInit {
   readonly completing = signal(false);
   readonly finishing = signal(false);
   readonly regenerating = signal(false);
+  readonly runningFinal = signal(false);
   readonly deleting = signal(false);
 
   /** Round the user is currently viewing (null → follow current round). */
@@ -134,6 +135,9 @@ export class TournamentViewComponent implements OnInit {
   );
   readonly isSuperMex = computed(
     () => this.tournament()?.format === 'super-mexicano',
+  );
+  readonly isMexericano = computed(
+    () => this.tournament()?.format === 'mexericano',
   );
   readonly isDraft = computed(() => this.tournament()?.status === 'draft');
   readonly isActive = computed(() => this.tournament()?.status === 'active');
@@ -438,6 +442,47 @@ export class TournamentViewComponent implements OnInit {
       this.error.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
     } finally {
       this.regenerating.set(false);
+    }
+  }
+
+  /** True once a final round has been generated (persisted on any round). */
+  readonly finalRoundGenerated = computed(() => {
+    const tournament = this.tournament();
+    if (!tournament) return false;
+    return Object.values(tournament.rounds ?? {}).some((r) => r.isFinal);
+  });
+
+  /** True when the round currently displayed is the final round. */
+  readonly isFinalRound = computed(() => !!this.currentRound()?.isFinal);
+
+  readonly canRunFinal = computed(() => {
+    const tournament = this.tournament();
+    if (!tournament || !this.isMexericano() || !this.isActive()) return false;
+    if (this.finalRoundGenerated()) return false;
+    // At least one completed round required.
+    const completed = Object.values(tournament.rounds ?? {}).filter(
+      (r) => r.completed,
+    ).length;
+    if (completed < 1) return false;
+    // Enough players and a live, unscored current round.
+    if (this.currentMatches().length < 1) return false;
+    const round = tournament.rounds?.[tournament.currentRound];
+    return !round?.completed;
+  });
+
+  async runFinalRound(): Promise<void> {
+    if (!this.admin.isAdmin() || !this.canRunFinal()) return;
+    if (!window.confirm(this.i18n.t('view.finalConfirm'))) return;
+    this.runningFinal.set(true);
+    this.error.set('');
+    try {
+      await this.service.runFinalRound(this.tournamentId());
+      this.scores.set({});
+      this.viewRound.set(null);
+    } catch (error) {
+      this.error.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
+    } finally {
+      this.runningFinal.set(false);
     }
   }
 

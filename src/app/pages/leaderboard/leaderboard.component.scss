@@ -40,17 +40,6 @@
   flex-wrap: wrap;
 }
 
-/* Sections */
-.section { display: flex; flex-direction: column; gap: 0.75rem; }
-
-.section-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-}
-
 /* Tournament chips */
 .tournament-chips {
   display: flex;

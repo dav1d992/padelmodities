@@ -84,32 +84,32 @@
             <div class="edit-grid">
               <label>
                 {{ i18n.t('field.rating') }}
-                <input type="number" min="0" max="9999"
+                <input type="number"
                   [ngModel]="editRating()" (ngModelChange)="editRating.set(+$event)">
               </label>
               <label>
                 {{ i18n.t('field.matches') }}
-                <input type="number" min="0"
+                <input type="number"
                   [ngModel]="editMatchesPlayed()" (ngModelChange)="editMatchesPlayed.set(+$event)">
               </label>
               <label>
                 {{ i18n.t('field.wins') }}
-                <input type="number" min="0"
+                <input type="number"
                   [ngModel]="editWins()" (ngModelChange)="editWins.set(+$event)">
               </label>
               <label>
                 {{ i18n.t('field.losses') }}
-                <input type="number" min="0"
+                <input type="number"
                   [ngModel]="editLosses()" (ngModelChange)="editLosses.set(+$event)">
               </label>
               <label>
                 {{ i18n.t('field.pointsFor') }}
-                <input type="number" min="0"
+                <input type="number"
                   [ngModel]="editPointsFor()" (ngModelChange)="editPointsFor.set(+$event)">
               </label>
               <label>
                 {{ i18n.t('field.pointsAgainst') }}
-                <input type="number" min="0"
+                <input type="number"
                   [ngModel]="editPointsAgainst()" (ngModelChange)="editPointsAgainst.set(+$event)">
               </label>
             </div>

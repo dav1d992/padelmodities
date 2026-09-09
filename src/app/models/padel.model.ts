@@ -68,6 +68,7 @@ export type TournamentFormat =
   | 'mexicano'
   | 'team-mexicano'
   | 'super-mexicano'
+  | 'mexericano'
   | 'king-of-the-hill';
 
 export type TournamentStatus = 'draft' | 'active' | 'finished';
@@ -83,6 +84,7 @@ export const DYNAMIC_FORMATS: readonly TournamentFormat[] = [
   'mexicano',
   'team-mexicano',
   'super-mexicano',
+  'mexericano',
   'king-of-the-hill',
 ];
 
@@ -93,6 +95,7 @@ export const FORMAT_LABELS: Record<TournamentFormat, string> = {
   'mexicano': 'Mexicano',
   'team-mexicano': 'Team Mexicano',
   'super-mexicano': 'Super Mexicano',
+  'mexericano': 'Mexericano',
   'king-of-the-hill': 'King of the Hill',
 };
 
@@ -206,6 +209,8 @@ export interface TournamentRound {
   matches?: Record<string, TournamentMatch>;
   /** Participant ids (players or teams) sitting out this round. */
   sitOutIds?: Record<string, string>;
+  /** Mexericano: marks the decisive final round (generated on demand). */
+  isFinal?: boolean;
 }
 
 /** Per-player King of the Hill statistics (recomputed from rounds). */

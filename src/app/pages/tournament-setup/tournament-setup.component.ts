@@ -54,6 +54,7 @@ export class TournamentSetupComponent implements OnInit {
     { value: 'mexicano' },
     { value: 'team-mexicano' },
     { value: 'super-mexicano' },
+    { value: 'mexericano' },
     { value: 'king-of-the-hill' },
   ];
 

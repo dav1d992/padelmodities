@@ -31,6 +31,8 @@ import {
   generateAmericanoRounds,
   generateKothInitialRound,
   generateKothNextRound,
+  generateMexericanoFinalRound,
+  generateMexericanoRound,
   generateMexicanoRound,
   generateTeamAmericanoRounds,
   generateTeamMexicanoRound,
@@ -412,6 +414,15 @@ export class PadelService {
     }
     // mexicano + super-mexicano
     const playerIds = Object.values(tournament.playerIds ?? {});
+    if (tournament.format === 'mexericano') {
+      return generateMexericanoRound(
+        playerIds,
+        tournament.courtCount,
+        roundIndex,
+        priorRounds,
+        order,
+      );
+    }
     return generateMexicanoRound(
       playerIds,
       tournament.courtCount,
@@ -501,6 +512,17 @@ export class PadelService {
           Object.values(tournament.playerIds ?? {}),
         );
       }
+    } else if (tournament.format === 'mexericano' && round?.isFinal) {
+      const order = standingsOrder(tournament, (id) =>
+        this.participantName(tournament, id),
+      );
+      newRound = generateMexericanoFinalRound(
+        Object.values(tournament.playerIds ?? {}),
+        tournament.courtCount,
+        roundIndex,
+        prior,
+        order,
+      );
     } else {
       newRound = this.buildDynamicRound(tournament, roundIndex, prior);
     }
@@ -509,6 +531,48 @@ export class PadelService {
       set(
         ref(this.db, `tournaments/${tournamentId}/rounds/${roundIndex}`),
         newRound,
+      ),
+    );
+  }
+
+  /**
+   * Generate the decisive Mexericano final round in place of the current
+   * (unscored) round. Idempotent: refuses to run twice or before at least one
+   * completed round exists.
+   */
+  async runFinalRound(tournamentId: string): Promise<void> {
+    const tournament = await this.getTournament(tournamentId);
+    if (tournament.format !== 'mexericano') {
+      throw new Error('err.mexericanoOnly');
+    }
+    if (tournament.status !== 'active') throw new Error('err.notActive');
+
+    const rounds = this.sortedRounds(tournament);
+    const completed = rounds.filter((r) => r.completed).length;
+    if (completed < 1) throw new Error('err.finalNeedsRound');
+    // Idempotency / concurrency guard: never create a second final round.
+    if (rounds.some((r) => r.isFinal)) throw new Error('err.finalExists');
+
+    const roundIndex = tournament.currentRound;
+    const current = tournament.rounds?.[roundIndex];
+    if (current?.completed) throw new Error('err.roundDone');
+
+    const prior = rounds.filter((r) => r.index < roundIndex);
+    const order = standingsOrder(tournament, (id) =>
+      this.participantName(tournament, id),
+    );
+    const finalRound = generateMexericanoFinalRound(
+      Object.values(tournament.playerIds ?? {}),
+      tournament.courtCount,
+      roundIndex,
+      prior,
+      order,
+    );
+
+    await withTimeout(
+      set(
+        ref(this.db, `tournaments/${tournamentId}/rounds/${roundIndex}`),
+        finalRound,
       ),
     );
   }
@@ -546,11 +610,12 @@ export class PadelService {
     const isStatic =
       tournament.format === 'americano' ||
       tournament.format === 'team-americano';
+    const isFinalRound = !!round.isFinal;
     const nextRound = roundIndex + 1;
     const precomputedNext = tournament.rounds?.[nextRound];
-    const isLast = isStatic
-      ? !precomputedNext
-      : nextRound >= tournament.totalRounds;
+    const isLast =
+      isFinalRound ||
+      (isStatic ? !precomputedNext : nextRound >= tournament.totalRounds);
 
     const updates: Record<string, unknown> = {
       [`tournaments/${tournamentId}/updatedAt`]: Date.now(),
