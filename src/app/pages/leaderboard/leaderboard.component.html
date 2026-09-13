@@ -157,7 +157,6 @@
           <button class="chip glass" (click)="goToTournament(t.id)">
             <span class="chip-format badge badge-gold">{{ FORMAT_LABELS[t.format] }}</span>
             <span class="chip-name">{{ t.name }}</span>
-            <span class="badge badge-gold">{{ i18n.t('badge.draft') }}</span>
           </button>
         }
       </div>
@@ -173,7 +172,6 @@
           <button class="chip chip-finished glass" (click)="goToTournament(t.id)">
             <span class="chip-format badge badge-muted">{{ FORMAT_LABELS[t.format] }}</span>
             <span class="chip-name">{{ t.name }}</span>
-            <span class="badge badge-muted">{{ i18n.t('badge.finished') }}</span>
           </button>
         }
       </div>

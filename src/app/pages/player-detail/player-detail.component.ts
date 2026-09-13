@@ -30,22 +30,6 @@ const HERO_DURATION_MS = 1050;
 /** Moment (ms after the portrait renders) it "lands" and the slam sound fires. */
 const IMPACT_MS = 560;
 
-const DUST_PARTICLES = [
-  { id: 0,  x: '0%',   top: '18%', driftX: '-28px', fallY: '65px', size: '8px',  delay: '0ms',  color: 'hsl(35,45%,55%)' },
-  { id: 1,  x: '1%',   top: '33%', driftX: '-20px', fallY: '50px', size: '5px',  delay: '40ms', color: 'hsl(30,40%,48%)' },
-  { id: 2,  x: '0%',   top: '50%', driftX: '-36px', fallY: '72px', size: '7px',  delay: '20ms', color: 'hsl(40,50%,60%)' },
-  { id: 3,  x: '1%',   top: '66%', driftX: '-24px', fallY: '58px', size: '9px',  delay: '55ms', color: 'hsl(33,42%,52%)' },
-  { id: 4,  x: '0%',   top: '80%', driftX: '-16px', fallY: '42px', size: '4px',  delay: '15ms', color: 'hsl(38,48%,58%)' },
-  { id: 5,  x: '98%',  top: '18%', driftX: '28px',  fallY: '65px', size: '8px',  delay: '0ms',  color: 'hsl(35,45%,55%)' },
-  { id: 6,  x: '97%',  top: '33%', driftX: '20px',  fallY: '50px', size: '5px',  delay: '40ms', color: 'hsl(30,40%,48%)' },
-  { id: 7,  x: '98%',  top: '50%', driftX: '36px',  fallY: '72px', size: '7px',  delay: '20ms', color: 'hsl(40,50%,60%)' },
-  { id: 8,  x: '97%',  top: '66%', driftX: '24px',  fallY: '58px', size: '9px',  delay: '55ms', color: 'hsl(33,42%,52%)' },
-  { id: 9,  x: '98%',  top: '80%', driftX: '16px',  fallY: '42px', size: '4px',  delay: '15ms', color: 'hsl(38,48%,58%)' },
-  { id: 10, x: '25%',  top: '96%', driftX: '-12px', fallY: '30px', size: '6px',  delay: '30ms', color: 'hsl(36,44%,54%)' },
-  { id: 11, x: '50%',  top: '97%', driftX: '5px',   fallY: '28px', size: '5px',  delay: '10ms', color: 'hsl(32,41%,50%)' },
-  { id: 12, x: '75%',  top: '96%', driftX: '14px',  fallY: '32px', size: '7px',  delay: '45ms', color: 'hsl(39,47%,57%)' },
-];
-
 @Component({
   selector: 'app-player-detail',
   imports: [CommonModule, RouterLink, FormsModule],
@@ -133,10 +117,9 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     const begin = () => {
       if (this.heroReady()) return;
       this.heroReady.set(true);
-      const slam = setTimeout(
-        () => this.audioService.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9),
-        IMPACT_MS,
-      );
+      const slam = setTimeout(() => {
+        this.audioService.playOneShot('/assets/sounds-effects/gate-slam.mp3', 0.9);
+      }, IMPACT_MS);
       this.timers.push(slam);
       this.startSkillBarSequence();
     };

@@ -317,7 +317,7 @@ export class TournamentViewComponent implements OnInit {
   }
 
   setScore(matchId: string, field: 'score1' | 'score2', value: string): void {
-    const parsedScore = value === '' ? null : Math.max(0, Math.min(99, Number(value)));
+    const parsedScore = value === '' ? null : Number(value);
     const current = this.getScore(matchId);
     this.scores.set({
       ...this.scores(),

@@ -97,16 +97,24 @@ export class MexericanoTestComponent {
   // ── Config helpers ─────────────────────────────────────────────────────────
 
   setNumPlayers(v: string): void {
-    this.numPlayers.set(Math.max(4, Math.min(40, Number(v) || 4)));
+    if (v === '') return;
+    const n = Number(v);
+    if (!Number.isNaN(n)) this.numPlayers.set(n);
   }
   setNumCourts(v: string): void {
-    this.numCourts.set(Math.max(1, Math.min(10, Number(v) || 1)));
+    if (v === '') return;
+    const n = Number(v);
+    if (!Number.isNaN(n)) this.numCourts.set(n);
   }
   setTarget(v: string): void {
-    this.target.set(Math.max(2, Math.min(99, Number(v) || 2)));
+    if (v === '') return;
+    const n = Number(v);
+    if (!Number.isNaN(n)) this.target.set(n);
   }
   setTotalRounds(v: string): void {
-    this.totalRounds.set(Math.max(1, Math.min(50, Number(v) || 1)));
+    if (v === '') return;
+    const n = Number(v);
+    if (!Number.isNaN(n)) this.totalRounds.set(n);
   }
 
   private scoringConfig() {
@@ -320,7 +328,7 @@ export class MexericanoTestComponent {
   }
 
   setScore(id: string, field: 's1' | 's2', value: string): void {
-    const parsed = value === '' ? null : Math.max(0, Math.min(99, Number(value)));
+    const parsed = value === '' ? null : Number(value);
     this.scores.set({
       ...this.scores(),
       [id]: { ...this.getScore(id), [field]: parsed },
