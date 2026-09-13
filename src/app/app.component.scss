@@ -63,6 +63,35 @@
   &:focus { outline: none; border-color: var(--primary); }
 }
 
+/* Entrance animation for the admin input and its OK/✕ buttons. */
+.admin-bar .admin-input {
+  animation: admin-input-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-origin: right center;
+}
+.admin-bar .admin-input ~ .admin-btn {
+  animation: toolbar-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.admin-bar .admin-input ~ .admin-btn:nth-of-type(1) { animation-delay: 0.08s; }
+.admin-bar .admin-input ~ .admin-btn:nth-of-type(2) { animation-delay: 0.14s; }
+
+@keyframes admin-input-in {
+  0% {
+    opacity: 0;
+    transform: translateX(12px) scaleX(0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-bar .admin-input,
+  .admin-bar .admin-input ~ .admin-btn {
+    animation: none;
+  }
+}
+
 .audio-btn {
   font-size: 0.95rem;
   background: var(--card);
@@ -77,4 +106,31 @@
   &:active { transform: scale(0.94); }
   /* dimmed when off */
   &.off { opacity: 0.35; filter: grayscale(1); }
+}
+
+/* Entrance animation for the toolbar controls (staggered pop-in). */
+.admin-bar .audio-btn,
+.admin-bar .lang-btn {
+  animation: toolbar-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.admin-bar .audio-btn:nth-child(1) { animation-delay: 0s; }
+.admin-bar .audio-btn:nth-child(2) { animation-delay: 0.06s; }
+.admin-bar .lang-btn { animation-delay: 0.12s; }
+
+@keyframes toolbar-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-bar .audio-btn,
+  .admin-bar .lang-btn {
+    animation: none;
+  }
 }
