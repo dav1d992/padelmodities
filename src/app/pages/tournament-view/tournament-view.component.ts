@@ -157,6 +157,7 @@ export class TournamentViewComponent implements OnInit {
   readonly isMexericano = computed(
     () => this.tournament()?.format === 'mexericano',
   );
+  readonly hasBonus = computed(() => !!this.tournament()?.bonus?.enabled);
   readonly isDraft = computed(() => this.tournament()?.status === 'draft');
   readonly isActive = computed(() => this.tournament()?.status === 'active');
   readonly isFinished = computed(() => this.tournament()?.status === 'finished');

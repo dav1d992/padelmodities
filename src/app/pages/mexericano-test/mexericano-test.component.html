@@ -177,8 +177,6 @@
                 <th>{{ i18n.t('th.wins') }}</th>
                 <th>{{ i18n.t('th.losses') }}</th>
                 @if (!isKoth()) { <th>{{ i18n.t('th.draws') }}</th> }
-                <th>{{ i18n.t('stat.diff') }}</th>
-                @if (isSuperMex()) { <th>{{ i18n.t('th.match') }}</th><th>{{ i18n.t('th.bonus') }}</th> }
                 <th>{{ i18n.t('th.total') }}</th>
               </tr>
             </thead>
@@ -191,10 +189,6 @@
                   <td>{{ row.wins }}</td>
                   <td>{{ row.losses }}</td>
                   @if (!isKoth()) { <td>{{ row.draws }}</td> }
-                  <td [class.pos]="row.diff > 0" [class.neg]="row.diff < 0">
-                    {{ row.diff > 0 ? '+' : '' }}{{ row.diff }}
-                  </td>
-                  @if (isSuperMex()) { <td>{{ row.matchPoints }}</td><td>{{ row.bonus }}</td> }
                   <td class="total">{{ row.total }}</td>
                 </tr>
               }

@@ -78,6 +78,7 @@ export class MexericanoTestComponent {
   readonly isKoth = computed(() => this.format() === 'king-of-the-hill');
   readonly isSuperMex = computed(() => this.format() === 'super-mexicano');
   readonly isMexericano = computed(() => this.format() === 'mexericano');
+  readonly hasBonus = computed(() => this.isSuperMex() || this.isMexericano());
   readonly isStatic = computed(
     () => this.format() === 'americano' || this.format() === 'team-americano',
   );
@@ -156,7 +157,7 @@ export class MexericanoTestComponent {
       this.playerIds().forEach((id, i) => (pids[String(i)] = id));
       base.playerIds = pids;
     }
-    if (this.format() === 'super-mexicano') {
+    if (this.format() === 'super-mexicano' || this.format() === 'mexericano') {
       base.bonus = { ...DEFAULT_BONUS, points: { ...DEFAULT_BONUS.points } };
     }
     return base;
