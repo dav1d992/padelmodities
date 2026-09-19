@@ -602,7 +602,7 @@ export class TournamentViewComponent implements OnInit {
 
   async runFinalRound(): Promise<void> {
     if ((!this.admin.isAdmin() && !this.testMode()) || !this.canRunFinal()) return;
-    if (!window.confirm(this.i18n.t('view.finalConfirm'))) return;
+    if (!window.confirm(this.i18n.t(this.testMode() ? 'view.finalConfirmTest' : 'view.finalConfirm'))) return;
     this.runningFinal.set(true);
     this.error.set('');
     if (this.testMode()) {
@@ -632,7 +632,7 @@ export class TournamentViewComponent implements OnInit {
   async finishEarly(): Promise<void> {
     if (!this.admin.isAdmin() && !this.testMode()) return;
     if (
-      !window.confirm(this.i18n.t('view.finishConfirm'))
+      !window.confirm(this.i18n.t(this.testMode() ? 'view.finishConfirmTest' : 'view.finishConfirm'))
     )
       return;
     this.finishing.set(true);

@@ -194,7 +194,8 @@ const DA: Dict = {
   'view.kothStats': 'King of the Hill statistik',
   'view.editWarn':
     'Redigering af en tidligere runde opdaterer stillingen, men senere runder blev genereret ud fra det gamle resultat.',
-  'view.finishConfirm': 'Afslut turneringen? Aktuelle resultater bevares.',
+  'view.finishConfirm': 'Afslut turneringen?',
+  'view.finishConfirmTest': 'Afslut prøvekørslen? Intet gemmes.',
   'view.runFinal': 'Kør finalerunde',
   'view.finalGenerating': 'Genererer finale…',
   'view.finalGenerated': 'Finalerunde genereret',
@@ -202,7 +203,8 @@ const DA: Dict = {
   'view.finalBadge': 'Finale',
   'view.nextNormal': 'Næste: normal runde',
   'view.nextFinal': 'Næste: finalerunde',
-  'view.finalConfirm': 'Kør finalerunden nu? Stillingen låses og den nuværende runde erstattes af finalen.',
+  'view.finalConfirm': 'Kør finalerunden nu?',
+  'view.finalConfirmTest': 'Kør finalerunden i prøvekørslen? Intet gemmes.',
 
   // Table headers
   'th.team': 'Hold',
@@ -486,7 +488,8 @@ const EN: Dict = {
   'view.kothStats': 'King of the Hill stats',
   'view.editWarn':
     'Editing an earlier round updates the standings, but later rounds were generated from the old result.',
-  'view.finishConfirm': 'Finish the tournament? Current results are kept.',
+  'view.finishConfirm': 'Finish the tournament?',
+  'view.finishConfirmTest': 'End the test run? Nothing is saved.',
   'view.runFinal': 'Run final round',
   'view.finalGenerating': 'Generating final…',
   'view.finalGenerated': 'Final round generated',
@@ -494,7 +497,8 @@ const EN: Dict = {
   'view.finalBadge': 'Final',
   'view.nextNormal': 'Next: normal round',
   'view.nextFinal': 'Next: final round',
-  'view.finalConfirm': 'Run the final round now? Standings are frozen and the current round is replaced by the final.',
+  'view.finalConfirm': 'Run the final round now?',
+  'view.finalConfirmTest': 'Run the final round in the test run? Nothing is saved.',
 
   // Table headers
   'th.team': 'Team',
