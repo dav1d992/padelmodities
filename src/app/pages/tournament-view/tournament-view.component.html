@@ -31,15 +31,27 @@
         </div>
       }
 
-      @if (isDraft() && admin.isAdmin()) {
+      @if ((isDraft() && admin.isAdmin()) || (canTest() && !testMode())) {
         <div class="tour-header-actions">
-          <button class="btn btn-ghost" (click)="editDraft()">{{ i18n.t('common.edit') }}</button>
-          <button class="btn btn-primary" [disabled]="completing()" (click)="startDraft()">
-            {{ completing() ? i18n.t('setup.starting') : i18n.t('setup.start') }}
-          </button>
+          @if (isDraft() && admin.isAdmin()) {
+            <button class="btn btn-ghost" (click)="editDraft()">{{ i18n.t('common.edit') }}</button>
+            <button class="btn btn-primary" [disabled]="completing()" (click)="startDraft()">
+              {{ completing() ? i18n.t('setup.starting') : i18n.t('setup.start') }}
+            </button>
+          }
+          @if (canTest() && !testMode()) {
+            <button class="btn btn-ghost" (click)="enterTestMode()">{{ i18n.t('view.tryTest') }}</button>
+          }
         </div>
       }
     </header>
+
+    @if (testMode()) {
+      <div class="glass panel test-banner">
+        <span class="test-banner-text">{{ i18n.t('view.testBanner') }}</span>
+        <button class="btn btn-ghost" (click)="exitTestMode()">{{ i18n.t('view.exitTest') }}</button>
+      </div>
+    }
 
     @if (t.description) {
       <div class="glass panel tour-description">
@@ -83,7 +95,7 @@
                       <span class="koth-player">{{ kothMovementIcon(court.match.a2) }} {{ playerName(court.match.a2) }}</span>
                     </div>
                     <input type="number" class="score-input"
-                      [disabled]="isFinished() || !admin.isAdmin()"
+                      [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
                       [value]="getScore(court.match.id).score1 ?? ''"
                       (input)="setScore(court.match.id, 'score1', $any($event.target).value)"
                       (change)="saveScore(court.match.id)">
@@ -91,7 +103,7 @@
                   <div class="vs">VS</div>
                   <div class="team team-right">
                     <input type="number" class="score-input"
-                      [disabled]="isFinished() || !admin.isAdmin()"
+                      [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
                       [value]="getScore(court.match.id).score2 ?? ''"
                       (input)="setScore(court.match.id, 'score2', $any($event.target).value)"
                       (change)="saveScore(court.match.id)">
@@ -150,13 +162,13 @@
                   <!-- Scores in the centre -->
                   <div class="score-center">
                     <input type="number" class="score-input"
-                      [disabled]="isFinished() || !admin.isAdmin()"
+                      [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
                       [value]="getScore(match.id).score1 ?? ''"
                       (input)="setScore(match.id, 'score1', $any($event.target).value)"
                       (change)="saveScore(match.id)">
                     <span class="vs">VS</span>
                     <input type="number" class="score-input"
-                      [disabled]="isFinished() || !admin.isAdmin()"
+                      [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
                       [value]="getScore(match.id).score2 ?? ''"
                       (input)="setScore(match.id, 'score2', $any($event.target).value)"
                       (change)="saveScore(match.id)">
@@ -190,7 +202,7 @@
                 @if (scoreError(match.id)) {
                   <p class="warn small">{{ scoreError(match.id) }}</p>
                 }
-                @if (admin.isAdmin() && (getScore(match.id).score1 !== null || getScore(match.id).score2 !== null) && !isFinished()) {
+                @if ((admin.isAdmin() || testMode()) && (getScore(match.id).score1 !== null || getScore(match.id).score2 !== null) && !isFinished()) {
                   <button class="link-btn reset-btn" (click)="resetScore(match.id)">{{ i18n.t('view.resetResult') }}</button>
                 }
               </div>
@@ -210,7 +222,7 @@
       }
 
       <!-- Round actions -->
-      @if (admin.isAdmin() && isActive() && isCurrentRound()) {
+      @if ((admin.isAdmin() || testMode()) && isActive() && isCurrentRound()) {
         @if (isMexericano()) {
           <p class="hint muted small next-round-hint">
             {{ isFinalRound() ? i18n.t('view.nextFinal') : i18n.t('view.nextNormal') }}
@@ -271,12 +283,9 @@
                 <th>{{ i18n.t('th.wins') }}</th>
                 <th>{{ i18n.t('th.losses') }}</th>
                 @if (!isKoth()) { <th>{{ i18n.t('th.draws') }}</th> }
-                <th>+</th>
-                <th>−</th>
                 <th>{{ i18n.t('stat.diff') }}</th>
                 @if (isSuperMex()) { <th>{{ i18n.t('th.match') }}</th><th>{{ i18n.t('th.bonus') }}</th> }
                 <th>{{ i18n.t('th.total') }}</th>
-                <th>{{ i18n.t('th.sitouts') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -290,14 +299,11 @@
                   <td>{{ row.wins }}</td>
                   <td>{{ row.losses }}</td>
                   @if (!isKoth()) { <td>{{ row.draws }}</td> }
-                  <td>{{ row.pointsFor }}</td>
-                  <td>{{ row.pointsAgainst }}</td>
                   <td [class.pos]="row.diff > 0" [class.neg]="row.diff < 0">
                     {{ row.diff > 0 ? '+' : '' }}{{ row.diff }}
                   </td>
                   @if (isSuperMex()) { <td>{{ row.matchPoints }}</td><td>{{ row.bonus }}</td> }
                   <td class="total">{{ row.total }}</td>
-                  <td>{{ row.sitOuts }}</td>
                 </tr>
               }
             </tbody>
@@ -345,7 +351,7 @@
       </section>
     }
 
-    @if (admin.isAdmin()) {
+    @if (admin.isAdmin() && !testMode()) {
       <div class="danger-zone">
         <button class="btn btn-danger" [disabled]="deleting()" (click)="deleteTournament()">
           {{ i18n.t('view.deleteTournament') }}

@@ -6,6 +6,7 @@
  * which keeps score-editing correct without cascading state.
  */
 import {
+  isDynamicFormat,
   isTeamFormat,
   type CourtBonusConfig,
   type KothStats,
@@ -1150,6 +1151,234 @@ export function standingsOrder(
   nameOf: (id: string) => string,
 ): string[] {
   return computeStandings(tournament, nameOf).map((r) => r.participantId);
+}
+
+// ── Pure state transitions (shared by service persistence + sandbox play) ─────
+
+function teamMapOf(t: Tournament): Record<string, TournamentTeam> {
+  const map: Record<string, TournamentTeam> = {};
+  Object.values(t.teams ?? {}).forEach((team) => (map[team.id] = team));
+  return map;
+}
+
+/** Team name for team participants, otherwise the raw participant id. */
+export function participantNameOf(t: Tournament, id: string): string {
+  const team = Object.values(t.teams ?? {}).find((x) => x.id === id);
+  return team?.name ?? id;
+}
+
+function sortedRoundsOf(t: Tournament): TournamentRound[] {
+  return Object.values(t.rounds ?? {}).sort((a, b) => a.index - b.index);
+}
+
+/** Build one standings-based round (mexicano / super / team / mexericano). */
+export function buildDynamicRound(
+  t: Tournament,
+  roundIndex: number,
+  priorRounds: TournamentRound[],
+): TournamentRound {
+  const order = standingsOrder(t, (id) => participantNameOf(t, id));
+  if (t.format === 'team-mexicano') {
+    const teamIds = Object.values(t.teams ?? {}).map((x) => x.id);
+    return generateTeamMexicanoRound(
+      teamIds,
+      teamMapOf(t),
+      t.courtCount,
+      roundIndex,
+      priorRounds,
+      order,
+    );
+  }
+  const playerIds = Object.values(t.playerIds ?? {});
+  if (t.format === 'mexericano') {
+    return generateMexericanoRound(
+      playerIds,
+      t.courtCount,
+      roundIndex,
+      priorRounds,
+      order,
+    );
+  }
+  return generateMexicanoRound(
+    playerIds,
+    t.courtCount,
+    roundIndex,
+    priorRounds,
+    order,
+  );
+}
+
+export interface InitialRoundsResult {
+  rounds: Record<string, TournamentRound>;
+  /** May differ from the input for round-robin team-americano schedules. */
+  totalRounds: number;
+}
+
+/** Compute the opening round(s) for a tournament as if it were just started. */
+export function generateInitialRounds(t: Tournament): InitialRoundsResult {
+  const { format, courtCount } = t;
+  const rounds: Record<string, TournamentRound> = {};
+  let totalRounds = t.totalRounds;
+
+  if (format === 'americano') {
+    const playerIds = Object.values(t.playerIds ?? {});
+    generateAmericanoRounds(playerIds, courtCount, t.totalRounds).forEach(
+      (r) => (rounds[String(r.index)] = r),
+    );
+  } else if (format === 'team-americano') {
+    const teamIds = Object.values(t.teams ?? {}).map((x) => x.id);
+    const generated = generateTeamAmericanoRounds(
+      teamIds,
+      teamMapOf(t),
+      courtCount,
+    );
+    generated.forEach((r) => (rounds[String(r.index)] = r));
+    totalRounds = generated.length;
+  } else if (format === 'king-of-the-hill') {
+    const playerIds = Object.values(t.playerIds ?? {});
+    rounds['0'] = generateKothInitialRound(playerIds, courtCount, t.seeded);
+  } else {
+    rounds['0'] = buildDynamicRound(t, 0, []);
+  }
+
+  return { rounds, totalRounds };
+}
+
+/** Replace the current (unscored) round with a freshly generated one. */
+export function regenerateCurrentRound(t: Tournament): Tournament {
+  if (!isDynamicFormat(t.format)) throw new Error('err.dynamicOnly');
+  const roundIndex = t.currentRound;
+  const round = t.rounds?.[roundIndex];
+  if (round?.completed) throw new Error('err.roundDone');
+  const anyScore = Object.values(round?.matches ?? {}).some(
+    (m) => m.score1 !== undefined || m.score2 !== undefined,
+  );
+  if (anyScore) throw new Error('err.regenScores');
+
+  const prior = sortedRoundsOf(t).filter((r) => r.index < roundIndex);
+  let newRound: TournamentRound;
+  if (t.format === 'king-of-the-hill') {
+    if (roundIndex === 0) {
+      newRound = generateKothInitialRound(
+        Object.values(t.playerIds ?? {}),
+        t.courtCount,
+        t.seeded,
+      );
+    } else {
+      const prev = prior[prior.length - 1];
+      newRound = generateKothNextRound(
+        prev,
+        prior.slice(0, -1),
+        roundIndex,
+        Object.values(t.playerIds ?? {}),
+      );
+    }
+  } else if (t.format === 'mexericano' && round?.isFinal) {
+    const order = standingsOrder(t, (id) => participantNameOf(t, id));
+    newRound = generateMexericanoFinalRound(
+      Object.values(t.playerIds ?? {}),
+      t.courtCount,
+      roundIndex,
+      prior,
+      order,
+    );
+  } else {
+    newRound = buildDynamicRound(t, roundIndex, prior);
+  }
+  return { ...t, rounds: { ...(t.rounds ?? {}), [roundIndex]: newRound } };
+}
+
+/** Replace the current (unscored) round with the decisive Mexericano final. */
+export function runFinalRound(t: Tournament): Tournament {
+  if (t.format !== 'mexericano') throw new Error('err.mexericanoOnly');
+  if (t.status !== 'active') throw new Error('err.notActive');
+  const rounds = sortedRoundsOf(t);
+  if (rounds.filter((r) => r.completed).length < 1) {
+    throw new Error('err.finalNeedsRound');
+  }
+  if (rounds.some((r) => r.isFinal)) throw new Error('err.finalExists');
+  const roundIndex = t.currentRound;
+  if (t.rounds?.[roundIndex]?.completed) throw new Error('err.roundDone');
+
+  const prior = rounds.filter((r) => r.index < roundIndex);
+  const order = standingsOrder(t, (id) => participantNameOf(t, id));
+  const finalRound = generateMexericanoFinalRound(
+    Object.values(t.playerIds ?? {}),
+    t.courtCount,
+    roundIndex,
+    prior,
+    order,
+  );
+  return { ...t, rounds: { ...(t.rounds ?? {}), [roundIndex]: finalRound } };
+}
+
+/**
+ * Complete the current round and advance the tournament: validates scores,
+ * marks the round done, finishes or moves to the next round, and generates the
+ * next dynamic round when required. Pure — no persistence, no rating updates.
+ */
+export function completeCurrentRound(t: Tournament): Tournament {
+  const roundIndex = t.currentRound;
+  const round = t.rounds?.[roundIndex];
+  if (!round) throw new Error('err.roundNotFound');
+
+  const matches = round.matches ? Object.values(round.matches) : [];
+  for (const m of matches) {
+    if (
+      m.score1 === undefined ||
+      m.score2 === undefined ||
+      m.score1 === null ||
+      m.score2 === null
+    ) {
+      throw new Error('err.enterBeforeComplete');
+    }
+    const v = validateScore(m.score1, m.score2, t.scoring, t.format);
+    if (!v.valid) throw new Error(v.reason ?? 'err.invalidScore');
+  }
+
+  const completedRound: TournamentRound = { ...round, completed: true };
+  let result: Tournament = {
+    ...t,
+    rounds: { ...(t.rounds ?? {}), [roundIndex]: completedRound },
+    updatedAt: Date.now(),
+  };
+
+  const isStatic =
+    t.format === 'americano' || t.format === 'team-americano';
+  const isFinalRound = !!round.isFinal;
+  const nextRound = roundIndex + 1;
+  const precomputedNext = t.rounds?.[nextRound];
+  const isLast =
+    isFinalRound ||
+    (isStatic ? !precomputedNext : nextRound >= t.totalRounds);
+
+  if (isLast) {
+    result = { ...result, status: 'finished', currentRound: roundIndex };
+  } else {
+    result = { ...result, currentRound: nextRound };
+  }
+
+  if (!isLast && !isStatic) {
+    let newRound: TournamentRound;
+    if (t.format === 'king-of-the-hill') {
+      const prior = sortedRoundsOf(result).filter((r) => r.index < roundIndex);
+      newRound = generateKothNextRound(
+        completedRound,
+        prior,
+        nextRound,
+        Object.values(t.playerIds ?? {}),
+      );
+    } else {
+      const prior = sortedRoundsOf(result);
+      newRound = buildDynamicRound(result, nextRound, prior);
+    }
+    result = {
+      ...result,
+      rounds: { ...result.rounds, [nextRound]: newRound },
+    };
+  }
+
+  return result;
 }
 
 // ── Record helpers (RTDB-safe) ───────────────────────────────────────────────

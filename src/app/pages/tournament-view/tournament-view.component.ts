@@ -24,8 +24,12 @@ import {
   type TournamentRound,
 } from '../../models/padel.model';
 import {
+  completeCurrentRound,
   computeKothStats,
   computeStandings,
+  generateInitialRounds,
+  regenerateCurrentRound,
+  runFinalRound,
   validateScore,
 } from '../../services/tournament-engine';
 import { CommonModule } from '@angular/common';
@@ -57,7 +61,18 @@ export class TournamentViewComponent implements OnInit {
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
 
-  readonly tournament = signal<Tournament | null>(null);
+  /** Live tournament from Firebase. */
+  private readonly liveTournament = signal<Tournament | null>(null);
+  /** In-memory sandbox copy used while test mode is on (never persisted). */
+  private readonly sandbox = signal<Tournament | null>(null);
+  /** When true, all play happens on the sandbox copy with no writes. */
+  readonly testMode = signal(false);
+
+  /** Effective tournament shown and played (sandbox copy in test mode). */
+  readonly tournament = computed<Tournament | null>(() =>
+    this.testMode() ? this.sandbox() : this.liveTournament(),
+  );
+
   readonly players = signal<Player[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
@@ -81,16 +96,19 @@ export class TournamentViewComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (tournament) => {
-          this.tournament.set(tournament);
+          this.liveTournament.set(tournament);
           this.loading.set(false);
-          if (!tournament) this.router.navigate(['/']);
-          else {
-            // Finished tournaments always open at round 1 (index 0).
-            if (tournament.status === 'finished' && this.viewRound() === null) {
-              this.viewRound.set(0);
-            }
-            this.syncScores(tournament);
+          if (!tournament) {
+            this.router.navigate(['/']);
+            return;
           }
+          // While testing, the sandbox drives the view — ignore live updates.
+          if (this.testMode()) return;
+          // Finished tournaments always open at round 1 (index 0).
+          if (tournament.status === 'finished' && this.viewRound() === null) {
+            this.viewRound.set(0);
+          }
+          this.syncScores(tournament);
         },
         error: (error) => {
           this.error.set(error?.message ?? 'Fejl.');
@@ -278,7 +296,10 @@ export class TournamentViewComponent implements OnInit {
   // ── Names / images ────────────────────────────────────────────────────────
 
   playerName(id: string): string {
-    return this.players().find((p) => p.id === id)?.name ?? id.slice(0, 6);
+    const p = this.players().find((p) => p.id === id);
+    if (!p) return id.slice(0, 6);
+    const first = p.name.trim().split(/\s+/)[0];
+    return p.shortname ? `${first} (${p.shortname})` : p.name;
   }
 
   playerImage(id: string): string | undefined {
@@ -308,6 +329,81 @@ export class TournamentViewComponent implements OnInit {
       case 'stay-bottom': return '↓';
       default: return '•';
     }
+  }
+
+  // ── Test mode (in-memory dry run) ───────────────────────────────────────
+
+  /** True when the current tournament can be tried without starting/affecting it. */
+  readonly canTest = computed(() => {
+    const t = this.liveTournament();
+    return !!t && (t.status === 'active' || t.status === 'draft');
+  });
+
+  /** Enter a sandbox dry run: clone the tournament and play it in memory only. */
+  enterTestMode(): void {
+    const src = this.liveTournament();
+    if (!src) return;
+    let sandbox = structuredClone(src) as Tournament;
+    // A draft has no rounds yet — generate the opening schedule so it's playable.
+    if (sandbox.status === 'draft') {
+      const { rounds, totalRounds } = generateInitialRounds(sandbox);
+      sandbox = {
+        ...sandbox,
+        rounds,
+        totalRounds,
+        status: 'active',
+        currentRound: 0,
+      };
+    }
+    this.sandbox.set(sandbox);
+    this.testMode.set(true);
+    this.viewRound.set(null);
+    this.scores.set({});
+    this.error.set('');
+    this.reloadScores();
+  }
+
+  /** Leave the sandbox and return to the live tournament. */
+  exitTestMode(): void {
+    this.testMode.set(false);
+    this.sandbox.set(null);
+    this.viewRound.set(null);
+    this.scores.set({});
+    this.error.set('');
+    this.reloadScores();
+  }
+
+  private updateSandbox(fn: (t: Tournament) => Tournament): void {
+    const s = this.sandbox();
+    if (s) this.sandbox.set(fn(s));
+  }
+
+  /** Write the currently entered score for a match into the sandbox round. */
+  private applySandboxScore(matchId: string): void {
+    const s = this.getScore(matchId);
+    const roundIndex = this.displayRound();
+    this.updateSandbox((t) => {
+      const round = t.rounds?.[roundIndex];
+      const match = round?.matches?.[matchId];
+      if (!round || !match) return t;
+      return {
+        ...t,
+        rounds: {
+          ...t.rounds,
+          [roundIndex]: {
+            ...round,
+            matches: {
+              ...round.matches,
+              [matchId]: {
+                ...match,
+                score1: s.score1 ?? undefined,
+                score2: s.score2 ?? undefined,
+              },
+            },
+          },
+        },
+      };
+    });
   }
 
   // ── Score entry ───────────────────────────────────────────────────────────
@@ -355,7 +451,7 @@ export class TournamentViewComponent implements OnInit {
   }
 
   async saveScore(matchId: string): Promise<void> {
-    if (!this.admin.isAdmin()) return;
+    if (!this.admin.isAdmin() && !this.testMode()) return;
     const s = this.getScore(matchId);
     if (s.score1 === null || s.score2 === null) return;
     const tournament = this.tournament();
@@ -367,6 +463,10 @@ export class TournamentViewComponent implements OnInit {
       }
     }
     this.error.set('');
+    if (this.testMode()) {
+      this.applySandboxScore(matchId);
+      return;
+    }
     try {
       await this.service.saveMatchScore(
         this.tournamentId(),
@@ -381,11 +481,15 @@ export class TournamentViewComponent implements OnInit {
   }
 
   async resetScore(matchId: string): Promise<void> {
-    if (!this.admin.isAdmin()) return;
+    if (!this.admin.isAdmin() && !this.testMode()) return;
     this.scores.set({
       ...this.scores(),
       [matchId]: { score1: null, score2: null },
     });
+    if (this.testMode()) {
+      this.applySandboxScore(matchId);
+      return;
+    }
     try {
       await this.service.resetMatchScore(
         this.tournamentId(),
@@ -400,10 +504,24 @@ export class TournamentViewComponent implements OnInit {
   // ── Round actions ───────────────────────────────────────────────────────
 
   async completeRound(): Promise<void> {
-    if (!this.admin.isAdmin()) return;
+    if (!this.admin.isAdmin() && !this.testMode()) return;
     if (!this.allScoresEntered()) return;
     this.completing.set(true);
     this.error.set('');
+    if (this.testMode()) {
+      try {
+        for (const match of this.currentMatches()) this.applySandboxScore(match.id);
+        this.updateSandbox((t) => completeCurrentRound(t));
+        this.scores.set({});
+        this.viewRound.set(null);
+        this.reloadScores();
+      } catch (error) {
+        this.error.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
+      } finally {
+        this.completing.set(false);
+      }
+      return;
+    }
     for (const match of this.currentMatches()) {
       await this.saveScore(match.id);
     }
@@ -431,10 +549,22 @@ export class TournamentViewComponent implements OnInit {
   });
 
   async regenerate(): Promise<void> {
-    if (!this.admin.isAdmin()) return;
+    if (!this.admin.isAdmin() && !this.testMode()) return;
     if (!this.canRegenerate()) return;
     this.regenerating.set(true);
     this.error.set('');
+    if (this.testMode()) {
+      try {
+        this.updateSandbox((t) => regenerateCurrentRound(t));
+        this.scores.set({});
+        this.reloadScores();
+      } catch (error) {
+        this.error.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
+      } finally {
+        this.regenerating.set(false);
+      }
+      return;
+    }
     try {
       await this.service.regenerateCurrentRound(this.tournamentId());
       this.scores.set({});
@@ -471,10 +601,23 @@ export class TournamentViewComponent implements OnInit {
   });
 
   async runFinalRound(): Promise<void> {
-    if (!this.admin.isAdmin() || !this.canRunFinal()) return;
+    if ((!this.admin.isAdmin() && !this.testMode()) || !this.canRunFinal()) return;
     if (!window.confirm(this.i18n.t('view.finalConfirm'))) return;
     this.runningFinal.set(true);
     this.error.set('');
+    if (this.testMode()) {
+      try {
+        this.updateSandbox((t) => runFinalRound(t));
+        this.scores.set({});
+        this.viewRound.set(null);
+        this.reloadScores();
+      } catch (error) {
+        this.error.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
+      } finally {
+        this.runningFinal.set(false);
+      }
+      return;
+    }
     try {
       await this.service.runFinalRound(this.tournamentId());
       this.scores.set({});
@@ -487,12 +630,17 @@ export class TournamentViewComponent implements OnInit {
   }
 
   async finishEarly(): Promise<void> {
-    if (!this.admin.isAdmin()) return;
+    if (!this.admin.isAdmin() && !this.testMode()) return;
     if (
       !window.confirm(this.i18n.t('view.finishConfirm'))
     )
       return;
     this.finishing.set(true);
+    if (this.testMode()) {
+      this.updateSandbox((t) => ({ ...t, status: 'finished', currentRound: this.displayRound() }));
+      this.finishing.set(false);
+      return;
+    }
     try {
       await this.service.finishTournament(this.tournamentId());
     } catch (error) {
