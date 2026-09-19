@@ -251,6 +251,8 @@ export interface Tournament {
   seeded: boolean;
   /** Convenience cache of participant → match points (recomputed on write). */
   pointsTable?: Record<string, number>;
+  /** True once final-placement rating changes have been applied (prevents double-award). */
+  ratingsAwarded?: boolean;
   rounds?: Record<string, TournamentRound>;
   createdAt: number;
   updatedAt?: number;
@@ -279,6 +281,12 @@ export const ADMIN_CODE = INJECTED_ADMIN_CODE.startsWith('__') ? LOCAL_ADMIN_COD
 
 /** ELO K-factor used when updating global ratings after a match. */
 export const ELO_K = 32;
+
+/**
+ * Rating points per player used to scale the final-placement award. 1st place
+ * gains this × field size, last place loses the same, spread evenly in between.
+ */
+export const PLACEMENT_RATING_PER_PLAYER = 3;
 
 // ── Match simulation (deterministic, does not affect ratings) ────────────────
 

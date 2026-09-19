@@ -151,8 +151,8 @@
       <span>{{ isKoth() ? i18n.t('setup.seededKoth') : i18n.t('setup.seeded') }}</span>
     </label>
 
-    <!-- Super Mexicano bonus -->
-    @if (isSuperMex()) {
+    <!-- Court bonus (super mexicano / mexericano) -->
+    @if (showBonus()) {
       <div class="config-section bonus-section">
         <span class="field-label muted">{{ i18n.t('setup.bonusTitle') }}</span>
         <label class="switch">

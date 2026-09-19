@@ -12,7 +12,7 @@ import { Observable } from 'rxjs';
 import { FIREBASE_DB } from '../core/firebase';
 import {
   DEFAULT_SKILLSET,
-  ELO_K,
+  PLACEMENT_RATING_PER_PLAYER,
   isDynamicFormat,
   isTeamFormat,
   type CourtBonusConfig,
@@ -83,38 +83,6 @@ function normaliseSkillset(skillset?: Partial<Skillset>): Skillset {
 }
 
 // ---------------------------------------------------------------------------
-// ELO helper
-// ---------------------------------------------------------------------------
-
-function eloExpected(ratingA: number, ratingB: number): number {
-  return 1 / (1 + Math.pow(10, (ratingB - ratingA) / 400));
-}
-
-/**
- * Returns per-player rating deltas for a single doubles match.
- * Actual score is normalised to [0,1] using the point ratio.
- */
-function computeEloDeltas(
-  match: TournamentMatch,
-  ratings: Record<string, number>,
-): Record<string, number> {
-  const r = (id: string) => ratings[id] ?? 1000;
-  const teamA = (r(match.a1) + r(match.a2)) / 2;
-  const teamB = (r(match.b1) + r(match.b2)) / 2;
-  const expA = eloExpected(teamA, teamB);
-  const expB = 1 - expA;
-  const total = (match.score1 ?? 0) + (match.score2 ?? 0);
-  const actA = total > 0 ? (match.score1 ?? 0) / total : 0.5;
-  const actB = 1 - actA;
-
-  return {
-    [match.a1]: ELO_K * (actA - expA),
-    [match.a2]: ELO_K * (actA - expA),
-    [match.b1]: ELO_K * (actB - expB),
-    [match.b2]: ELO_K * (actB - expB),
-  };
-}
-
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
@@ -337,7 +305,10 @@ export class PadelService {
       record.playerIds = playerIdsRecord;
     }
 
-    if (input.format === 'super-mexicano' && input.bonus) {
+    if (
+      (input.format === 'super-mexicano' || input.format === 'mexericano') &&
+      input.bonus
+    ) {
       record.bonus = input.bonus;
     }
     return record;
@@ -628,8 +599,13 @@ export class PadelService {
     }
     await withTimeout(update(ref(this.db), updates));
 
-    // Global ELO / player stats from the completed round.
-    await this.applyEloUpdates(matches);
+    // Per-player match counters from the completed round (no rating change here).
+    await this.applyMatchStats(matches);
+
+    // Final-placement rating changes are applied once, when the tournament ends.
+    if (isLast) {
+      await this.applyPlacementRatings(completedTournament);
+    }
 
     // Generate the next dynamic round if needed.
     if (!isLast && !isStatic) {
@@ -696,43 +672,70 @@ export class PadelService {
     await withTimeout(
       update(ref(this.db, `tournaments/${tournamentId}`), { status: 'finished' }),
     );
+    await this.applyPlacementRatings({ ...tournament, status: 'finished' });
   }
 
   async deleteTournament(tournamentId: string): Promise<void> {
     await withTimeout(remove(ref(this.db, `tournaments/${tournamentId}`)));
   }
 
-  // ── Private: ELO ─────────────────────────────────────────────────────────
+  // ── Private: ratings & stats ───────────────────────────────────────────────
 
-  private async applyEloUpdates(matches: TournamentMatch[]): Promise<void> {
-    // Fetch current ratings for all involved players
+  /**
+   * Apply final-placement rating changes once, when a tournament finishes.
+   * 1st place gains PLACEMENT_RATING_PER_PLAYER × field size, last place loses
+   * the same, spread evenly in between (zero-sum). Team formats give both
+   * players their team's placement delta. Idempotent via `ratingsAwarded`.
+   */
+  private async applyPlacementRatings(tournament: Tournament): Promise<void> {
+    if (tournament.ratingsAwarded) return;
+    const flagRef = `tournaments/${tournament.id}/ratingsAwarded`;
+
+    const standings = computeStandings(tournament, (id) =>
+      this.participantName(tournament, id),
+    );
+    const n = standings.length;
+    if (n < 2) {
+      await withTimeout(update(ref(this.db), { [flagRef]: true }));
+      return;
+    }
+
+    const topDelta = PLACEMENT_RATING_PER_PLAYER * n;
+    const step = (2 * topDelta) / (n - 1);
+    const team = isTeamFormat(tournament.format);
+
+    const updates: Record<string, unknown> = { [flagRef]: true };
+    const now = Date.now();
+    for (let i = 0; i < n; i++) {
+      const delta = Math.round(topDelta - i * step);
+      const playerIds = team
+        ? this.teamPlayerIds(tournament, standings[i].participantId)
+        : [standings[i].participantId];
+      for (const id of playerIds) {
+        const snap = await get(ref(this.db, `players/${id}/rating`));
+        const current = (snap.val() as number | null) ?? 1000;
+        const newRating = Math.max(0, current + delta);
+        updates[`players/${id}/rating`] = newRating;
+        updates[`players/${id}/ratingHistory/${now}_${id}`] = newRating;
+      }
+    }
+    await withTimeout(update(ref(this.db), updates));
+  }
+
+  private teamPlayerIds(tournament: Tournament, teamId: string): string[] {
+    const t = Object.values(tournament.teams ?? {}).find((x) => x.id === teamId);
+    return t ? [t.p1, t.p2] : [];
+  }
+
+  /** Accumulate per-player match counters (wins/losses/points). No rating change. */
+  private async applyMatchStats(matches: TournamentMatch[]): Promise<void> {
     const involved = new Set<string>();
     for (const m of matches) {
       [m.a1, m.a2, m.b1, m.b2].forEach((id) => involved.add(id));
     }
 
-    const ratings: Record<string, number> = {};
-    const fetchPromises = [...involved].map(async (id) => {
-      const snap = await get(ref(this.db, `players/${id}/rating`));
-      ratings[id] = (snap.val() as number | null) ?? 1000;
-    });
-    await Promise.all(fetchPromises);
-
-    // Aggregate deltas across all matches
-    const deltas: Record<string, number> = {};
-    for (const match of matches) {
-      if (match.score1 === undefined || match.score2 === undefined) continue;
-      const d = computeEloDeltas(match, ratings);
-      for (const [id, delta] of Object.entries(d)) {
-        deltas[id] = (deltas[id] ?? 0) + delta;
-      }
-    }
-
-    // Build batch update
     const updates: Record<string, unknown> = {};
-    const now = Date.now();
-    for (const [id, delta] of Object.entries(deltas)) {
-      const newRating = Math.max(0, Math.round((ratings[id] ?? 1000) + delta));
+    for (const id of involved) {
       const won = matches.some(
         (m) =>
           (m.a1 === id || m.a2 === id) && (m.score1 ?? 0) > (m.score2 ?? 0),
@@ -757,10 +760,6 @@ export class PadelService {
           .filter((m) => m.b1 === id || m.b2 === id)
           .reduce((s, m) => s + (m.score1 ?? 0), 0);
 
-      updates[`players/${id}/rating`] = newRating;
-      updates[`players/${id}/ratingHistory/${now}_${id}`] = newRating;
-      // Increment counters (read current value first would need transactions;
-      // instead we accept minor race conditions for small clubs)
       const baseSnap = await get(ref(this.db, `players/${id}`));
       const base = (baseSnap.val() as Player | null) ?? ({} as Player);
       updates[`players/${id}/matchesPlayed`] = (base.matchesPlayed ?? 0) + played;
@@ -773,3 +772,4 @@ export class PadelService {
     await withTimeout(update(ref(this.db), updates));
   }
 }
+

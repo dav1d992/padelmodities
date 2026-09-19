@@ -154,6 +154,9 @@ export class TournamentSetupComponent implements OnInit {
   readonly isDynamic = computed(() => isDynamicFormat(this.format()));
   readonly isKoth = computed(() => this.format() === 'king-of-the-hill');
   readonly isSuperMex = computed(() => this.format() === 'super-mexicano');
+  readonly isMexericano = computed(() => this.format() === 'mexericano');
+  /** Formats that support the court-bonus config. */
+  readonly showBonus = computed(() => this.isSuperMex() || this.isMexericano());
   readonly isRoundRobin = computed(() => this.format() === 'team-americano');
   readonly courtCount = computed(() => this.courtNames().length);
 
@@ -345,7 +348,7 @@ export class TournamentSetupComponent implements OnInit {
       courtNames: this.courtNames(),
       totalRounds: this.isRoundRobin() ? 0 : this.totalRounds(),
       scoring: this.scoring(),
-      bonus: this.isSuperMex() ? this.bonus() : undefined,
+      bonus: this.showBonus() ? this.bonus() : undefined,
       seeded: this.seeded(),
       status,
     };
