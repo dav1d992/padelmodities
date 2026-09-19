@@ -400,8 +400,9 @@ label {
   text-align: center;
 }
 
-.score-input {
+input.score-input {
   width: 60px;
+  flex: 0 0 60px;
   text-align: center;
   font-size: 1.5rem;
   font-weight: 800;
@@ -495,7 +496,7 @@ label {
 /* Compact match layout on small phones. */
 @media (max-width: 400px) {
   .match-teams { grid-template-columns: 1fr auto 1fr; gap: 0.4rem; }
-  .score-input { width: 50px; font-size: 1.2rem; }
+  input.score-input { width: 50px; flex: 0 0 50px; font-size: 1.2rem; }
   .team-player { font-size: 0.8rem; }
 }
 
