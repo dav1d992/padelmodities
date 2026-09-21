@@ -27,7 +27,6 @@
       </span>
       <textarea
         rows="3"
-        maxlength="500"
         [ngModel]="description()"
         (ngModelChange)="description.set($event)"
       ></textarea>
@@ -48,6 +47,9 @@
           </button>
         }
       </div>
+      @if (isMexericano()) {
+        <p class="format-details muted small">{{ i18n.t('format.mexericano.details') }}</p>
+      }
     </div>
 
     <!-- Scoring -->

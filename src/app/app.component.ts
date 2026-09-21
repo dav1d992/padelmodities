@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { AudioService } from './services/audio.service';
 import { AdminService } from './services/admin.service';
 import { I18nService } from './services/i18n.service';
+import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, FormsModule],
+  imports: [RouterOutlet, FormsModule, ConfirmDialogComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })

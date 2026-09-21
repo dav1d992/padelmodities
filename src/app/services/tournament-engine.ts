@@ -1020,8 +1020,11 @@ function courtBonus(
   courtIndex: number,
   roundIndex: number,
   isWinner: boolean,
+  roundsWithoutBonus: number,
 ): number {
   if (!bonus?.enabled) return 0;
+  // Skip early rounds while the field is still settling onto courts.
+  if (roundIndex < roundsWithoutBonus) return 0;
   if (roundIndex + 1 < bonus.startRound) return 0;
   if (bonus.winnersOnly && !isWinner) return 0;
   return bonus.points[String(courtIndex)] ?? 0;
@@ -1039,6 +1042,15 @@ export function computeStandings(
   const participantIds = team
     ? Object.keys(tournament.teams ?? {}).map((k) => tournament.teams![k].id)
     : Object.values(tournament.playerIds ?? {});
+
+  // First nCourts-1 rounds award no bonus (field still settling onto courts).
+  const nCourts = Math.max(
+    1,
+    ...Object.values(tournament.rounds ?? {}).map(
+      (r) => Object.keys(r.matches ?? {}).length,
+    ),
+  );
+  const roundsWithoutBonus = nCourts - 1;
 
   const rows = new Map<string, StandingRow>();
   const ensure = (id: string): StandingRow => {
@@ -1097,6 +1109,7 @@ export function computeStandings(
           m.courtIndex,
           round.index,
           winner === 'a',
+          roundsWithoutBonus,
         );
         if (winner === 'a') r.wins++;
         else if (winner === 'b') r.losses++;
@@ -1113,6 +1126,7 @@ export function computeStandings(
           m.courtIndex,
           round.index,
           winner === 'b',
+          roundsWithoutBonus,
         );
         if (winner === 'b') r.wins++;
         else if (winner === 'a') r.losses++;

@@ -15,6 +15,7 @@ const DA: Dict = {
   'app.language': 'Sprog',
   'common.back': 'Rangliste',
   'common.cancel': 'Annuller',
+  'common.confirm': 'Bekræft',
   'common.save': '✓ Gem',
   'common.saving': 'Gemmer…',
   'common.edit': '✏️',
@@ -138,6 +139,14 @@ const DA: Dict = {
   'format.team-mexicano.desc': 'Faste hold. Møder efter stilling.',
   'format.super-mexicano.desc': 'Mexicano med bane-bonuspoint.',
   'format.mexericano.desc': 'Konkurrencepræget matchmaking med roterende makkere og modstandere.',
+  'format.mexericano.details':
+    'Sådan sammensætter Mexericano kampene:\n' +
+    '• Runde 1 er helt tilfældig — alle starter lige.\n' +
+    '• Fra runde 2 rangeres spillerne efter deres aktuelle point og blandes derefter let inden for ca. 6 pladser, så du møder spillere på samme niveau.\n' +
+    '• Den rangerede liste deles i baner med fire (bane 1 = de fire bedste osv.).\n' +
+    '• På hver bane vælges de to hold, der bedst opfylder disse mål: undgå samme makker som sidste runde (meget kraftigt), undgå tidligere makkere (jo oftere, jo stærkere), undgå de samme modstandere, spil aldrig præcis den samme firer igen, og hold de to hold så jævnbyrdige som muligt.\n' +
+    '• Den spiller, der har siddet mindst over, vælges til at sidde over, når tallene ikke går op.\n' +
+    '• Point = de partier du vinder i hver kamp. Finalerunden samler de fire bedste for at afgøre vinderen.',
   'format.king-of-the-hill.desc': 'Bane-stige. Vindere op, tabere ned.',
 
   // Scoring
@@ -308,6 +317,7 @@ const EN: Dict = {
   'app.language': 'Language',
   'common.back': 'Ranking',
   'common.cancel': 'Cancel',
+  'common.confirm': 'Confirm',
   'common.save': '✓ Save',
   'common.saving': 'Saving…',
   'common.edit': '✏️',
@@ -432,6 +442,14 @@ const EN: Dict = {
   'format.team-mexicano.desc': 'Fixed teams. Matchups by standings.',
   'format.super-mexicano.desc': 'Mexicano with court bonus points.',
   'format.mexericano.desc': 'Competitive matchmaking with rotating partners and opponents.',
+  'format.mexericano.details':
+    'How Mexericano builds each round:\n' +
+    '• Round 1 is fully random — everyone starts on equal footing.\n' +
+    '• From round 2, players are ranked by their current points, then lightly shuffled within about 6 places so you meet players of a similar level.\n' +
+    '• The ranked list is split into courts of four (court 1 = the top four, and so on).\n' +
+    '• On each court the two teams are chosen to best satisfy these goals: don\'t repeat last round\'s partner (avoided very strongly), avoid partners you\'ve already had (the more often, the stronger), avoid facing the same opponents again, never replay the exact same group of four, and keep the two teams as evenly matched as possible.\n' +
+    '• Whoever has sat out least is picked to sit out when the numbers don\'t divide evenly.\n' +
+    '• Points = the games you win each match. The final round locks the top four together to decide the winner.',
   'format.king-of-the-hill.desc': 'Court ladder. Winners move up, losers down.',
 
   // Scoring

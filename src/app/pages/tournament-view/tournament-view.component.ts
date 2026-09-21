@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { PadelService } from '../../services/padel.service';
 import { AdminService } from '../../services/admin.service';
 import { I18nService } from '../../services/i18n.service';
+import { ConfirmService } from '../../services/confirm.service';
 import {
   isDynamicFormat,
   isTeamFormat,
@@ -58,6 +59,7 @@ export class TournamentViewComponent implements OnInit {
 
   private service = inject(PadelService);
   private router = inject(Router);
+  private confirm = inject(ConfirmService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
 
@@ -603,7 +605,12 @@ export class TournamentViewComponent implements OnInit {
 
   async runFinalRound(): Promise<void> {
     if ((!this.admin.isAdmin() && !this.testMode()) || !this.canRunFinal()) return;
-    if (!window.confirm(this.i18n.t(this.testMode() ? 'view.finalConfirmTest' : 'view.finalConfirm'))) return;
+    if (
+      !(await this.confirm.ask({
+        message: this.i18n.t(this.testMode() ? 'view.finalConfirmTest' : 'view.finalConfirm'),
+      }))
+    )
+      return;
     this.runningFinal.set(true);
     this.error.set('');
     if (this.testMode()) {
@@ -633,7 +640,9 @@ export class TournamentViewComponent implements OnInit {
   async finishEarly(): Promise<void> {
     if (!this.admin.isAdmin() && !this.testMode()) return;
     if (
-      !window.confirm(this.i18n.t(this.testMode() ? 'view.finishConfirmTest' : 'view.finishConfirm'))
+      !(await this.confirm.ask({
+        message: this.i18n.t(this.testMode() ? 'view.finishConfirmTest' : 'view.finishConfirm'),
+      }))
     )
       return;
     this.finishing.set(true);
@@ -674,7 +683,13 @@ export class TournamentViewComponent implements OnInit {
   async deleteTournament(): Promise<void> {
     const tournament = this.tournament();
     if (!this.admin.isAdmin() || !tournament) return;
-    if (!window.confirm(this.i18n.t('view.deleteConfirm', { name: tournament.name }))) return;
+    if (
+      !(await this.confirm.ask({
+        message: this.i18n.t('view.deleteConfirm', { name: tournament.name }),
+        danger: true,
+      }))
+    )
+      return;
     this.deleting.set(true);
     try {
       await this.service.deleteTournament(tournament.id);

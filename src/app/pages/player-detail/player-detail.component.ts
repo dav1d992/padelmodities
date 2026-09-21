@@ -14,6 +14,7 @@ import { PadelService } from '../../services/padel.service';
 import { AudioService } from '../../services/audio.service';
 import { AdminService } from '../../services/admin.service';
 import { I18nService } from '../../services/i18n.service';
+import { ConfirmService } from '../../services/confirm.service';
 import {
   DEFAULT_SKILLSET,
   SKILL_LABELS,
@@ -42,6 +43,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   private service = inject(PadelService);
   private router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private confirm = inject(ConfirmService);
   readonly audioService = inject(AudioService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
@@ -259,7 +261,13 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   async deletePlayer(): Promise<void> {
     const p = this.player();
     if (!p) return;
-    if (!confirm(this.i18n.t('detail.deleteConfirm', { name: p.name }))) return;
+    if (
+      !(await this.confirm.ask({
+        message: this.i18n.t('detail.deleteConfirm', { name: p.name }),
+        danger: true,
+      }))
+    )
+      return;
     this.saving.set(true);
     try {
       await this.service.deletePlayer(p.id);

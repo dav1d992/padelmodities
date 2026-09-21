@@ -19,6 +19,10 @@
   color: var(--text-muted);
 }
 
+.tour-header h1 {
+  font-size: clamp(1.3rem, 4vw, 1.8rem);
+}
+
 .tour-header-actions {
   display: flex;
   gap: 0.6rem;
