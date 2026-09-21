@@ -140,13 +140,14 @@ const DA: Dict = {
   'format.super-mexicano.desc': 'Mexicano med bane-bonuspoint.',
   'format.mexericano.desc': 'Konkurrencepræget matchmaking med roterende makkere og modstandere.',
   'format.mexericano.details':
-    'Sådan sammensætter Mexericano kampene:\n' +
-    '• Runde 1 er helt tilfældig — alle starter lige.\n' +
-    '• Fra runde 2 rangeres spillerne efter deres aktuelle point og blandes derefter let inden for ca. 6 pladser, så du møder spillere på samme niveau.\n' +
-    '• Den rangerede liste deles i baner med fire (bane 1 = de fire bedste osv.).\n' +
-    '• På hver bane vælges de to hold, der bedst opfylder disse mål: undgå samme makker som sidste runde (meget kraftigt), undgå tidligere makkere (jo oftere, jo stærkere), undgå de samme modstandere, spil aldrig præcis den samme firer igen, og hold de to hold så jævnbyrdige som muligt.\n' +
-    '• Den spiller, der har siddet mindst over, vælges til at sidde over, når tallene ikke går op.\n' +
-    '• Point = de partier du vinder i hver kamp. Finalerunden samler de fire bedste for at afgøre vinderen.',
+    'Sådan fungerer Mexericano:\n' +
+    '• Runde 1 er tilfældig — alle starter lige.\n' +
+    '• Fra runde 2 rangeres spillerne efter point og deles i baner med fire (bane 1 = de fire bedste). En lille ±6-blanding holder dig mod spillere på dit niveau.\n' +
+    '• På hver bane vælges holdene, så I undgår gentagne makkere og modstandere, aldrig spiller den samme firer igen, og holdene er jævnbyrdige.\n' +
+    '• Bane-bonus: højere baner giver flere point (fx bane 1 = 3, bane 2 = 2, bane 3 = 1) oveni dine kamppoint. Bonus starter først, når feltet har sat sig (de første baner−1 runder giver ingen), og kan gives til alle på banen eller kun vinderne.\n' +
+    '• Går tallene ikke op, sidder den, der har siddet mindst over, over næste gang.\n' +
+    '• Dine samlede point er de point du vinder i hver kamp plus eventuel bane-bonus. Finalerunden samler de fire bedste for at afgøre vinderen.\n' +
+    '• Rating (Elo): når en turnering slutter, ændres din rating efter din endelige placering — vinderen får 3 point pr. deltager (fx +48 i et felt på 16 spillere), sidstepladsen taber det samme, og alle derimellem fordeles jævnt (nulsum).',
   'format.king-of-the-hill.desc': 'Bane-stige. Vindere op, tabere ned.',
 
   // Scoring
@@ -443,13 +444,14 @@ const EN: Dict = {
   'format.super-mexicano.desc': 'Mexicano with court bonus points.',
   'format.mexericano.desc': 'Competitive matchmaking with rotating partners and opponents.',
   'format.mexericano.details':
-    'How Mexericano builds each round:\n' +
-    '• Round 1 is fully random — everyone starts on equal footing.\n' +
-    '• From round 2, players are ranked by their current points, then lightly shuffled within about 6 places so you meet players of a similar level.\n' +
-    '• The ranked list is split into courts of four (court 1 = the top four, and so on).\n' +
-    '• On each court the two teams are chosen to best satisfy these goals: don\'t repeat last round\'s partner (avoided very strongly), avoid partners you\'ve already had (the more often, the stronger), avoid facing the same opponents again, never replay the exact same group of four, and keep the two teams as evenly matched as possible.\n' +
-    '• Whoever has sat out least is picked to sit out when the numbers don\'t divide evenly.\n' +
-    '• Points = the games you win each match. The final round locks the top four together to decide the winner.',
+    'How Mexericano works:\n' +
+    '• Round 1 is random — everyone starts equal.\n' +
+    '• From round 2, players are ranked by points and split into courts of four (court 1 = the top four). A small ±6 shuffle keeps you against players near your level.\n' +
+    '• On each court, teams are picked to avoid repeat partners and opponents, never replay the same four, and keep both teams even.\n' +
+    '• Court bonus: higher courts award more points (e.g. court 1 = 3, court 2 = 2, court 3 = 1), added on top of your match points. Bonuses only start after the field has settled (the first courts−1 rounds give none), and can be set to reward everyone on the court or the winners only.\n' +
+    '• When numbers don\'t divide evenly, whoever has sat out least sits out next.\n' +
+    '• Your total is the points you win in each match plus any court bonus. The final round groups the top four to decide the winner.\n' +
+    '• Rating (Elo): when a tournament ends, your rating changes by final placement — the winner gains 3 points per participant (e.g. +48 in a 16-player field), last place loses the same, and everyone in between is spread evenly (zero-sum).',
   'format.king-of-the-hill.desc': 'Court ladder. Winners move up, losers down.',
 
   // Scoring
