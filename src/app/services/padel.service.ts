@@ -736,17 +736,20 @@ export class PadelService {
 
     const updates: Record<string, unknown> = {};
     for (const id of involved) {
-      const won = matches.some(
-        (m) =>
-          (m.a1 === id || m.a2 === id) && (m.score1 ?? 0) > (m.score2 ?? 0),
-      );
-      const lost = matches.some(
-        (m) =>
-          (m.a1 === id || m.a2 === id) && (m.score1 ?? 0) < (m.score2 ?? 0),
-      );
-      const played = matches.filter(
+      // Count from both sides: a player on side B wins when score2 > score1.
+      const playerMatches = matches.filter(
         (m) => m.a1 === id || m.a2 === id || m.b1 === id || m.b2 === id,
-      ).length;
+      );
+      let won = 0;
+      let lost = 0;
+      for (const m of playerMatches) {
+        const onA = m.a1 === id || m.a2 === id;
+        const myScore = onA ? (m.score1 ?? 0) : (m.score2 ?? 0);
+        const oppScore = onA ? (m.score2 ?? 0) : (m.score1 ?? 0);
+        if (myScore > oppScore) won++;
+        else if (myScore < oppScore) lost++;
+      }
+      const played = playerMatches.length;
       const pf = matches
         .filter((m) => m.a1 === id || m.a2 === id)
         .reduce((s, m) => s + (m.score1 ?? 0), 0)
@@ -763,8 +766,8 @@ export class PadelService {
       const baseSnap = await get(ref(this.db, `players/${id}`));
       const base = (baseSnap.val() as Player | null) ?? ({} as Player);
       updates[`players/${id}/matchesPlayed`] = (base.matchesPlayed ?? 0) + played;
-      updates[`players/${id}/wins`] = (base.wins ?? 0) + (won ? 1 : 0);
-      updates[`players/${id}/losses`] = (base.losses ?? 0) + (lost ? 1 : 0);
+      updates[`players/${id}/wins`] = (base.wins ?? 0) + won;
+      updates[`players/${id}/losses`] = (base.losses ?? 0) + lost;
       updates[`players/${id}/pointsFor`] = (base.pointsFor ?? 0) + pf;
       updates[`players/${id}/pointsAgainst`] = (base.pointsAgainst ?? 0) + pa;
     }
