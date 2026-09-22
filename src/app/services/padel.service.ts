@@ -683,9 +683,10 @@ export class PadelService {
 
   /**
    * Apply final-placement rating changes once, when a tournament finishes.
-   * 1st place gains PLACEMENT_RATING_PER_PLAYER × field size, last place loses
-   * the same, spread evenly in between (zero-sum). Team formats give both
-   * players their team's placement delta. Idempotent via `ratingsAwarded`.
+   * Deltas are spread symmetrically around zero with a constant even step of
+   * 2 × PLACEMENT_RATING_PER_PLAYER per rank, so every gap is equal and the
+   * total is zero-sum. Team formats give both players their team's placement
+   * delta. Idempotent via `ratingsAwarded`.
    */
   private async applyPlacementRatings(tournament: Tournament): Promise<void> {
     if (tournament.ratingsAwarded) return;
@@ -700,14 +701,13 @@ export class PadelService {
       return;
     }
 
-    const topDelta = PLACEMENT_RATING_PER_PLAYER * n;
-    const step = (2 * topDelta) / (n - 1);
+    const step = 2 * PLACEMENT_RATING_PER_PLAYER;
     const team = isTeamFormat(tournament.format);
 
     const updates: Record<string, unknown> = { [flagRef]: true };
     const now = Date.now();
     for (let i = 0; i < n; i++) {
-      const delta = Math.round(topDelta - i * step);
+      const delta = Math.round(((n - 1) / 2 - i) * step);
       const playerIds = team
         ? this.teamPlayerIds(tournament, standings[i].participantId)
         : [standings[i].participantId];

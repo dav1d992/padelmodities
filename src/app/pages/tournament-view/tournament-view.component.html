@@ -301,6 +301,7 @@
                 <th>{{ i18n.t('th.losses') }}</th>
                 @if (!isKoth()) { <th>{{ i18n.t('th.draws') }}</th> }
                 <th>{{ i18n.t('th.total') }}</th>
+                @if (isFinished()) { <th>{{ i18n.t('th.elo') }}</th> }
               </tr>
             </thead>
             <tbody>
@@ -315,6 +316,11 @@
                   <td>{{ row.losses }}</td>
                   @if (!isKoth()) { <td>{{ row.draws }}</td> }
                   <td class="total">{{ row.total }}</td>
+                  @if (isFinished()) {
+                    <td class="elo-delta" [class.neg]="placementDelta(i) < 0">
+                      {{ placementDelta(i) > 0 ? '+' : '' }}{{ placementDelta(i) }}
+                    </td>
+                  }
                 </tr>
               }
             </tbody>

@@ -303,3 +303,12 @@
   .standings { font-size: 0.78rem; }
   .standings th, .standings td { padding: 0.4rem 0.25rem; }
 }
+
+.elo-delta {
+  font-weight: 700;
+  color: var(--success, #22c55e);
+
+  &.neg {
+    color: var(--danger, #ef4444);
+  }
+}

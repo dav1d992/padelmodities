@@ -19,6 +19,7 @@ import { ConfirmService } from '../../services/confirm.service';
 import {
   isDynamicFormat,
   isTeamFormat,
+  PLACEMENT_RATING_PER_PLAYER,
   type KothStats,
   type Player,
   type StandingRow,
@@ -295,6 +296,14 @@ export class TournamentViewComponent implements OnInit {
     if (!tournament) return [];
     return computeStandings(tournament, (id) => this.participantName(id));
   });
+
+  /** Final-placement ELO delta for a standings row (matches applyPlacementRatings). */
+  placementDelta(index: number): number {
+    const n = this.standings().length;
+    if (n < 2) return 0;
+    const step = 2 * PLACEMENT_RATING_PER_PLAYER;
+    return Math.round(((n - 1) / 2 - index) * step);
+  }
 
   readonly kothStats = computed<Record<string, KothStats>>(() => {
     const tournament = this.tournament();
