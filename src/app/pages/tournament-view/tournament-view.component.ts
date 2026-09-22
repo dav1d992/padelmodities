@@ -282,6 +282,12 @@ export class TournamentViewComponent implements OnInit {
     return lo === 0 ? hi >= 5 : hi >= lo * 5;
   }
 
+  /** The losing side of a murder ('a' | 'b'), or null when not a murder. */
+  murderLoser(match: TournamentMatch): 'a' | 'b' | null {
+    if (!this.isMurder(match)) return null;
+    return (match.score1 ?? 0) < (match.score2 ?? 0) ? 'a' : 'b';
+  }
+
   // ── Standings ─────────────────────────────────────────────────────────────
 
   readonly standings = computed<StandingRow[]>(() => {

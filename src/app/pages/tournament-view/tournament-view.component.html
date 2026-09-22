@@ -174,17 +174,21 @@
 
                   <!-- Scores in the centre -->
                   <div class="score-center">
-                    <input type="number" class="score-input"
-                      [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
-                      [value]="getScore(match.id).score1 ?? ''"
-                      (input)="setScore(match.id, 'score1', $any($event.target).value)"
-                      (change)="saveScore(match.id)">
+                    <span class="score-slot" [class.blood-drip]="murderLoser(match) === 'a'">
+                      <input type="number" class="score-input"
+                        [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
+                        [value]="getScore(match.id).score1 ?? ''"
+                        (input)="setScore(match.id, 'score1', $any($event.target).value)"
+                        (change)="saveScore(match.id)">
+                    </span>
                     <span class="vs">VS</span>
-                    <input type="number" class="score-input"
-                      [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
-                      [value]="getScore(match.id).score2 ?? ''"
-                      (input)="setScore(match.id, 'score2', $any($event.target).value)"
-                      (change)="saveScore(match.id)">
+                    <span class="score-slot" [class.blood-drip]="murderLoser(match) === 'b'">
+                      <input type="number" class="score-input"
+                        [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
+                        [value]="getScore(match.id).score2 ?? ''"
+                        (input)="setScore(match.id, 'score2', $any($event.target).value)"
+                        (change)="saveScore(match.id)">
+                    </span>
                   </div>
 
                   <!-- Side B players -->

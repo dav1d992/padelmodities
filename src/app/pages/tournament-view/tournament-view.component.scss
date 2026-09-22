@@ -98,6 +98,54 @@
   box-shadow: 0 0 8px rgba(185, 28, 28, 0.45);
 }
 
+/* Blood dripping from the losing side's score */
+.score-slot {
+  position: relative;
+  display: inline-block;
+}
+
+.score-slot.blood-drip::before,
+.score-slot.blood-drip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  width: 5px;
+  height: 8px;
+  border-radius: 0 0 50% 50%;
+  background: linear-gradient(#c81e1e, #7f1010);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.score-slot.blood-drip::before {
+  left: 28%;
+  animation: blood-drop 2.2s ease-in infinite;
+}
+
+.score-slot.blood-drip::after {
+  left: 64%;
+  animation: blood-drop 2.8s ease-in 0.9s infinite;
+}
+
+@keyframes blood-drop {
+  0% {
+    transform: translateY(-4px) scaleY(0.4);
+    opacity: 0;
+  }
+  15% {
+    transform: translateY(0) scaleY(1);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(14px) scaleY(1.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(26px) scaleY(1.8);
+    opacity: 0;
+  }
+}
+
 .mini-avatar-ph {
   display: flex;
   align-items: center;

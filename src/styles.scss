@@ -98,7 +98,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: none; backgroun
 }
 
 .btn-icon {
-  padding: 0.45em 0.6em;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
   font-size: 1.1rem;
   background: var(--card);
