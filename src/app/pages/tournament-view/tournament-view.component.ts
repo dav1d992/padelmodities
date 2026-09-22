@@ -2,10 +2,12 @@ import {
   Component,
   computed,
   DestroyRef,
+  ElementRef,
   inject,
   input,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -83,6 +85,40 @@ export class TournamentViewComponent implements OnInit {
   readonly regenerating = signal(false);
   readonly runningFinal = signal(false);
   readonly deleting = signal(false);
+
+  /** Whether the tournament description is expanded past its collapsed clamp. */
+  readonly descExpanded = signal(false);
+
+  private readonly descText =
+    viewChild<ElementRef<HTMLParagraphElement>>('descText');
+
+  /** Toggle the description with a fold animation in both directions. */
+  toggleDesc(): void {
+    const el = this.descText()?.nativeElement;
+    if (!el) {
+      this.descExpanded.update((v) => !v);
+      return;
+    }
+
+    if (this.descExpanded()) {
+      // Collapse: pin the full height, then shrink back to the clamp height.
+      el.style.maxHeight = `${el.scrollHeight}px`;
+      void el.offsetHeight; // force reflow so the next change animates
+      this.descExpanded.set(false);
+      el.style.maxHeight = ''; // falls back to the CSS clamp height
+    } else {
+      // Expand: grow from the clamp height to the full content height.
+      this.descExpanded.set(true);
+      el.style.maxHeight = `${el.scrollHeight}px`;
+      el.addEventListener(
+        'transitionend',
+        () => {
+          if (this.descExpanded()) el.style.maxHeight = 'none';
+        },
+        { once: true },
+      );
+    }
+  }
 
   /** Round the user is currently viewing (null → follow current round). */
   readonly viewRound = signal<number | null>(null);
@@ -234,6 +270,16 @@ export class TournamentViewComponent implements OnInit {
 
   courtName(index: number): string {
     return this.tournament()?.courtNames?.[String(index)] ?? this.i18n.t('court.default', { n: index + 1 });
+  }
+
+  /** A blowout where the winner scored at least 5× the loser's points. */
+  isMurder(match: TournamentMatch): boolean {
+    const s1 = match.score1;
+    const s2 = match.score2;
+    if (s1 == null || s2 == null || s1 === s2) return false;
+    const hi = Math.max(s1, s2);
+    const lo = Math.min(s1, s2);
+    return lo === 0 ? hi >= 5 : hi >= lo * 5;
   }
 
   // ── Standings ─────────────────────────────────────────────────────────────

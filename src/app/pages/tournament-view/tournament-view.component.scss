@@ -17,6 +17,25 @@
 .tour-description {
   white-space: pre-wrap;
   color: var(--text-muted);
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+    max-height: 4.5em;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .desc-toggle {
+    margin-top: 0.4rem;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--gold);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
 }
 
 .tour-header h1 {
@@ -53,6 +72,30 @@
   object-fit: cover;
   border: 1.5px solid var(--border);
   flex-shrink: 0;
+}
+
+/* Blowout tag: winner scored 5×+ the loser */
+.court-label-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 1.4em;
+}
+
+.murder-tag {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 0 8px rgba(185, 28, 28, 0.45);
 }
 
 .mini-avatar-ph {

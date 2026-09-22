@@ -55,7 +55,15 @@
 
     @if (t.description) {
       <div class="glass panel tour-description">
-        <p>{{ t.description }}</p>
+        <p #descText>{{ t.description }}</p>
+        @if (t.description.length > 140) {
+          <button
+            type="button"
+            class="desc-toggle"
+            (click)="toggleDesc()">
+            {{ descExpanded() ? i18n.t('view.showLess') : i18n.t('view.showMore') }}
+          </button>
+        }
       </div>
     }
 
@@ -132,7 +140,12 @@
           <div class="matches">
             @for (match of currentMatches(); track match.id) {
               <div class="match-card glass">
-                <div class="court-label muted small">{{ courtName(match.courtIndex) }}</div>
+                <div class="court-label-row">
+                  <span class="court-label muted small">{{ courtName(match.courtIndex) }}</span>
+                  @if (isMurder(match)) {
+                    <span class="murder-tag">💀 {{ i18n.t('view.murder') }}</span>
+                  }
+                </div>
                 <div class="match-teams">
                   <!-- Side A players -->
                   <div class="team">
@@ -265,7 +278,7 @@
     @if (isFinished() && winnerLabel()) {
       <div class="glass panel finished-banner">
         <h2>{{ isKoth() ? i18n.t('view.kothWin') : i18n.t('view.finished') }}</h2>
-        <p class="winner-name">{{ winnerLabel() }}</p>
+        <p class="winner-name">{{ i18n.t('view.winnerWon', { name: winnerLabel() }) }}</p>
       </div>
     }
 
