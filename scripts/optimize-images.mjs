@@ -16,7 +16,9 @@ const VARIANTS = [
   { suffix: '-thumb', width: 200 },
 ];
 
-const files = (await readdir(SOURCE_DIR)).filter((f) => f.endsWith('-padel.png'));
+const files = (await readdir(SOURCE_DIR)).filter(
+  (f) => f.endsWith('-padel.png') && !f.endsWith('-xmas-padel.png') && !f.endsWith('-padel-xmas.png'),
+);
 await mkdir(OUTPUT_DIR, { recursive: true });
 
 let converted = 0;
@@ -24,25 +26,35 @@ let skipped = 0;
 let savedBytes = 0;
 
 for (const file of files) {
-  const from = path.join(SOURCE_DIR, file);
-  const source = await stat(from);
+  const sources = [{ path: path.join(SOURCE_DIR, file), assetSuffix: '' }];
+  const xmasFile = file.replace(/-padel\.png$/, '-padel-xmas.png');
+  if (existsSync(path.join(SOURCE_DIR, xmasFile))) {
+    sources.push({ path: path.join(SOURCE_DIR, xmasFile), assetSuffix: '-xmas' });
+  }
 
-  for (const { suffix, width } of VARIANTS) {
-    const to = path.join(OUTPUT_DIR, file.replace(/\.png$/, `${suffix}.webp`));
+  for (const { path: from, assetSuffix } of sources) {
+    const source = await stat(from);
 
-    // Skip work when the existing output is already newer than its source.
-    if (existsSync(to) && (await stat(to)).mtimeMs >= source.mtimeMs) {
-      skipped++;
-      continue;
+    for (const { suffix, width } of VARIANTS) {
+      const to = path.join(
+        OUTPUT_DIR,
+        file.replace(/\.png$/, `${assetSuffix}${suffix}.webp`),
+      );
+
+      // Skip work when the existing output is already newer than its source.
+      if (existsSync(to) && (await stat(to)).mtimeMs >= source.mtimeMs) {
+        skipped++;
+        continue;
+      }
+
+      await sharp(from)
+        .resize({ width, withoutEnlargement: true })
+        .webp({ quality: QUALITY })
+        .toFile(to);
+
+      savedBytes += source.size - (await stat(to)).size;
+      converted++;
     }
-
-    await sharp(from)
-      .resize({ width, withoutEnlargement: true })
-      .webp({ quality: QUALITY })
-      .toFile(to);
-
-    savedBytes += source.size - (await stat(to)).size;
-    converted++;
   }
 }
 

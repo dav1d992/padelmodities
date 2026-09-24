@@ -15,6 +15,7 @@ import { AudioService } from '../../services/audio.service';
 import { AdminService } from '../../services/admin.service';
 import { I18nService } from '../../services/i18n.service';
 import { ConfirmService } from '../../services/confirm.service';
+import { ThemeService } from '../../services/theme.service';
 import {
   DEFAULT_SKILLSET,
   SKILL_LABELS,
@@ -47,6 +48,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly audioService = inject(AudioService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
+  readonly theme = inject(ThemeService);
 
   readonly player = signal<Player | null>(null);
   readonly loading = signal(true);
@@ -137,7 +139,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
       this.heroFailed.set(true);
       begin();
     };
-    image.src = `/assets/optimized/${shortname}-padel.webp`;
+    image.src = this.theme.playerImage(shortname) ?? this.theme.normalPlayerImage(shortname);
 
     // Safety net: a stalled download must never hide the portrait indefinitely.
     this.timers.push(setTimeout(begin, 8000));
@@ -161,7 +163,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly imagePath = computed(() => {
     if (this.heroFailed()) return '/assets/anonimous-padel.png';
     const sn = this.player()?.shortname;
-    return sn ? `/assets/optimized/${sn}-padel.webp` : null;
+    return this.theme.playerImage(sn);
   });
 
   readonly winRate = computed(() => {

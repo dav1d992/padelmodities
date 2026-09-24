@@ -6,6 +6,7 @@ import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
 import { RAIL_PHOTOS } from '../../generated/rail-photos';
 import { PadelService } from '../../services/padel.service';
 import { I18nService } from '../../services/i18n.service';
+import { ThemeService } from '../../services/theme.service';
 import {
   estimateMatchScore,
   playerMatchStrength,
@@ -34,6 +35,7 @@ export class SimulationComponent implements OnInit {
   private service = inject(PadelService);
   private readonly destroyRef = inject(DestroyRef);
   readonly i18n = inject(I18nService);
+  readonly theme = inject(ThemeService);
 
   readonly players = signal<Player[]>([]);
   readonly tournaments = signal<Tournament[]>([]);
@@ -48,20 +50,16 @@ export class SimulationComponent implements OnInit {
     [...this.players()].sort((a, b) => a.name.localeCompare(b.name, 'da')),
   );
 
-  /** Portraits used for the decorative side rails (desktop only). */
-  private readonly sideImages = computed(() =>
-    RAIL_PHOTOS.map((name) => `/assets/optimized/${name}-padel.webp`),
-  );
   /** Shuffled once so the two rails never share an image. */
-  private readonly shuffledImages = computed(() => this.shuffle(this.sideImages()));
+  private readonly shuffledNames = computed(() => this.shuffle([...RAIL_PHOTOS]));
 
   readonly leftImages = computed(() => {
-    const all = this.shuffledImages();
-    return all.slice(0, Math.ceil(all.length / 2));
+    const all = this.shuffledNames();
+    return all.slice(0, Math.ceil(all.length / 2)).map((name) => this.theme.railImage(name));
   });
   readonly rightImages = computed(() => {
-    const all = this.shuffledImages();
-    return all.slice(Math.ceil(all.length / 2));
+    const all = this.shuffledNames();
+    return all.slice(Math.ceil(all.length / 2)).map((name) => this.theme.railImage(name));
   });
 
   private shuffle(list: string[]): string[] {

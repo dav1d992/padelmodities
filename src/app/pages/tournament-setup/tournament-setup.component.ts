@@ -15,6 +15,7 @@ import {
 } from '../../services/padel.service';
 import { AdminService } from '../../services/admin.service';
 import { I18nService } from '../../services/i18n.service';
+import { ThemeService } from '../../services/theme.service';
 import {
   DEFAULT_BONUS,
   DEFAULT_SCORING,
@@ -44,6 +45,7 @@ interface FormatOption {
 export class TournamentSetupComponent implements OnInit {
   private service = inject(PadelService);
   private admin = inject(AdminService);
+  readonly theme = inject(ThemeService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   readonly i18n = inject(I18nService);

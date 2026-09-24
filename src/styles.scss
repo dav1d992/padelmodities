@@ -22,6 +22,23 @@
   --transition:  0.18s ease;
 }
 
+:root.christmas-theme {
+  --bg:          #160d12;
+  --surface:     #24131a;
+  --card:        #321720;
+  --card-hover:  #49202a;
+  --border:      rgba(142, 196, 145, 0.28);
+  --primary:     #69c27c;
+  --primary-dim: #4ca765;
+  --on-primary:  #102016;
+  --gold:        #e1b65a;
+  --accent:      #9bd9a4;
+  --danger:      #ed7770;
+  --danger-dim:  #c45252;
+  --text:        #fff4e8;
+  --text-muted:  #abc4ae;
+}
+
 /* ─── Reset & base ───────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -42,6 +59,10 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
+}
+
+:root.christmas-theme body {
+  background-image: linear-gradient(180deg, var(--bg) 0%, #241018 55%, #0e080b 100%);
 }
 
 /* ─── Typography ─────────────────────────────────────────────────────────── */

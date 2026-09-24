@@ -14,6 +14,10 @@ export class ImgFallbackDirective {
   onError(): void {
     const image = this.element.nativeElement;
     if (image.src.endsWith('anonimous-padel.png')) return;
+    if (image.src.includes('-xmas')) {
+      image.src = image.src.replace('-xmas', '');
+      return;
+    }
     image.src = ImgFallbackDirective.FALLBACK;
   }
 }

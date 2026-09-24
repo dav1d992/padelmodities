@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AudioService } from './services/audio.service';
 import { AdminService } from './services/admin.service';
 import { I18nService } from './services/i18n.service';
+import { ThemeService } from './services/theme.service';
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -16,6 +17,7 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly audio = inject(AudioService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
+  readonly theme = inject(ThemeService);
 
   readonly adminInputOpen = signal(false);
   readonly adminCode = signal('');

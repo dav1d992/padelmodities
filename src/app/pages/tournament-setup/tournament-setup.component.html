@@ -212,7 +212,7 @@
               <button class="player-chip" [class.selected]="isPicked(p.id)"
                 (click)="toggleTeamPick(p.id)">
                 @if (p.shortname) {
-                  <img class="chip-avatar" appImgFallback [src]="'/assets/optimized/' + p.shortname + '-padel-thumb.webp'" [alt]="p.name" loading="lazy">
+                  <img class="chip-avatar" appImgFallback [src]="theme.playerImage(p.shortname, true)" [alt]="p.name" loading="lazy">
                 } @else {
                   <div class="chip-avatar chip-avatar-placeholder">{{ p.name[0].toUpperCase() }}</div>
                 }
@@ -240,7 +240,7 @@
               <button class="player-chip" [class.selected]="isSelected(p.id)"
                 (click)="togglePlayer(p.id)">
                 @if (p.shortname) {
-                  <img class="chip-avatar" appImgFallback [src]="'/assets/optimized/' + p.shortname + '-padel-thumb.webp'" [alt]="p.name" loading="lazy">
+                  <img class="chip-avatar" appImgFallback [src]="theme.playerImage(p.shortname, true)" [alt]="p.name" loading="lazy">
                 } @else {
                   <div class="chip-avatar chip-avatar-placeholder">{{ p.name[0].toUpperCase() }}</div>
                 }

@@ -17,6 +17,12 @@
     </button>
   }
   @if (admin.isAdmin()) {
+    <button
+      class="audio-btn theme-btn"
+      [class.off]="!theme.christmas()"
+      (click)="theme.toggleChristmas()"
+      [title]="i18n.t(theme.christmas() ? 'app.xmasOff' : 'app.xmasOn')"
+    >🎄</button>
     <button class="admin-btn" (click)="logoutAdmin()" [title]="i18n.t('app.logout')">🔒</button>
   } @else if (adminInputOpen()) {
     <input

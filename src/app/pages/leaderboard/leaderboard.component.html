@@ -85,7 +85,7 @@
 
             <div class="avatar-cell">
               @if (player.shortname) {
-                <img class="avatar" appImgFallback [src]="'/assets/optimized/' + player.shortname + '-padel-thumb.webp'" [alt]="player.name" loading="lazy">
+                <img class="avatar" appImgFallback [src]="theme.playerImage(player.shortname, true)" [alt]="player.name" loading="lazy">
                 <div class="avatar avatar-placeholder" [style.display]="player.shortname ? 'none' : 'flex'">{{ player.name[0].toUpperCase() }}</div>
               } @else {
                 <div class="avatar avatar-placeholder">{{ player.name[0].toUpperCase() }}</div>
@@ -123,7 +123,7 @@
 
             <div class="avatar-cell">
               @if (player.shortname) {
-                <img class="avatar" appImgFallback [src]="'/assets/optimized/' + player.shortname + '-padel-thumb.webp'" [alt]="player.name" loading="lazy">
+                <img class="avatar" appImgFallback [src]="theme.playerImage(player.shortname, true)" [alt]="player.name" loading="lazy">
                 <div class="avatar avatar-placeholder" [style.display]="player.shortname ? 'none' : 'flex'">{{ player.name[0].toUpperCase() }}</div>
               } @else {
                 <div class="avatar avatar-placeholder">{{ player.name[0].toUpperCase() }}</div>

@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { PadelService } from '../../services/padel.service';
 import { AdminService } from '../../services/admin.service';
 import { I18nService } from '../../services/i18n.service';
+import { ThemeService } from '../../services/theme.service';
 import { ConfirmService } from '../../services/confirm.service';
 import {
   isDynamicFormat,
@@ -65,6 +66,7 @@ export class TournamentViewComponent implements OnInit {
   private confirm = inject(ConfirmService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
+  readonly theme = inject(ThemeService);
 
   /** Live tournament from Firebase. */
   private readonly liveTournament = signal<Tournament | null>(null);

@@ -9,6 +9,7 @@ import { FORMAT_LABELS, type Player, type Tournament } from '../../models/padel.
 import { CommonModule } from '@angular/common';
 import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
 import { RAIL_PHOTOS } from '../../generated/rail-photos';
+import { ThemeService } from '../../services/theme.service';
 
 /** Lives outside the component so the offset survives the component being destroyed on navigation. */
 let savedScrollY = 0;
@@ -25,6 +26,7 @@ export class RanglistComponent implements OnInit, OnDestroy {
   readonly admin = inject(AdminService);
   private router = inject(Router);
   readonly i18n = inject(I18nService);
+  readonly theme = inject(ThemeService);
 
   readonly FORMAT_LABELS = FORMAT_LABELS;
 
@@ -47,21 +49,16 @@ export class RanglistComponent implements OnInit, OnDestroy {
     this.players().filter((p) => p.matchesPlayed === 0),
   );
 
-  /** Portraits used for the decorative side rails (desktop only). */
-  private readonly sideImages = computed(() =>
-    RAIL_PHOTOS.map((name) => `/assets/optimized/${name}-padel-thumb.webp`),
-  );
-
   /** Shuffled once so the two rails never share an image. */
-  private readonly shuffledImages = computed(() => this.shuffle(this.sideImages()));
+  private readonly shuffledNames = computed(() => this.shuffle([...RAIL_PHOTOS]));
 
   readonly leftImages = computed(() => {
-    const all = this.shuffledImages();
-    return all.slice(0, Math.ceil(all.length / 2));
+    const all = this.shuffledNames();
+    return all.slice(0, Math.ceil(all.length / 2)).map((name) => this.theme.railImage(name, true));
   });
   readonly rightImages = computed(() => {
-    const all = this.shuffledImages();
-    return all.slice(Math.ceil(all.length / 2));
+    const all = this.shuffledNames();
+    return all.slice(Math.ceil(all.length / 2)).map((name) => this.theme.railImage(name, true));
   });
 
   private shuffle(list: string[]): string[] {
