@@ -1,19 +1,29 @@
 import { DOCUMENT } from "@angular/common";
 import { effect, inject, Injectable, signal } from "@angular/core";
 
-const STORAGE_KEY = "padel-christmas-theme";
-
 @Injectable({ providedIn: "root" })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
-  readonly christmas = signal(this.readStored());
+  private transitionTimer?: ReturnType<typeof setTimeout>;
+  private initialized = false;
+  readonly christmas = signal(false);
 
   constructor() {
     effect(() => {
+      const changed = this.initialized;
       this.document.documentElement.classList.toggle(
         "christmas-theme",
         this.christmas(),
       );
+      this.initialized = true;
+
+      if (changed) {
+        this.document.documentElement.classList.add("theme-transitioning");
+        if (this.transitionTimer) clearTimeout(this.transitionTimer);
+        this.transitionTimer = setTimeout(() => {
+          this.document.documentElement.classList.remove("theme-transitioning");
+        }, 700);
+      }
     });
   }
 
@@ -23,11 +33,6 @@ export class ThemeService {
 
   setChristmas(enabled: boolean): void {
     this.christmas.set(enabled);
-    try {
-      localStorage.setItem(STORAGE_KEY, enabled ? "1" : "0");
-    } catch {
-      /* ignore storage errors */
-    }
   }
 
   playerImage(shortname: string | undefined, thumbnail = false): string | null {
@@ -47,11 +52,4 @@ export class ThemeService {
     return `/assets/optimized/${shortname}-padel${suffix}${size}.webp`;
   }
 
-  private readStored(): boolean {
-    try {
-      return localStorage.getItem(STORAGE_KEY) === "1";
-    } catch {
-      return false;
-    }
-  }
 }

@@ -90,11 +90,17 @@ body::before {
   pointer-events: none;
   background: linear-gradient(180deg, #160d12 0%, #241018 55%, #0e080b 100%);
   opacity: 0;
-  transition: opacity 0.45s ease;
+  transition: opacity 700ms ease;
 }
 
 :root.christmas-theme body::before {
   opacity: 1;
+}
+
+:root.theme-transitioning *,
+:root.theme-transitioning *::before,
+:root.theme-transitioning *::after {
+  transition-duration: 700ms !important;
 }
 
 .app-shell {

@@ -27,11 +27,14 @@ export class AudioService {
   readonly sfxMuted = signal(readMuted(KEY_SFX));
 
   private backgroundMusic: HTMLAudioElement | null = null;
+  private christmasMusic = false;
 
   constructor() {
     effect(() => {
-      const christmas = this.theme.christmas();
-      if (this.backgroundMusic) this.switchBackgroundTrack(christmas);
+      if (this.theme.christmas() && !this.christmasMusic) {
+        this.christmasMusic = true;
+        if (this.backgroundMusic) this.switchBackgroundTrack();
+      }
     });
   }
 
@@ -45,18 +48,18 @@ export class AudioService {
     if (!this.musicMuted()) this.backgroundMusic.play().catch(() => {});
   }
 
-  private switchBackgroundTrack(christmas: boolean): void {
+  private switchBackgroundTrack(): void {
     const audio = this.backgroundMusic;
     if (!audio) return;
 
     const wasPlaying = !audio.paused;
-    audio.src = this.backgroundTrackUrl(christmas);
+    audio.src = this.backgroundTrackUrl();
     audio.load();
     if (wasPlaying && !this.musicMuted()) audio.play().catch(() => {});
   }
 
-  private backgroundTrackUrl(christmas = this.theme.christmas()): string {
-    return christmas
+  private backgroundTrackUrl(): string {
+    return this.christmasMusic
       ? "/assets/sounds-effects/background-xmas.mp3"
       : "/assets/sounds-effects/background";
   }
