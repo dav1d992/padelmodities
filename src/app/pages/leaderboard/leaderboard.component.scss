@@ -261,6 +261,11 @@
   filter: grayscale(0.08) saturate(1.05);
 }
 
+:host-context(.halloween-theme) .rail-track img {
+  opacity: 0.28;
+  filter: grayscale(0.08) sepia(0.18) saturate(1.1);
+}
+
 .rail-down {
   animation: railDown 45s linear infinite;
 }

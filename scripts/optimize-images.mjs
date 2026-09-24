@@ -30,12 +30,14 @@ let savedBytes = 0;
 
 for (const file of files) {
   const sources = [{ path: path.join(SOURCE_DIR, file), assetSuffix: "" }];
-  const xmasFile = file.replace(/-padel\.png$/, "-padel-xmas.png");
-  if (existsSync(path.join(SOURCE_DIR, xmasFile))) {
-    sources.push({
-      path: path.join(SOURCE_DIR, xmasFile),
-      assetSuffix: "-xmas",
-    });
+  for (const variant of ["xmas", "halloween"]) {
+    const variantFile = file.replace(/-padel\.png$/, `-padel-${variant}.png`);
+    if (existsSync(path.join(SOURCE_DIR, variantFile))) {
+      sources.push({
+        path: path.join(SOURCE_DIR, variantFile),
+        assetSuffix: `-${variant}`,
+      });
+    }
   }
 
   for (const { path: from, assetSuffix } of sources) {

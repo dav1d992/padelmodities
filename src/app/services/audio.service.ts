@@ -27,12 +27,13 @@ export class AudioService {
   readonly sfxMuted = signal(readMuted(KEY_SFX));
 
   private backgroundMusic: HTMLAudioElement | null = null;
-  private christmasMusic = false;
+  private musicTheme: "normal" | "christmas" | "halloween" = "normal";
 
   constructor() {
     effect(() => {
-      if (this.theme.christmas() && !this.christmasMusic) {
-        this.christmasMusic = true;
+      const theme = this.theme.mode();
+      if (theme !== "normal" && this.musicTheme !== theme) {
+        this.musicTheme = theme;
         if (this.backgroundMusic) this.switchBackgroundTrack();
       }
     });
@@ -59,9 +60,15 @@ export class AudioService {
   }
 
   private backgroundTrackUrl(): string {
-    return this.christmasMusic
-      ? "/assets/sounds-effects/background-xmas.mp3"
-      : "/assets/sounds-effects/background";
+    if (this.musicTheme === "christmas") return "/assets/sounds-effects/background-xmas.mp3";
+    if (this.musicTheme === "halloween") return "/assets/sounds-effects/background-halloween.mp3";
+    return "/assets/sounds-effects/background";
+  }
+
+  activateHalloweenMusic(): void {
+    if (this.musicTheme === "halloween") return;
+    this.musicTheme = "halloween";
+    if (this.backgroundMusic) this.switchBackgroundTrack();
   }
 
   isPlaying(): boolean {

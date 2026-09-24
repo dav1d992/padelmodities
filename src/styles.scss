@@ -39,6 +39,23 @@
   --text-muted: #abc4ae;
 }
 
+:root.halloween-theme {
+  --bg: #0d0e10;
+  --surface: #151619;
+  --card: #202125;
+  --card-hover: #2c2d32;
+  --border: rgba(230, 126, 34, 0.3);
+  --primary: #e67e22;
+  --primary-dim: #bd6417;
+  --on-primary: #180f08;
+  --gold: #d6a84f;
+  --accent: #f0a04b;
+  --danger: #d95f5f;
+  --danger-dim: #b84040;
+  --text: #f3f0eb;
+  --text-muted: #aaa6a0;
+}
+
 /* ─── Reset & base ───────────────────────────────────────────────────────── */
 *,
 *::before,
@@ -95,6 +112,11 @@ body::before {
 
 :root.christmas-theme body::before {
   opacity: 1;
+}
+
+:root.halloween-theme body::before {
+  opacity: 1;
+  background: linear-gradient(180deg, #0d0e10 0%, #171316 55%, #08090a 100%);
 }
 
 :root.theme-transitioning *,

@@ -1,20 +1,23 @@
 import { DOCUMENT } from "@angular/common";
-import { effect, inject, Injectable, signal } from "@angular/core";
+import { computed, effect, inject, Injectable, signal } from "@angular/core";
+
+export type ThemeMode = "normal" | "christmas" | "halloween";
 
 @Injectable({ providedIn: "root" })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
   private transitionTimer?: ReturnType<typeof setTimeout>;
   private initialized = false;
-  readonly christmas = signal(false);
+  readonly mode = signal<ThemeMode>("normal");
+  readonly christmas = computed(() => this.mode() === "christmas");
+  readonly halloween = computed(() => this.mode() === "halloween");
 
   constructor() {
     effect(() => {
       const changed = this.initialized;
-      this.document.documentElement.classList.toggle(
-        "christmas-theme",
-        this.christmas(),
-      );
+      const mode = this.mode();
+      this.document.documentElement.classList.toggle("christmas-theme", mode === "christmas");
+      this.document.documentElement.classList.toggle("halloween-theme", mode === "halloween");
       this.initialized = true;
 
       if (changed) {
@@ -28,16 +31,24 @@ export class ThemeService {
   }
 
   toggleChristmas(): void {
-    this.setChristmas(!this.christmas());
+    this.setMode(this.christmas() ? "normal" : "christmas");
+  }
+
+  toggleHalloween(): void {
+    this.setMode(this.halloween() ? "normal" : "halloween");
   }
 
   setChristmas(enabled: boolean): void {
-    this.christmas.set(enabled);
+    this.setMode(enabled ? "christmas" : "normal");
+  }
+
+  setMode(mode: ThemeMode): void {
+    this.mode.set(mode);
   }
 
   playerImage(shortname: string | undefined, thumbnail = false): string | null {
     if (!shortname) return null;
-    const suffix = this.christmas() ? "-xmas" : "";
+    const suffix = this.mode() === "normal" ? "" : `-${this.mode() === "christmas" ? "xmas" : "halloween"}`;
     const size = thumbnail ? "-thumb" : "";
     return `/assets/optimized/${shortname}-padel${suffix}${size}.webp`;
   }
@@ -47,7 +58,7 @@ export class ThemeService {
   }
 
   railImage(shortname: string, thumbnail = false): string {
-    const suffix = this.christmas() ? "-xmas" : "";
+    const suffix = this.mode() === "normal" ? "" : `-${this.mode() === "christmas" ? "xmas" : "halloween"}`;
     const size = thumbnail ? "-thumb" : "";
     return `/assets/optimized/${shortname}-padel${suffix}${size}.webp`;
   }

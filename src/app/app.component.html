@@ -28,10 +28,18 @@
     <button
       class="audio-btn theme-btn"
       [class.off]="!theme.christmas()"
-      (click)="theme.toggleChristmas()"
+      (click)="toggleChristmasTheme()"
       [title]="i18n.t(theme.christmas() ? 'app.xmasOff' : 'app.xmasOn')"
     >
       🎄
+    </button>
+    <button
+      class="audio-btn theme-btn"
+      [class.off]="!theme.halloween()"
+      (click)="toggleHalloweenTheme()"
+      [title]="i18n.t(theme.halloween() ? 'app.halloweenOff' : 'app.halloweenOn')"
+    >
+      🎃
     </button>
     <button
       class="admin-btn"

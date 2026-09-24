@@ -51,6 +51,19 @@ export class AppComponent implements OnInit, OnDestroy {
     this.adminInputOpen.set(false);
   }
 
+  toggleChristmasTheme(): void {
+    const activating = !this.theme.christmas();
+    this.theme.toggleChristmas();
+    if (activating) this.audio.playOneShot("/assets/sounds-effects/church-bell.mp3", 0.8);
+  }
+
+  toggleHalloweenTheme(): void {
+    const activating = !this.theme.halloween();
+    if (activating) this.audio.activateHalloweenMusic();
+    this.theme.toggleHalloween();
+    if (activating) this.audio.playOneShot("/assets/sounds-effects/thunder.mp3", 0.8);
+  }
+
   // Browsers block autoplay until a user gesture — start music on the first interaction of any kind.
   private readonly unlockEvents = [
     "pointerdown",
