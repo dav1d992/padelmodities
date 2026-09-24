@@ -7,10 +7,13 @@ export type ThemeMode = "normal" | "christmas" | "halloween";
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
   private transitionTimer?: ReturnType<typeof setTimeout>;
+  private snowfallTimer?: ReturnType<typeof setTimeout>;
   private initialized = false;
   readonly mode = signal<ThemeMode>("normal");
   readonly christmas = computed(() => this.mode() === "christmas");
   readonly halloween = computed(() => this.mode() === "halloween");
+  readonly snowfallActive = signal(false);
+  readonly snowfallLeaving = signal(false);
 
   constructor() {
     effect(() => {
@@ -43,6 +46,22 @@ export class ThemeService {
   }
 
   setMode(mode: ThemeMode): void {
+    const previousMode = this.mode();
+    if (previousMode === mode) return;
+
+    if (this.snowfallTimer) clearTimeout(this.snowfallTimer);
+    if (mode === "christmas") {
+      this.snowfallActive.set(true);
+      this.snowfallLeaving.set(false);
+    } else if (previousMode === "christmas") {
+      this.snowfallActive.set(true);
+      this.snowfallLeaving.set(true);
+      this.snowfallTimer = setTimeout(() => {
+        this.snowfallActive.set(false);
+        this.snowfallLeaving.set(false);
+      }, 700);
+    }
+
     this.mode.set(mode);
   }
 

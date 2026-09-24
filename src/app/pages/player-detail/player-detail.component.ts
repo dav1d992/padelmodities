@@ -8,6 +8,7 @@
   OnInit,
   signal,
 } from "@angular/core";
+import { DOCUMENT } from "@angular/common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Router, RouterLink } from "@angular/router";
 import { PadelService } from "../../services/padel.service";
@@ -44,6 +45,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   private service = inject(PadelService);
   private router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
   private confirm = inject(ConfirmService);
   readonly audioService = inject(AudioService);
   readonly admin = inject(AdminService);
@@ -128,6 +130,9 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
       if (this.heroReady()) return;
       this.heroReady.set(true);
       const slam = setTimeout(() => {
+        const alreadyDisplaced = this.document.documentElement.classList.contains("hero-impact");
+        this.document.documentElement.classList.add("hero-impact");
+        if (alreadyDisplaced) this.pushSnowflakesFurther();
         this.audioService.playOneShot(
           "/assets/sounds-effects/gate-slam.mp3",
           0.9,
@@ -155,6 +160,32 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
     // Safety net: a stalled download must never hide the portrait indefinitely.
     this.timers.push(setTimeout(begin, 8000));
+  }
+
+
+  private pushSnowflakesFurther(): void {
+    const leftFlakes = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19, 22, 23, 28, 29, 30, 31, 37, 38, 39]);
+    const flakes = this.document.querySelectorAll<HTMLElement>(".snowflake > span");
+
+    flakes.forEach((flake, index) => {
+      const transform = getComputedStyle(flake).transform;
+      const match = transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,([^,]+),/);
+      const currentX = match ? Number(match[1]) : 0;
+      const direction = leftFlakes.has(index) ? -1 : 1;
+      const nextX = currentX + direction * 120;
+
+      flake.animate(
+        [
+          { transform: `translateX(${currentX}px)` },
+          { transform: `translateX(${nextX}px)` },
+        ],
+        {
+          duration: 700,
+          easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          fill: "forwards",
+        },
+      );
+    });
   }
 
   private startSkillBarSequence(): void {

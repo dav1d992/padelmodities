@@ -67,6 +67,14 @@
   }
 </div>
 
+@if (theme.snowfallActive()) {
+  <div class="snowfall" [class.leaving]="theme.snowfallLeaving()" aria-hidden="true">
+    @for (flake of snowflakes; track flake) {
+      <span class="snowflake"><span>❄</span></span>
+    }
+  </div>
+}
+
 <main class="app-shell">
   <router-outlet></router-outlet>
 </main>

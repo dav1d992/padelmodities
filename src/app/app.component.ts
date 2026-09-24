@@ -29,6 +29,7 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly adminInputOpen = signal(false);
   readonly adminCode = signal("");
   readonly adminError = signal(false);
+  readonly snowflakes = Array.from({ length: 44 }, (_, index) => index);
 
   toggleAdminInput(): void {
     this.adminInputOpen.set(!this.adminInputOpen());
