@@ -1,16 +1,19 @@
-import { DOCUMENT } from '@angular/common';
-import { effect, inject, Injectable, signal } from '@angular/core';
+import { DOCUMENT } from "@angular/common";
+import { effect, inject, Injectable, signal } from "@angular/core";
 
-const STORAGE_KEY = 'padel-christmas-theme';
+const STORAGE_KEY = "padel-christmas-theme";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
   readonly christmas = signal(this.readStored());
 
   constructor() {
     effect(() => {
-      this.document.documentElement.classList.toggle('christmas-theme', this.christmas());
+      this.document.documentElement.classList.toggle(
+        "christmas-theme",
+        this.christmas(),
+      );
     });
   }
 
@@ -21,7 +24,7 @@ export class ThemeService {
   setChristmas(enabled: boolean): void {
     this.christmas.set(enabled);
     try {
-      localStorage.setItem(STORAGE_KEY, enabled ? '1' : '0');
+      localStorage.setItem(STORAGE_KEY, enabled ? "1" : "0");
     } catch {
       /* ignore storage errors */
     }
@@ -29,8 +32,8 @@ export class ThemeService {
 
   playerImage(shortname: string | undefined, thumbnail = false): string | null {
     if (!shortname) return null;
-    const suffix = this.christmas() ? '-xmas' : '';
-    const size = thumbnail ? '-thumb' : '';
+    const suffix = this.christmas() ? "-xmas" : "";
+    const size = thumbnail ? "-thumb" : "";
     return `/assets/optimized/${shortname}-padel${suffix}${size}.webp`;
   }
 
@@ -39,14 +42,14 @@ export class ThemeService {
   }
 
   railImage(shortname: string, thumbnail = false): string {
-    const suffix = this.christmas() ? '-xmas' : '';
-    const size = thumbnail ? '-thumb' : '';
+    const suffix = this.christmas() ? "-xmas" : "";
+    const size = thumbnail ? "-thumb" : "";
     return `/assets/optimized/${shortname}-padel${suffix}${size}.webp`;
   }
 
   private readStored(): boolean {
     try {
-      return localStorage.getItem(STORAGE_KEY) === '1';
+      return localStorage.getItem(STORAGE_KEY) === "1";
     } catch {
       return false;
     }

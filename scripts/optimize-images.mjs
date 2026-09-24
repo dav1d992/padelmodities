@@ -1,23 +1,26 @@
 // Generates web-sized WebP portraits from the multi-megabyte source PNGs.
 // Runs automatically before every build (see the "prebuild" npm script).
-import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import path from 'node:path';
-import sharp from 'sharp';
+import { mkdir, readdir, stat, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import sharp from "sharp";
 
-const SOURCE_DIR = path.join('src', 'app', 'assets', 'player-photos');
-const OUTPUT_DIR = path.join('src', 'app', 'assets', 'optimized');
-const MANIFEST_FILE = path.join('src', 'app', 'generated', 'rail-photos.ts');
+const SOURCE_DIR = path.join("src", "app", "assets", "player-photos");
+const OUTPUT_DIR = path.join("src", "app", "assets", "optimized");
+const MANIFEST_FILE = path.join("src", "app", "generated", "rail-photos.ts");
 const QUALITY = 78;
 
 /** Full-size hero portrait, and a thumbnail for the small round avatars. */
 const VARIANTS = [
-  { suffix: '', width: 1080 },
-  { suffix: '-thumb', width: 200 },
+  { suffix: "", width: 1080 },
+  { suffix: "-thumb", width: 200 },
 ];
 
 const files = (await readdir(SOURCE_DIR)).filter(
-  (f) => f.endsWith('-padel.png') && !f.endsWith('-xmas-padel.png') && !f.endsWith('-padel-xmas.png'),
+  (f) =>
+    f.endsWith("-padel.png") &&
+    !f.endsWith("-xmas-padel.png") &&
+    !f.endsWith("-padel-xmas.png"),
 );
 await mkdir(OUTPUT_DIR, { recursive: true });
 
@@ -26,10 +29,13 @@ let skipped = 0;
 let savedBytes = 0;
 
 for (const file of files) {
-  const sources = [{ path: path.join(SOURCE_DIR, file), assetSuffix: '' }];
-  const xmasFile = file.replace(/-padel\.png$/, '-padel-xmas.png');
+  const sources = [{ path: path.join(SOURCE_DIR, file), assetSuffix: "" }];
+  const xmasFile = file.replace(/-padel\.png$/, "-padel-xmas.png");
   if (existsSync(path.join(SOURCE_DIR, xmasFile))) {
-    sources.push({ path: path.join(SOURCE_DIR, xmasFile), assetSuffix: '-xmas' });
+    sources.push({
+      path: path.join(SOURCE_DIR, xmasFile),
+      assetSuffix: "-xmas",
+    });
   }
 
   for (const { path: from, assetSuffix } of sources) {
@@ -61,12 +67,12 @@ for (const file of files) {
 const mb = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 console.log(
   `[images] ${converted} converted, ${skipped} up to date` +
-    (converted ? ` — saved ${mb(savedBytes)}` : ''),
+    (converted ? ` — saved ${mb(savedBytes)}` : ""),
 );
 
 // Emit a manifest of the available portraits so the decorative rails can use
 // every photo on disk without depending on the player list.
-const shortnames = files.map((f) => f.replace(/-padel\.png$/, '')).sort();
+const shortnames = files.map((f) => f.replace(/-padel\.png$/, "")).sort();
 await mkdir(path.dirname(MANIFEST_FILE), { recursive: true });
 await writeFile(
   MANIFEST_FILE,

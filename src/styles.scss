@@ -1,46 +1,60 @@
 /* ─── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  --bg:          #0a1728;
-  --surface:     #0f2140;
-  --card:        #142a49;
-  --card-hover:  #1c375c;
-  --border:      rgba(227, 186, 212, 0.22);
-  --primary:     #e3bad4;
+  --bg: #0a1728;
+  --surface: #0f2140;
+  --card: #142a49;
+  --card-hover: #1c375c;
+  --border: rgba(227, 186, 212, 0.22);
+  --primary: #e3bad4;
   --primary-dim: #cf9fbf;
-  --on-primary:  #13294b;
-  --gold:        #e8c547;
-  --silver:      #a8bccf;
-  --bronze:      #a07850;
-  --accent:      #f0d3e5;
-  --danger:      #d95f5f;
-  --danger-dim:  #b84040;
-  --text:        #eef3fa;
-  --text-muted:  #93a8c8;
-  --radius:      14px;
-  --radius-sm:   8px;
-  --shadow:      0 4px 28px rgba(0, 0, 0, 0.55);
-  --transition:  0.18s ease;
+  --on-primary: #13294b;
+  --gold: #e8c547;
+  --silver: #a8bccf;
+  --bronze: #a07850;
+  --accent: #f0d3e5;
+  --danger: #d95f5f;
+  --danger-dim: #b84040;
+  --text: #eef3fa;
+  --text-muted: #93a8c8;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 28px rgba(0, 0, 0, 0.55);
+  --transition: 0.18s ease;
 }
 
 :root.christmas-theme {
-  --bg:          #160d12;
-  --surface:     #24131a;
-  --card:        #321720;
-  --card-hover:  #49202a;
-  --border:      rgba(142, 196, 145, 0.28);
-  --primary:     #69c27c;
+  --bg: #160d12;
+  --surface: #24131a;
+  --card: #321720;
+  --card-hover: #49202a;
+  --border: rgba(142, 196, 145, 0.28);
+  --primary: #69c27c;
   --primary-dim: #4ca765;
-  --on-primary:  #102016;
-  --gold:        #e1b65a;
-  --accent:      #9bd9a4;
-  --danger:      #ed7770;
-  --danger-dim:  #c45252;
-  --text:        #fff4e8;
-  --text-muted:  #abc4ae;
+  --on-primary: #102016;
+  --gold: #e1b65a;
+  --accent: #9bd9a4;
+  --danger: #ed7770;
+  --danger-dim: #c45252;
+  --text: #fff4e8;
+  --text-muted: #abc4ae;
 }
 
 /* ─── Reset & base ───────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+*,
+*::before,
+*::after {
+  transition-property: background-color, color, border-color, box-shadow;
+  transition-duration: 0.35s;
+  transition-timing-function: ease;
+}
 
 html {
   font-size: 16px;
@@ -49,32 +63,74 @@ html {
 }
 
 body {
+  position: relative;
   background: var(--bg);
-  background-image:
-    linear-gradient(180deg, var(--bg) 0%, #06101f 55%, #04070e 100%);
+  background-image: linear-gradient(
+    180deg,
+    var(--bg) 0%,
+    #06101f 55%,
+    #04070e 100%
+  );
   background-attachment: fixed;
   color: var(--text);
-  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, 'Segoe UI Mono', Menlo, monospace;
+  font-family:
+    "Geist Mono", ui-monospace, SFMono-Regular, "Segoe UI Mono", Menlo,
+    monospace;
   line-height: 1.5;
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
 }
 
-:root.christmas-theme body {
-  background-image: linear-gradient(180deg, var(--bg) 0%, #241018 55%, #0e080b 100%);
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, #160d12 0%, #241018 55%, #0e080b 100%);
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+:root.christmas-theme body::before {
+  opacity: 1;
+}
+
+.app-shell {
+  z-index: 1;
 }
 
 /* ─── Typography ─────────────────────────────────────────────────────────── */
-h1 { font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; }
-h2 { font-size: clamp(1.2rem, 4vw, 1.7rem); font-weight: 700; }
-h3 { font-size: clamp(1rem, 3vw, 1.25rem); font-weight: 600; }
+h1 {
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: clamp(1.2rem, 4vw, 1.7rem);
+  font-weight: 700;
+}
+h3 {
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  font-weight: 600;
+}
 
-.muted { color: var(--text-muted); }
-.small { font-size: 0.85rem; }
+.muted {
+  color: var(--text-muted);
+}
+.small {
+  font-size: 0.85rem;
+}
 
 /* ─── Buttons ────────────────────────────────────────────────────────────── */
-button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
 
 .btn {
   display: inline-flex;
@@ -86,36 +142,53 @@ button { font: inherit; color: inherit; cursor: pointer; border: none; backgroun
   font-weight: 600;
   font-size: 0.95rem;
   text-decoration: none;
-  transition: background var(--transition), transform var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    transform var(--transition),
+    opacity var(--transition);
   white-space: nowrap;
 
-  &:active { transform: scale(0.96); }
-  &:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  &:active {
+    transform: scale(0.96);
+  }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
 }
 
 .btn-primary {
   background: var(--primary);
   color: var(--on-primary);
-  &:hover:not(:disabled) { background: var(--primary-dim); }
+  &:hover:not(:disabled) {
+    background: var(--primary-dim);
+  }
 }
 
 .btn-ghost {
   background: transparent;
   color: var(--primary);
   border: 1.5px solid var(--primary);
-  &:hover:not(:disabled) { background: rgba(227, 186, 212, 0.12); }
+  &:hover:not(:disabled) {
+    background: rgba(227, 186, 212, 0.12);
+  }
 }
 
 .btn-danger {
   background: var(--danger);
   color: #fff;
-  &:hover:not(:disabled) { background: var(--danger-dim); }
+  &:hover:not(:disabled) {
+    background: var(--danger-dim);
+  }
 }
 
 .btn-gold {
   background: var(--gold);
   color: #1a1000;
-  &:hover:not(:disabled) { filter: brightness(1.1); }
+  &:hover:not(:disabled) {
+    filter: brightness(1.1);
+  }
 }
 
 .btn-icon {
@@ -130,10 +203,17 @@ button { font: inherit; color: inherit; cursor: pointer; border: none; backgroun
   background: var(--card);
   color: var(--text-muted);
   border: 1px solid var(--border);
-  &:hover { background: var(--card-hover); color: var(--text); }
+  &:hover {
+    background: var(--card-hover);
+    color: var(--text);
+  }
 }
 
-.btn.big { padding: 0.8em 1.3em; font-size: 1.05rem; width: 100%; }
+.btn.big {
+  padding: 0.8em 1.3em;
+  font-size: 1.05rem;
+  width: 100%;
+}
 
 /* ─── Back link ──────────────────────────────────────────────────────────── */
 /* Sticky pill back button shared by most pages. The player detail page overrides
@@ -155,17 +235,30 @@ button { font: inherit; color: inherit; cursor: pointer; border: none; backgroun
   padding: 0.4em 0.8em;
   border-radius: 999px;
   box-shadow: var(--shadow);
-  transition: background var(--transition), transform var(--transition);
-  &:hover { background: var(--card-hover); transform: translateY(-1px); }
-  &:active { transform: translateY(0); }
+  transition:
+    background var(--transition),
+    transform var(--transition);
+  &:hover {
+    background: var(--card-hover);
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
 }
 
-.back-arrow { margin-right: 0.4em; }
+.back-arrow {
+  margin-right: 0.4em;
+}
 
 /* On phone the back-to-ranking button collapses to just the arrow. */
 @media (max-width: 640px) {
-  .back-arrow { margin-right: 0; }
-  .back-label { display: none; }
+  .back-arrow {
+    margin-right: 0;
+  }
+  .back-label {
+    display: none;
+  }
 }
 
 /* ─── Cards / Glass panels ───────────────────────────────────────────────── */
@@ -201,8 +294,12 @@ select {
   outline: none;
   transition: border-color var(--transition);
 
-  &:focus { border-color: var(--primary); }
-  &::placeholder { color: var(--text-muted); }
+  &:focus {
+    border-color: var(--primary);
+  }
+  &::placeholder {
+    color: var(--text-muted);
+  }
 }
 
 textarea {
@@ -249,15 +346,27 @@ label {
   text-transform: uppercase;
 }
 
-.badge-green  { background: rgba(227,186,212,0.18); color: var(--primary); }
-.badge-gold   { background: rgba(241,196,15,0.2); color: var(--gold); }
-.badge-blue   { background: rgba(52,152,219,0.2); color: #5dade2; }
-.badge-muted  { background: rgba(147,168,200,0.12); color: var(--text-muted); }
+.badge-green {
+  background: rgba(227, 186, 212, 0.18);
+  color: var(--primary);
+}
+.badge-gold {
+  background: rgba(241, 196, 15, 0.2);
+  color: var(--gold);
+}
+.badge-blue {
+  background: rgba(52, 152, 219, 0.2);
+  color: #5dade2;
+}
+.badge-muted {
+  background: rgba(147, 168, 200, 0.12);
+  color: var(--text-muted);
+}
 
 /* ─── Error banner ───────────────────────────────────────────────────────── */
 .banner-error {
-  background: rgba(231,76,60,0.15);
-  border: 1px solid rgba(231,76,60,0.4);
+  background: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.4);
   border-radius: var(--radius-sm);
   color: #ff7f7f;
   padding: 0.7em 1em;
@@ -265,7 +374,11 @@ label {
 }
 
 /* ─── Sections ───────────────────────────────────────────────────────────── */
-.section { display: flex; flex-direction: column; gap: 0.75rem; }
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
 .section-title {
   font-size: 0.85rem;
@@ -294,11 +407,22 @@ label {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color var(--transition), background var(--transition);
+  transition:
+    border-color var(--transition),
+    background var(--transition);
 
-  &.small { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
-  &.selected { border-color: var(--primary); background: rgba(227, 186, 212, 0.15); color: var(--accent); }
-  &:hover:not(.selected) { background: var(--card-hover); }
+  &.small {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+  }
+  &.selected {
+    border-color: var(--primary);
+    background: rgba(227, 186, 212, 0.15);
+    color: var(--accent);
+  }
+  &:hover:not(.selected) {
+    background: var(--card-hover);
+  }
 }
 
 /* ─── Format selection cards ─────────────────────────────────────────────── */
@@ -317,7 +441,9 @@ label {
   border-radius: var(--radius);
   cursor: pointer;
   text-align: left;
-  transition: border-color var(--transition), background var(--transition);
+  transition:
+    border-color var(--transition),
+    background var(--transition);
   border: 2px solid var(--border);
 
   &.selected {
@@ -325,7 +451,9 @@ label {
     background: rgba(227, 186, 212, 0.1);
   }
 
-  &:hover:not(.selected) { background: var(--card-hover); }
+  &:hover:not(.selected) {
+    background: var(--card-hover);
+  }
 }
 
 /* ─── Tournament header ──────────────────────────────────────────────────── */
@@ -337,21 +465,38 @@ label {
   gap: 0.75rem;
 }
 
-.tour-meta { display: flex; flex-direction: column; gap: 0.4rem; }
+.tour-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
 
-.tour-badges { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.tour-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
 
 .round-indicator {
   font-size: 1.05rem;
   color: var(--text-muted);
   flex-shrink: 0;
-  strong { color: var(--text); }
+  strong {
+    color: var(--text);
+  }
 }
 
 /* ─── Match cards ────────────────────────────────────────────────────────── */
-.matches { display: flex; flex-direction: column; gap: 0.75rem; }
+.matches {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
-.match-card { padding: 1rem; overflow: hidden; }
+.match-card {
+  padding: 1rem;
+  overflow: hidden;
+}
 
 .court-label {
   margin-bottom: 0.5rem;
@@ -373,7 +518,9 @@ label {
   gap: 0.5rem;
   min-width: 0;
 
-  &.team-right { align-items: flex-end; }
+  &.team-right {
+    align-items: flex-end;
+  }
 }
 
 .team-title {
@@ -393,8 +540,14 @@ label {
 
   &.team-players-right {
     align-items: flex-end;
-    .team-player { max-width: 100%; }
-    span { text-align: right; direction: rtl; unicode-bidi: plaintext; }
+    .team-player {
+      max-width: 100%;
+    }
+    span {
+      text-align: right;
+      direction: rtl;
+      unicode-bidi: plaintext;
+    }
   }
 }
 
@@ -413,10 +566,16 @@ label {
     white-space: nowrap;
   }
 
-  &.team-player-right { flex-direction: row-reverse; }
+  &.team-player-right {
+    flex-direction: row-reverse;
+  }
 }
 
-.score-center { display: flex; align-items: center; gap: 0.4rem; }
+.score-center {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
 
 .vs {
   font-size: 0.75rem;
@@ -443,7 +602,9 @@ input.score-input {
   -moz-appearance: textfield;
   appearance: textfield;
 
-  &:focus { border-color: var(--primary); }
+  &:focus {
+    border-color: var(--primary);
+  }
   &::-webkit-inner-spin-button,
   &::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -485,14 +646,17 @@ input.score-input {
 }
 
 /* ─── Standings table ────────────────────────────────────────────────────── */
-.standings-wrap { overflow-x: auto; }
+.standings-wrap {
+  overflow-x: auto;
+}
 
 .standings {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
 
-  th, td {
+  th,
+  td {
     padding: 0.5rem 0.4rem;
     text-align: center;
     white-space: nowrap;
@@ -504,52 +668,112 @@ input.score-input {
     text-transform: uppercase;
     border-bottom: 1px solid var(--border);
   }
-  td { border-bottom: 1px solid var(--border); }
-  tr:last-child td { border-bottom: none; }
+  td {
+    border-bottom: 1px solid var(--border);
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
 
-  .left { text-align: left; }
-  .name { font-weight: 600; }
-  .rank { font-weight: 700; }
-  .total { font-weight: 800; color: var(--primary); }
-  .pos { color: var(--primary); }
-  .neg { color: var(--danger); }
+  .left {
+    text-align: left;
+  }
+  .name {
+    font-weight: 600;
+  }
+  .rank {
+    font-weight: 700;
+  }
+  .total {
+    font-weight: 800;
+    color: var(--primary);
+  }
+  .pos {
+    color: var(--primary);
+  }
+  .neg {
+    color: var(--danger);
+  }
 }
 
 @media (max-width: 460px) {
-  .format-cards { grid-template-columns: 1fr; }
+  .format-cards {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Compact match layout on small phones. */
 @media (max-width: 400px) {
-  .match-teams { grid-template-columns: 1fr auto 1fr; gap: 0.4rem; }
-  input.score-input { width: 50px; flex: 0 0 50px; font-size: 1.2rem; }
-  .team-player { font-size: 0.8rem; }
+  .match-teams {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.4rem;
+  }
+  input.score-input {
+    width: 50px;
+    flex: 0 0 50px;
+    font-size: 1.2rem;
+  }
+  .team-player {
+    font-size: 0.8rem;
+  }
 }
 
 /* ─── Animations ─────────────────────────────────────────────────────────── */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes popIn {
-  from { opacity: 0; transform: scale(0.88); }
-  to   { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-.fade-up  { animation: fadeUp  0.35s ease both; }
-.pop-in   { animation: popIn   0.25s ease both; }
+.fade-up {
+  animation: fadeUp 0.35s ease both;
+}
+.pop-in {
+  animation: popIn 0.25s ease both;
+}
 
 /* ─── Scrollbar ──────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
 
 /* ─── Route crossfade (native View Transitions) ──────────────────────────── */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 260ms;
   animation-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,4 +1,7 @@
-<a routerLink="/" class="back-link" [attr.aria-label]="i18n.t('common.back')"><span class="back-arrow" aria-hidden="true">←</span><span class="back-label">{{ i18n.t('common.back') }}</span></a>
+<a routerLink="/" class="back-link" [attr.aria-label]="i18n.t('common.back')"
+  ><span class="back-arrow" aria-hidden="true">←</span
+  ><span class="back-label">{{ i18n.t("common.back") }}</span></a
+>
 
 <div class="page fade-up">
   @if (error()) {
@@ -13,20 +16,32 @@
       <div class="tour-meta">
         <h1>{{ t.name }}</h1>
         <div class="tour-badges">
-          <span class="badge badge-blue">{{ i18n.t('format.' + t.format) }}</span>
-          <span class="badge"
+          <span class="badge badge-blue">{{
+            i18n.t("format." + t.format)
+          }}</span>
+          <span
+            class="badge"
             [class.badge-green]="t.status === 'active'"
             [class.badge-gold]="t.status === 'draft'"
-            [class.badge-muted]="t.status === 'finished'">
-            {{ t.status === 'active' ? i18n.t('status.active') : t.status === 'draft' ? i18n.t('status.draft') : i18n.t('status.finished') }}
+            [class.badge-muted]="t.status === 'finished'"
+          >
+            {{
+              t.status === "active"
+                ? i18n.t("status.active")
+                : t.status === "draft"
+                  ? i18n.t("status.draft")
+                  : i18n.t("status.finished")
+            }}
           </span>
-          <span class="badge badge-muted">{{ i18n.t('scoring.' + t.scoring.method) }}</span>
+          <span class="badge badge-muted">{{
+            i18n.t("scoring." + t.scoring.method)
+          }}</span>
         </div>
       </div>
 
       @if (isActive()) {
         <div class="round-indicator">
-          {{ i18n.t('view.round') }} <strong>{{ displayRound() + 1 }}</strong>
+          {{ i18n.t("view.round") }} <strong>{{ displayRound() + 1 }}</strong>
           <span class="muted">/ {{ t.totalRounds }}</span>
         </div>
       }
@@ -34,13 +49,23 @@
       @if ((isDraft() && admin.isAdmin()) || (canTest() && !testMode())) {
         <div class="tour-header-actions">
           @if (isDraft() && admin.isAdmin()) {
-            <button class="btn btn-ghost" (click)="editDraft()">{{ i18n.t('common.edit') }}</button>
-            <button class="btn btn-primary" [disabled]="completing()" (click)="startDraft()">
-              {{ completing() ? i18n.t('setup.starting') : i18n.t('setup.start') }}
+            <button class="btn btn-ghost" (click)="editDraft()">
+              {{ i18n.t("common.edit") }}
+            </button>
+            <button
+              class="btn btn-primary"
+              [disabled]="completing()"
+              (click)="startDraft()"
+            >
+              {{
+                completing() ? i18n.t("setup.starting") : i18n.t("setup.start")
+              }}
             </button>
           }
           @if (canTest() && !testMode()) {
-            <button class="btn btn-ghost" (click)="enterTestMode()">{{ i18n.t('view.tryTest') }}</button>
+            <button class="btn btn-ghost" (click)="enterTestMode()">
+              {{ i18n.t("view.tryTest") }}
+            </button>
           }
         </div>
       }
@@ -48,8 +73,10 @@
 
     @if (testMode()) {
       <div class="glass panel test-banner">
-        <span class="test-banner-text">{{ i18n.t('view.testBanner') }}</span>
-        <button class="btn btn-ghost" (click)="exitTestMode()">{{ i18n.t('view.exitTest') }}</button>
+        <span class="test-banner-text">{{ i18n.t("view.testBanner") }}</span>
+        <button class="btn btn-ghost" (click)="exitTestMode()">
+          {{ i18n.t("view.exitTest") }}
+        </button>
       </div>
     }
 
@@ -57,11 +84,10 @@
       <div class="glass panel tour-description">
         <p #descText>{{ t.description }}</p>
         @if (t.description.length > 140) {
-          <button
-            type="button"
-            class="desc-toggle"
-            (click)="toggleDesc()">
-            {{ descExpanded() ? i18n.t('view.showLess') : i18n.t('view.showMore') }}
+          <button type="button" class="desc-toggle" (click)="toggleDesc()">
+            {{
+              descExpanded() ? i18n.t("view.showLess") : i18n.t("view.showMore")
+            }}
           </button>
         }
       </div>
@@ -71,11 +97,23 @@
       <!-- Round navigation -->
       @if (totalGeneratedRounds() > 1) {
         <div class="round-nav">
-          <button class="btn-icon" [disabled]="!hasPrevRound()" (click)="prevRound()">←</button>
+          <button
+            class="btn-icon"
+            [disabled]="!hasPrevRound()"
+            (click)="prevRound()"
+          >
+            ←
+          </button>
           <span class="round-nav-label">
-            {{ i18n.t('view.round') }} {{ displayRound() + 1 }}
+            {{ i18n.t("view.round") }} {{ displayRound() + 1 }}
           </span>
-          <button class="btn-icon" [disabled]="!hasNextRound()" (click)="nextRound()">→</button>
+          <button
+            class="btn-icon"
+            [disabled]="!hasNextRound()"
+            (click)="nextRound()"
+          >
+            →
+          </button>
         </div>
       }
 
@@ -86,7 +124,7 @@
       <!-- King of the Hill ladder -->
       @if (isKoth()) {
         <section class="section">
-          <h2 class="section-title">{{ i18n.t('view.ladder') }}</h2>
+          <h2 class="section-title">{{ i18n.t("view.ladder") }}</h2>
           <div class="ladder">
             @for (court of ladder(); track court.courtIndex) {
               <div class="ladder-court glass" [class.king-court]="court.isKing">
@@ -94,30 +132,68 @@
                   <span class="ladder-name">
                     {{ court.courtName }}
                   </span>
-                  @if (court.isKing) { <span class="badge badge-gold">{{ i18n.t('view.kingCourt') }}</span> }
+                  @if (court.isKing) {
+                    <span class="badge badge-gold">{{
+                      i18n.t("view.kingCourt")
+                    }}</span>
+                  }
                 </div>
                 <div class="match-teams koth-teams">
                   <div class="team">
                     <div class="team-players">
-                      <span class="koth-player">{{ kothMovementIcon(court.match.a1) }} {{ playerName(court.match.a1) }}</span>
-                      <span class="koth-player">{{ kothMovementIcon(court.match.a2) }} {{ playerName(court.match.a2) }}</span>
+                      <span class="koth-player"
+                        >{{ kothMovementIcon(court.match.a1) }}
+                        {{ playerName(court.match.a1) }}</span
+                      >
+                      <span class="koth-player"
+                        >{{ kothMovementIcon(court.match.a2) }}
+                        {{ playerName(court.match.a2) }}</span
+                      >
                     </div>
-                    <input type="number" class="score-input"
-                      [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
+                    <input
+                      type="number"
+                      class="score-input"
+                      [disabled]="
+                        isFinished() || (!admin.isAdmin() && !testMode())
+                      "
                       [value]="getScore(court.match.id).score1 ?? ''"
-                      (input)="setScore(court.match.id, 'score1', $any($event.target).value)"
-                      (change)="saveScore(court.match.id)">
+                      (input)="
+                        setScore(
+                          court.match.id,
+                          'score1',
+                          $any($event.target).value
+                        )
+                      "
+                      (change)="saveScore(court.match.id)"
+                    />
                   </div>
                   <div class="vs">VS</div>
                   <div class="team team-right">
-                    <input type="number" class="score-input"
-                      [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
+                    <input
+                      type="number"
+                      class="score-input"
+                      [disabled]="
+                        isFinished() || (!admin.isAdmin() && !testMode())
+                      "
                       [value]="getScore(court.match.id).score2 ?? ''"
-                      (input)="setScore(court.match.id, 'score2', $any($event.target).value)"
-                      (change)="saveScore(court.match.id)">
+                      (input)="
+                        setScore(
+                          court.match.id,
+                          'score2',
+                          $any($event.target).value
+                        )
+                      "
+                      (change)="saveScore(court.match.id)"
+                    />
                     <div class="team-players team-players-right">
-                      <span class="koth-player">{{ playerName(court.match.b1) }} {{ kothMovementIcon(court.match.b1) }}</span>
-                      <span class="koth-player">{{ playerName(court.match.b2) }} {{ kothMovementIcon(court.match.b2) }}</span>
+                      <span class="koth-player"
+                        >{{ playerName(court.match.b1) }}
+                        {{ kothMovementIcon(court.match.b1) }}</span
+                      >
+                      <span class="koth-player"
+                        >{{ playerName(court.match.b2) }}
+                        {{ kothMovementIcon(court.match.b2) }}</span
+                      >
                     </div>
                   </div>
                 </div>
@@ -132,18 +208,24 @@
         <!-- Standard matches grouped by court -->
         <section class="section">
           <h2 class="section-title">
-            {{ i18n.t('view.roundTitle', { n: displayRound() + 1 }) }}
+            {{ i18n.t("view.roundTitle", { n: displayRound() + 1 }) }}
             @if (isFinalRound()) {
-              <span class="badge badge-gold">{{ i18n.t('view.finalBadge') }}</span>
+              <span class="badge badge-gold">{{
+                i18n.t("view.finalBadge")
+              }}</span>
             }
           </h2>
           <div class="matches">
             @for (match of currentMatches(); track match.id) {
               <div class="match-card glass">
                 <div class="court-label-row">
-                  <span class="court-label muted small">{{ courtName(match.courtIndex) }}</span>
+                  <span class="court-label muted small">{{
+                    courtName(match.courtIndex)
+                  }}</span>
                   @if (isMurder(match)) {
-                    <span class="murder-tag">💀 {{ i18n.t('view.murder') }}</span>
+                    <span class="murder-tag"
+                      >💀 {{ i18n.t("view.murder") }}</span
+                    >
                   }
                 </div>
                 <div class="match-teams">
@@ -151,21 +233,43 @@
                   <div class="team">
                     <div class="team-players">
                       @if (isTeam()) {
-                        <div class="team-title">{{ teamName(match.teamAId) }}</div>
+                        <div class="team-title">
+                          {{ teamName(match.teamAId) }}
+                        </div>
                       }
                       <div class="team-player">
                         @if (playerImage(match.a1)) {
-                          <img class="mini-avatar" appImgFallback [src]="theme.playerImage(playerImage(match.a1), true)" [alt]="playerName(match.a1)" loading="lazy">
+                          <img
+                            class="mini-avatar"
+                            appImgFallback
+                            [src]="
+                              theme.playerImage(playerImage(match.a1), true)
+                            "
+                            [alt]="playerName(match.a1)"
+                            loading="lazy"
+                          />
                         } @else {
-                          <div class="mini-avatar mini-avatar-ph">{{ playerName(match.a1)[0] }}</div>
+                          <div class="mini-avatar mini-avatar-ph">
+                            {{ playerName(match.a1)[0] }}
+                          </div>
                         }
                         <span>{{ playerName(match.a1) }}</span>
                       </div>
                       <div class="team-player">
                         @if (playerImage(match.a2)) {
-                          <img class="mini-avatar" appImgFallback [src]="theme.playerImage(playerImage(match.a2), true)" [alt]="playerName(match.a2)" loading="lazy">
+                          <img
+                            class="mini-avatar"
+                            appImgFallback
+                            [src]="
+                              theme.playerImage(playerImage(match.a2), true)
+                            "
+                            [alt]="playerName(match.a2)"
+                            loading="lazy"
+                          />
                         } @else {
-                          <div class="mini-avatar mini-avatar-ph">{{ playerName(match.a2)[0] }}</div>
+                          <div class="mini-avatar mini-avatar-ph">
+                            {{ playerName(match.a2)[0] }}
+                          </div>
                         }
                         <span>{{ playerName(match.a2) }}</span>
                       </div>
@@ -174,20 +278,48 @@
 
                   <!-- Scores in the centre -->
                   <div class="score-center">
-                    <span class="score-slot" [class.blood-drip]="murderLoser(match) === 'a'">
-                      <input type="number" class="score-input"
-                        [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
+                    <span
+                      class="score-slot"
+                      [class.blood-drip]="murderLoser(match) === 'a'"
+                    >
+                      <input
+                        type="number"
+                        class="score-input"
+                        [disabled]="
+                          isFinished() || (!admin.isAdmin() && !testMode())
+                        "
                         [value]="getScore(match.id).score1 ?? ''"
-                        (input)="setScore(match.id, 'score1', $any($event.target).value)"
-                        (change)="saveScore(match.id)">
+                        (input)="
+                          setScore(
+                            match.id,
+                            'score1',
+                            $any($event.target).value
+                          )
+                        "
+                        (change)="saveScore(match.id)"
+                      />
                     </span>
                     <span class="vs">VS</span>
-                    <span class="score-slot" [class.blood-drip]="murderLoser(match) === 'b'">
-                      <input type="number" class="score-input"
-                        [disabled]="isFinished() || (!admin.isAdmin() && !testMode())"
+                    <span
+                      class="score-slot"
+                      [class.blood-drip]="murderLoser(match) === 'b'"
+                    >
+                      <input
+                        type="number"
+                        class="score-input"
+                        [disabled]="
+                          isFinished() || (!admin.isAdmin() && !testMode())
+                        "
                         [value]="getScore(match.id).score2 ?? ''"
-                        (input)="setScore(match.id, 'score2', $any($event.target).value)"
-                        (change)="saveScore(match.id)">
+                        (input)="
+                          setScore(
+                            match.id,
+                            'score2',
+                            $any($event.target).value
+                          )
+                        "
+                        (change)="saveScore(match.id)"
+                      />
                     </span>
                   </div>
 
@@ -195,22 +327,44 @@
                   <div class="team team-right">
                     <div class="team-players team-players-right">
                       @if (isTeam()) {
-                        <div class="team-title">{{ teamName(match.teamBId) }}</div>
+                        <div class="team-title">
+                          {{ teamName(match.teamBId) }}
+                        </div>
                       }
                       <div class="team-player team-player-right">
                         <span>{{ playerName(match.b1) }}</span>
                         @if (playerImage(match.b1)) {
-                          <img class="mini-avatar" appImgFallback [src]="theme.playerImage(playerImage(match.b1), true)" [alt]="playerName(match.b1)" loading="lazy">
+                          <img
+                            class="mini-avatar"
+                            appImgFallback
+                            [src]="
+                              theme.playerImage(playerImage(match.b1), true)
+                            "
+                            [alt]="playerName(match.b1)"
+                            loading="lazy"
+                          />
                         } @else {
-                          <div class="mini-avatar mini-avatar-ph">{{ playerName(match.b1)[0] }}</div>
+                          <div class="mini-avatar mini-avatar-ph">
+                            {{ playerName(match.b1)[0] }}
+                          </div>
                         }
                       </div>
                       <div class="team-player team-player-right">
                         <span>{{ playerName(match.b2) }}</span>
                         @if (playerImage(match.b2)) {
-                          <img class="mini-avatar" appImgFallback [src]="theme.playerImage(playerImage(match.b2), true)" [alt]="playerName(match.b2)" loading="lazy">
+                          <img
+                            class="mini-avatar"
+                            appImgFallback
+                            [src]="
+                              theme.playerImage(playerImage(match.b2), true)
+                            "
+                            [alt]="playerName(match.b2)"
+                            loading="lazy"
+                          />
                         } @else {
-                          <div class="mini-avatar mini-avatar-ph">{{ playerName(match.b2)[0] }}</div>
+                          <div class="mini-avatar mini-avatar-ph">
+                            {{ playerName(match.b2)[0] }}
+                          </div>
                         }
                       </div>
                     </div>
@@ -219,8 +373,18 @@
                 @if (scoreError(match.id)) {
                   <p class="warn small">{{ scoreError(match.id) }}</p>
                 }
-                @if ((admin.isAdmin() || testMode()) && (getScore(match.id).score1 !== null || getScore(match.id).score2 !== null) && !isFinished()) {
-                  <button class="link-btn reset-btn" (click)="resetScore(match.id)">{{ i18n.t('view.resetResult') }}</button>
+                @if (
+                  (admin.isAdmin() || testMode()) &&
+                  (getScore(match.id).score1 !== null ||
+                    getScore(match.id).score2 !== null) &&
+                  !isFinished()
+                ) {
+                  <button
+                    class="link-btn reset-btn"
+                    (click)="resetScore(match.id)"
+                  >
+                    {{ i18n.t("view.resetResult") }}
+                  </button>
                 }
               </div>
             }
@@ -231,7 +395,7 @@
       <!-- Sit-outs -->
       @if (sitOuts().length > 0) {
         <div class="sitouts glass">
-          <span class="muted small">{{ i18n.t('view.sittingOut') }}</span>
+          <span class="muted small">{{ i18n.t("view.sittingOut") }}</span>
           @for (id of sitOuts(); track id) {
             <span class="sitout-chip">{{ participantName(id) }}</span>
           }
@@ -242,36 +406,69 @@
       @if ((admin.isAdmin() || testMode()) && isActive() && isCurrentRound()) {
         @if (isMexericano()) {
           <p class="hint muted small next-round-hint">
-            {{ isFinalRound() ? i18n.t('view.nextFinal') : i18n.t('view.nextNormal') }}
+            {{
+              isFinalRound()
+                ? i18n.t("view.nextFinal")
+                : i18n.t("view.nextNormal")
+            }}
           </p>
         }
 
-        <button class="btn btn-primary big" [disabled]="!allScoresEntered() || completing()"
-          (click)="completeRound()">
-          {{ completing() ? i18n.t('common.saving') : i18n.t('view.completeRound') }}
+        <button
+          class="btn btn-primary big"
+          [disabled]="!allScoresEntered() || completing()"
+          (click)="completeRound()"
+        >
+          {{
+            completing()
+              ? i18n.t("common.saving")
+              : i18n.t("view.completeRound")
+          }}
         </button>
         @if (!allScoresEntered()) {
-          <p class="hint muted small">{{ i18n.t('view.enterAll') }}</p>
+          <p class="hint muted small">{{ i18n.t("view.enterAll") }}</p>
         }
 
         @if (canRegenerate()) {
-          <button class="btn btn-ghost" [disabled]="regenerating()" (click)="regenerate()">
-            {{ regenerating() ? i18n.t('view.generating') : i18n.t('view.regenerate') }}
+          <button
+            class="btn btn-ghost"
+            [disabled]="regenerating()"
+            (click)="regenerate()"
+          >
+            {{
+              regenerating()
+                ? i18n.t("view.generating")
+                : i18n.t("view.regenerate")
+            }}
           </button>
         }
 
         @if (isMexericano()) {
           @if (canRunFinal()) {
-            <button class="btn btn-primary" [disabled]="runningFinal()" (click)="runFinalRound()">
-              {{ runningFinal() ? i18n.t('view.finalGenerating') : i18n.t('view.runFinal') }}
+            <button
+              class="btn btn-primary"
+              [disabled]="runningFinal()"
+              (click)="runFinalRound()"
+            >
+              {{
+                runningFinal()
+                  ? i18n.t("view.finalGenerating")
+                  : i18n.t("view.runFinal")
+              }}
             </button>
           } @else if (finalRoundGenerated() && !isFinished()) {
-            <button class="btn btn-ghost" disabled>{{ i18n.t('view.finalGenerated') }}</button>
+            <button class="btn btn-ghost" disabled>
+              {{ i18n.t("view.finalGenerated") }}
+            </button>
           }
         }
 
-        <button class="btn btn-ghost" [disabled]="finishing()" (click)="finishEarly()">
-          {{ i18n.t('view.finish') }}
+        <button
+          class="btn btn-ghost"
+          [disabled]="finishing()"
+          (click)="finishEarly()"
+        >
+          {{ i18n.t("view.finish") }}
         </button>
       }
     } @else if (isFinished()) {
@@ -281,31 +478,45 @@
     <!-- Finished / winner banner -->
     @if (isFinished() && winnerLabel()) {
       <div class="glass panel finished-banner">
-        <h2>{{ isKoth() ? i18n.t('view.kothWin') : i18n.t('view.finished') }}</h2>
-        <p class="winner-name">{{ i18n.t('view.winnerWon', { name: winnerLabel() }) }}</p>
+        <h2>
+          {{ isKoth() ? i18n.t("view.kothWin") : i18n.t("view.finished") }}
+        </h2>
+        <p class="winner-name">
+          {{ i18n.t("view.winnerWon", { name: winnerLabel() }) }}
+        </p>
       </div>
     }
 
     <!-- Standings -->
     @if (standings().length > 0) {
       <section class="section">
-        <h2 class="section-title">{{ i18n.t('view.standings') }}</h2>
+        <h2 class="section-title">{{ i18n.t("view.standings") }}</h2>
         <div class="standings-wrap glass">
           <table class="standings">
             <thead>
               <tr>
                 <th>#</th>
-                <th class="left">{{ isTeam() ? i18n.t('th.team') : i18n.t('th.player') }}</th>
-                <th>{{ i18n.t('th.played') }}</th>
-                <th>{{ i18n.t('th.wins') }}</th>
-                <th>{{ i18n.t('th.losses') }}</th>
-                @if (!isKoth()) { <th>{{ i18n.t('th.draws') }}</th> }
-                <th>{{ i18n.t('th.total') }}</th>
-                @if (isFinished()) { <th>{{ i18n.t('th.elo') }}</th> }
+                <th class="left">
+                  {{ isTeam() ? i18n.t("th.team") : i18n.t("th.player") }}
+                </th>
+                <th>{{ i18n.t("th.played") }}</th>
+                <th>{{ i18n.t("th.wins") }}</th>
+                <th>{{ i18n.t("th.losses") }}</th>
+                @if (!isKoth()) {
+                  <th>{{ i18n.t("th.draws") }}</th>
+                }
+                <th>{{ i18n.t("th.total") }}</th>
+                @if (isFinished()) {
+                  <th>{{ i18n.t("th.elo") }}</th>
+                }
               </tr>
             </thead>
             <tbody>
-              @for (row of standings(); track row.participantId; let i = $index) {
+              @for (
+                row of standings();
+                track row.participantId;
+                let i = $index
+              ) {
                 <tr>
                   <td class="rank">
                     {{ i + 1 }}
@@ -314,11 +525,14 @@
                   <td>{{ row.played }}</td>
                   <td>{{ row.wins }}</td>
                   <td>{{ row.losses }}</td>
-                  @if (!isKoth()) { <td>{{ row.draws }}</td> }
+                  @if (!isKoth()) {
+                    <td>{{ row.draws }}</td>
+                  }
                   <td class="total">{{ row.total }}</td>
                   @if (isFinished()) {
                     <td class="elo-delta" [class.neg]="placementDelta(i) < 0">
-                      {{ placementDelta(i) > 0 ? '+' : '' }}{{ placementDelta(i) }}
+                      {{ placementDelta(i) > 0 ? "+" : ""
+                      }}{{ placementDelta(i) }}
                     </td>
                   }
                 </tr>
@@ -332,18 +546,18 @@
     <!-- KotH stats -->
     @if (isKoth() && kothRows().length > 0) {
       <section class="section">
-        <h2 class="section-title">{{ i18n.t('view.kothStats') }}</h2>
+        <h2 class="section-title">{{ i18n.t("view.kothStats") }}</h2>
         <div class="standings-wrap glass">
           <table class="standings">
             <thead>
               <tr>
-                <th class="left">{{ i18n.t('th.player') }}</th>
-                <th>{{ i18n.t('th.court') }}</th>
-                <th>{{ i18n.t('th.best') }}</th>
-                <th>{{ i18n.t('th.wins') }}</th>
-                <th>{{ i18n.t('th.losses') }}</th>
-                <th>{{ i18n.t('th.king') }}</th>
-                <th>{{ i18n.t('th.kingWins') }}</th>
+                <th class="left">{{ i18n.t("th.player") }}</th>
+                <th>{{ i18n.t("th.court") }}</th>
+                <th>{{ i18n.t("th.best") }}</th>
+                <th>{{ i18n.t("th.wins") }}</th>
+                <th>{{ i18n.t("th.losses") }}</th>
+                <th>{{ i18n.t("th.king") }}</th>
+                <th>{{ i18n.t("th.kingWins") }}</th>
                 <th>+</th>
                 <th>−</th>
               </tr>
@@ -353,7 +567,9 @@
                 <tr>
                   <td class="left name">{{ row.name }}</td>
                   <td>{{ row.s.currentCourt + 1 }}</td>
-                  <td>{{ row.s.highestCourt < 0 ? '—' : (row.s.highestCourt + 1) }}</td>
+                  <td>
+                    {{ row.s.highestCourt < 0 ? "—" : row.s.highestCourt + 1 }}
+                  </td>
                   <td>{{ row.s.wins }}</td>
                   <td>{{ row.s.losses }}</td>
                   <td>{{ row.s.kingAppearances }}</td>
@@ -370,8 +586,12 @@
 
     @if (admin.isAdmin() && !testMode()) {
       <div class="danger-zone">
-        <button class="btn btn-danger" [disabled]="deleting()" (click)="deleteTournament()">
-          {{ i18n.t('view.deleteTournament') }}
+        <button
+          class="btn btn-danger"
+          [disabled]="deleting()"
+          (click)="deleteTournament()"
+        >
+          {{ i18n.t("view.deleteTournament") }}
         </button>
       </div>
     }

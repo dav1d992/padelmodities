@@ -1,11 +1,12 @@
-import { Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from "@angular/core";
+import { ThemeService } from "./theme.service";
 
-const KEY_MUSIC = 'padel:music-muted';
-const KEY_SFX   = 'padel:sfx-muted';
+const KEY_MUSIC = "padel:music-muted";
+const KEY_SFX = "padel:sfx-muted";
 
 function readMuted(key: string): boolean {
   try {
-    return localStorage.getItem(key) === 'true';
+    return localStorage.getItem(key) === "true";
   } catch {
     return false;
   }
@@ -19,21 +20,45 @@ function writeMuted(key: string, value: boolean): void {
   }
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class AudioService {
+  private readonly theme = inject(ThemeService);
   readonly musicMuted = signal(readMuted(KEY_MUSIC));
-  readonly sfxMuted   = signal(readMuted(KEY_SFX));
+  readonly sfxMuted = signal(readMuted(KEY_SFX));
 
   private backgroundMusic: HTMLAudioElement | null = null;
 
+  constructor() {
+    effect(() => {
+      const christmas = this.theme.christmas();
+      if (this.backgroundMusic) this.switchBackgroundTrack(christmas);
+    });
+  }
+
   startBackground(): void {
     if (!this.backgroundMusic) {
-      this.backgroundMusic = new Audio('/assets/sounds-effects/background');
+      this.backgroundMusic = new Audio(this.backgroundTrackUrl());
       this.backgroundMusic.loop = true;
       this.backgroundMusic.volume = 0.3;
       this.backgroundMusic.muted = this.musicMuted();
     }
     if (!this.musicMuted()) this.backgroundMusic.play().catch(() => {});
+  }
+
+  private switchBackgroundTrack(christmas: boolean): void {
+    const audio = this.backgroundMusic;
+    if (!audio) return;
+
+    const wasPlaying = !audio.paused;
+    audio.src = this.backgroundTrackUrl(christmas);
+    audio.load();
+    if (wasPlaying && !this.musicMuted()) audio.play().catch(() => {});
+  }
+
+  private backgroundTrackUrl(christmas = this.theme.christmas()): string {
+    return christmas
+      ? "/assets/sounds-effects/background-xmas.mp3"
+      : "/assets/sounds-effects/background";
   }
 
   isPlaying(): boolean {
@@ -67,12 +92,17 @@ export class AudioService {
         audio.pause();
         audio.currentTime = 0;
       }, stopAfterMs);
-      audio.addEventListener('ended', () => clearTimeout(stopTimer), { once: true });
+      audio.addEventListener("ended", () => clearTimeout(stopTimer), {
+        once: true,
+      });
     }
     audio.play().catch(() => {});
   }
 
-  playClick(): void { this.playOneShot('/assets/sounds-effects/click.mp3', 0.25); }
-  playHover(): void { this.playOneShot('/assets/sounds-effects/hover.mp3', 0.35); }
+  playClick(): void {
+    this.playOneShot("/assets/sounds-effects/click.mp3", 0.25);
+  }
+  playHover(): void {
+    this.playOneShot("/assets/sounds-effects/hover.mp3", 0.35);
+  }
 }
-

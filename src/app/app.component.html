@@ -5,15 +5,23 @@
       [class.off]="audio.musicMuted()"
       (click)="audio.toggleMusic()"
       [title]="i18n.t('app.music')"
-    >🎵</button>
+    >
+      🎵
+    </button>
     <button
       class="audio-btn"
       [class.off]="audio.sfxMuted()"
       (click)="audio.toggleSfx()"
       [title]="i18n.t('app.sfx')"
-    >🔊</button>
-    <button class="admin-btn lang-btn" (click)="i18n.toggle()" [title]="i18n.t('app.language')">
-      {{ i18n.lang() === 'da' ? 'EN' : 'DA' }}
+    >
+      🔊
+    </button>
+    <button
+      class="admin-btn lang-btn"
+      (click)="i18n.toggle()"
+      [title]="i18n.t('app.language')"
+    >
+      {{ i18n.lang() === "da" ? "EN" : "DA" }}
     </button>
   }
   @if (admin.isAdmin()) {
@@ -22,8 +30,16 @@
       [class.off]="!theme.christmas()"
       (click)="theme.toggleChristmas()"
       [title]="i18n.t(theme.christmas() ? 'app.xmasOff' : 'app.xmasOn')"
-    >🎄</button>
-    <button class="admin-btn" (click)="logoutAdmin()" [title]="i18n.t('app.logout')">🔒</button>
+    >
+      🎄
+    </button>
+    <button
+      class="admin-btn"
+      (click)="logoutAdmin()"
+      [title]="i18n.t('app.logout')"
+    >
+      🔒
+    </button>
   } @else if (adminInputOpen()) {
     <input
       class="admin-input"
@@ -35,7 +51,7 @@
       (keyup.enter)="submitAdminCode()"
       [class.error]="adminError()"
       autofocus
-    >
+    />
     <button class="admin-btn" (click)="submitAdminCode()">OK</button>
     <button class="admin-btn ghost" (click)="toggleAdminInput()">✕</button>
   } @else {

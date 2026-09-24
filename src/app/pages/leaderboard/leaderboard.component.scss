@@ -57,9 +57,13 @@
   text-align: left;
   transition: background var(--transition);
 
-  &:hover { background: var(--card-hover); }
+  &:hover {
+    background: var(--card-hover);
+  }
 
-  &.chip-finished { opacity: 0.75; }
+  &.chip-finished {
+    opacity: 0.75;
+  }
 }
 
 .chip-name {
@@ -90,7 +94,11 @@
   animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* Empty state */
 .empty {
@@ -115,8 +123,12 @@
   border-bottom: 1px solid var(--border);
   transition: background var(--transition);
 
-  &:last-child { border-bottom: none; }
-  &:hover { background: var(--card-hover); }
+  &:last-child {
+    border-bottom: none;
+  }
+  &:hover {
+    background: var(--card-hover);
+  }
 }
 
 /* Rank */
@@ -182,7 +194,12 @@
   flex-shrink: 0;
 }
 
-.player-record { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+.player-record {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
 
 .rating {
   font-size: 1.2rem;
@@ -200,11 +217,27 @@
   z-index: 0;
   pointer-events: none;
   display: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
 
-  &.left { left: 0; }
-  &.right { right: 0; }
+  &.left {
+    left: 0;
+  }
+  &.right {
+    right: 0;
+  }
 }
 
 .rail-track {
@@ -223,33 +256,61 @@
   filter: grayscale(0.35);
 }
 
-.rail-down { animation: railDown 45s linear infinite; }
-.rail-up   { animation: railUp   45s linear infinite; }
+:host-context(.christmas-theme) .rail-track img {
+  opacity: 0.28;
+  filter: grayscale(0.08) saturate(1.05);
+}
+
+.rail-down {
+  animation: railDown 45s linear infinite;
+}
+.rail-up {
+  animation: railUp 45s linear infinite;
+}
 
 @keyframes railDown {
-  from { transform: translateY(-50%); }
-  to   { transform: translateY(0); }
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 @keyframes railUp {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-50%); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
 }
 
 @media (min-width: 1200px) {
-  .side-rail { display: block; }
+  .side-rail {
+    display: block;
+  }
 }
 
 @media (min-width: 1500px) {
-  .side-rail { width: 320px; }
+  .side-rail {
+    width: 320px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rail-down, .rail-up { animation: none; }
+  .rail-down,
+  .rail-up {
+    animation: none;
+  }
 }
 
 @media (max-width: 640px) {
-  .shortname-tag { display: none; }
-  .page { padding-top: 0.5rem; }
+  .shortname-tag {
+    display: none;
+  }
+  .page {
+    padding-top: 0.5rem;
+  }
 
   .rank-cell {
     min-width: 0;

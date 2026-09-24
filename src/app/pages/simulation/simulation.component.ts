@@ -1,19 +1,26 @@
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
-import { RAIL_PHOTOS } from '../../generated/rail-photos';
-import { PadelService } from '../../services/padel.service';
-import { I18nService } from '../../services/i18n.service';
-import { ThemeService } from '../../services/theme.service';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { RouterLink } from "@angular/router";
+import { CommonModule } from "@angular/common";
+import { ImgFallbackDirective } from "../../directives/img-fallback.directive";
+import { RAIL_PHOTOS } from "../../generated/rail-photos";
+import { PadelService } from "../../services/padel.service";
+import { I18nService } from "../../services/i18n.service";
+import { ThemeService } from "../../services/theme.service";
 import {
   estimateMatchScore,
   playerMatchStrength,
   SIM_TOTAL_POINTS,
   type Player,
   type Tournament,
-} from '../../models/padel.model';
+} from "../../models/padel.model";
 
 /** A completed match from a past tournament between the two selected teams. */
 export interface PreviousMatchup {
@@ -26,10 +33,10 @@ export interface PreviousMatchup {
 }
 
 @Component({
-  selector: 'app-simulation',
+  selector: "app-simulation",
   imports: [CommonModule, RouterLink, ImgFallbackDirective],
-  templateUrl: './simulation.component.html',
-  styleUrl: './simulation.component.scss',
+  templateUrl: "./simulation.component.html",
+  styleUrl: "./simulation.component.scss",
 })
 export class SimulationComponent implements OnInit {
   private service = inject(PadelService);
@@ -41,25 +48,31 @@ export class SimulationComponent implements OnInit {
   readonly tournaments = signal<Tournament[]>([]);
   readonly loading = signal(true);
 
-  readonly a1 = signal<string>('');
-  readonly a2 = signal<string>('');
-  readonly b1 = signal<string>('');
-  readonly b2 = signal<string>('');
+  readonly a1 = signal<string>("");
+  readonly a2 = signal<string>("");
+  readonly b1 = signal<string>("");
+  readonly b2 = signal<string>("");
 
   readonly sortedPlayers = computed(() =>
-    [...this.players()].sort((a, b) => a.name.localeCompare(b.name, 'da')),
+    [...this.players()].sort((a, b) => a.name.localeCompare(b.name, "da")),
   );
 
   /** Shuffled once so the two rails never share an image. */
-  private readonly shuffledNames = computed(() => this.shuffle([...RAIL_PHOTOS]));
+  private readonly shuffledNames = computed(() =>
+    this.shuffle([...RAIL_PHOTOS]),
+  );
 
   readonly leftImages = computed(() => {
     const all = this.shuffledNames();
-    return all.slice(0, Math.ceil(all.length / 2)).map((name) => this.theme.railImage(name));
+    return all
+      .slice(0, Math.ceil(all.length / 2))
+      .map((name) => this.theme.railImage(name));
   });
   readonly rightImages = computed(() => {
     const all = this.shuffledNames();
-    return all.slice(Math.ceil(all.length / 2)).map((name) => this.theme.railImage(name));
+    return all
+      .slice(Math.ceil(all.length / 2))
+      .map((name) => this.theme.railImage(name));
   });
 
   private shuffle(list: string[]): string[] {
@@ -96,24 +109,32 @@ export class SimulationComponent implements OnInit {
   }
 
   /** True if a player is already chosen in a slot other than `own`. */
-  isTaken(id: string, own: 'a1' | 'a2' | 'b1' | 'b2'): boolean {
+  isTaken(id: string, own: "a1" | "a2" | "b1" | "b2"): boolean {
     const slots: Record<string, string> = {
       a1: this.a1(),
       a2: this.a2(),
       b1: this.b1(),
       b2: this.b2(),
     };
-    return Object.entries(slots).some(([slot, value]) => slot !== own && value === id);
+    return Object.entries(slots).some(
+      ([slot, value]) => slot !== own && value === id,
+    );
   }
 
   readonly teamA = computed(() =>
-    [this.a1(), this.a2()].map((id) => this.byId(id)).filter((p): p is Player => !!p),
+    [this.a1(), this.a2()]
+      .map((id) => this.byId(id))
+      .filter((p): p is Player => !!p),
   );
   readonly teamB = computed(() =>
-    [this.b1(), this.b2()].map((id) => this.byId(id)).filter((p): p is Player => !!p),
+    [this.b1(), this.b2()]
+      .map((id) => this.byId(id))
+      .filter((p): p is Player => !!p),
   );
 
-  readonly ready = computed(() => this.teamA().length === 2 && this.teamB().length === 2);
+  readonly ready = computed(
+    () => this.teamA().length === 2 && this.teamB().length === 2,
+  );
 
   readonly result = computed(() => {
     if (!this.ready()) return null;

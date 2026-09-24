@@ -1,24 +1,36 @@
-import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
-import { PadelService } from '../../services/padel.service';
-import { AudioService } from '../../services/audio.service';
-import { AdminService } from '../../services/admin.service';
-import { I18nService } from '../../services/i18n.service';
-import { FORMAT_LABELS, type Player, type Tournament } from '../../models/padel.model';
-import { CommonModule } from '@angular/common';
-import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
-import { RAIL_PHOTOS } from '../../generated/rail-photos';
-import { ThemeService } from '../../services/theme.service';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+} from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { Router, RouterLink } from "@angular/router";
+import { PadelService } from "../../services/padel.service";
+import { AudioService } from "../../services/audio.service";
+import { AdminService } from "../../services/admin.service";
+import { I18nService } from "../../services/i18n.service";
+import {
+  FORMAT_LABELS,
+  type Player,
+  type Tournament,
+} from "../../models/padel.model";
+import { CommonModule } from "@angular/common";
+import { ImgFallbackDirective } from "../../directives/img-fallback.directive";
+import { RAIL_PHOTOS } from "../../generated/rail-photos";
+import { ThemeService } from "../../services/theme.service";
 
 /** Lives outside the component so the offset survives the component being destroyed on navigation. */
 let savedScrollY = 0;
 
 @Component({
-  selector: 'app-leaderboard',
+  selector: "app-leaderboard",
   imports: [CommonModule, RouterLink, ImgFallbackDirective],
-  templateUrl: './leaderboard.component.html',
-  styleUrl: './leaderboard.component.scss',
+  templateUrl: "./leaderboard.component.html",
+  styleUrl: "./leaderboard.component.scss",
 })
 export class LeaderboardComponent implements OnInit, OnDestroy {
   private service = inject(PadelService);
@@ -33,11 +45,13 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   readonly players = signal<Player[]>([]);
   readonly tournaments = signal<Tournament[]>([]);
   readonly loading = signal(true);
-  readonly error = signal('');
+  readonly error = signal("");
 
   private readonly destroyRef = inject(DestroyRef);
   private scrollRestored = false;
-  private readonly rememberScroll = () => { savedScrollY = window.scrollY; };
+  private readonly rememberScroll = () => {
+    savedScrollY = window.scrollY;
+  };
 
   /** Ranked players who have played at least one match. */
   readonly activePlayers = computed(() =>
@@ -50,15 +64,21 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   );
 
   /** Shuffled once so the two rails never share an image. */
-  private readonly shuffledNames = computed(() => this.shuffle([...RAIL_PHOTOS]));
+  private readonly shuffledNames = computed(() =>
+    this.shuffle([...RAIL_PHOTOS]),
+  );
 
   readonly leftImages = computed(() => {
     const all = this.shuffledNames();
-    return all.slice(0, Math.ceil(all.length / 2)).map((name) => this.theme.railImage(name, true));
+    return all
+      .slice(0, Math.ceil(all.length / 2))
+      .map((name) => this.theme.railImage(name, true));
   });
   readonly rightImages = computed(() => {
     const all = this.shuffledNames();
-    return all.slice(Math.ceil(all.length / 2)).map((name) => this.theme.railImage(name, true));
+    return all
+      .slice(Math.ceil(all.length / 2))
+      .map((name) => this.theme.railImage(name, true));
   });
 
   private shuffle(list: string[]): string[] {
@@ -71,7 +91,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    window.addEventListener('scroll', this.rememberScroll, { passive: true });
+    window.addEventListener("scroll", this.rememberScroll, { passive: true });
     this.service
       .watchPlayers()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -82,7 +102,11 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
           this.restoreScroll();
         },
         error: (error) => {
-          this.error.set(error?.message ? this.i18n.t(error.message) : this.i18n.t('err.loadPlayers'));
+          this.error.set(
+            error?.message
+              ? this.i18n.t(error.message)
+              : this.i18n.t("err.loadPlayers"),
+          );
           this.loading.set(false);
         },
       });
@@ -93,7 +117,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener('scroll', this.rememberScroll);
+    window.removeEventListener("scroll", this.rememberScroll);
   }
 
   /**
@@ -109,7 +133,8 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
 
     let attempts = 0;
     const apply = () => {
-      const reachable = document.documentElement.scrollHeight - window.innerHeight >= target;
+      const reachable =
+        document.documentElement.scrollHeight - window.innerHeight >= target;
       if (reachable || attempts++ > 20) {
         window.scrollTo(0, target);
         savedScrollY = target;
@@ -121,20 +146,20 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   }
 
   readonly activeTournaments = computed<Array<Tournament>>(() =>
-    this.tournaments().filter((t) => t.status === 'active'),
+    this.tournaments().filter((t) => t.status === "active"),
   );
 
   readonly draftTournaments = computed<Array<Tournament>>(() =>
-    this.tournaments().filter((t) => t.status === 'draft'),
+    this.tournaments().filter((t) => t.status === "draft"),
   );
 
   readonly recentTournaments = computed<Array<Tournament>>(() =>
     this.tournaments()
-      .filter((t) => t.status === 'finished')
+      .filter((t) => t.status === "finished")
       .slice(0, 5),
   );
 
   goToTournament(id: string): void {
-    this.router.navigate(['/tournament', id]);
+    this.router.navigate(["/tournament", id]);
   }
 }

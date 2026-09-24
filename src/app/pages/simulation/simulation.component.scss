@@ -16,7 +16,9 @@
   z-index: 1;
 }
 
-.sim-header h1 { margin-bottom: 0.15rem; }
+.sim-header h1 {
+  margin-bottom: 0.15rem;
+}
 
 /* Teams */
 .teams {
@@ -32,9 +34,15 @@
 .team-card {
   gap: 0.75rem;
 
-  h3 { margin-bottom: 0.25rem; }
-  &.team-a h3 { color: var(--primary); }
-  &.team-b h3 { color: var(--accent); }
+  h3 {
+    margin-bottom: 0.25rem;
+  }
+  &.team-a h3 {
+    color: var(--primary);
+  }
+  &.team-b h3 {
+    color: var(--accent);
+  }
 }
 
 select {
@@ -69,7 +77,9 @@ select option {
   align-items: center;
   gap: 0.15rem;
   opacity: 0.65;
-  transition: opacity var(--transition), transform var(--transition);
+  transition:
+    opacity var(--transition),
+    transform var(--transition);
 
   &.winner {
     opacity: 1;
@@ -91,7 +101,9 @@ select option {
 }
 
 /* Breakdown */
-.breakdown { gap: 0.85rem; }
+.breakdown {
+  gap: 0.85rem;
+}
 
 .bd-group {
   display: flex;
@@ -147,7 +159,9 @@ select option {
 .history {
   gap: 0.6rem;
 
-  h3 { margin-bottom: 0; }
+  h3 {
+    margin-bottom: 0;
+  }
 }
 
 .history-list {
@@ -186,7 +200,9 @@ select option {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 
-  .winner { color: var(--primary); }
+  .winner {
+    color: var(--primary);
+  }
 }
 
 .history-dash {
@@ -202,7 +218,9 @@ select option {
   padding: 2.5rem 1.5rem;
 }
 
-.empty-icon { font-size: 2.5rem; }
+.empty-icon {
+  font-size: 2.5rem;
+}
 
 .loader-row {
   display: flex;
@@ -220,9 +238,15 @@ select option {
   animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
-.hint { text-align: center; }
+.hint {
+  text-align: center;
+}
 
 .disclaimer {
   text-align: center;
@@ -240,11 +264,27 @@ select option {
   z-index: 0;
   pointer-events: none;
   display: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 14%,
+    #000 86%,
+    transparent 100%
+  );
 
-  &.left { left: 0; }
-  &.right { right: 0; }
+  &.left {
+    left: 0;
+  }
+  &.right {
+    right: 0;
+  }
 }
 
 .rail-track {
@@ -263,26 +303,50 @@ select option {
   filter: grayscale(0.35);
 }
 
-.rail-down { animation: railDown 45s linear infinite; }
-.rail-up   { animation: railUp   45s linear infinite; }
+:host-context(.christmas-theme) .rail-track img {
+  opacity: 0.28;
+  filter: grayscale(0.08) saturate(1.05);
+}
+
+.rail-down {
+  animation: railDown 45s linear infinite;
+}
+.rail-up {
+  animation: railUp 45s linear infinite;
+}
 
 @keyframes railDown {
-  from { transform: translateY(-50%); }
-  to   { transform: translateY(0); }
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 @keyframes railUp {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-50%); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
 }
 
 @media (min-width: 1200px) {
-  .side-rail { display: block; }
+  .side-rail {
+    display: block;
+  }
 }
 
 @media (min-width: 1500px) {
-  .side-rail { width: 320px; }
+  .side-rail {
+    width: 320px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rail-down, .rail-up { animation: none; }
+  .rail-down,
+  .rail-up {
+    animation: none;
+  }
 }

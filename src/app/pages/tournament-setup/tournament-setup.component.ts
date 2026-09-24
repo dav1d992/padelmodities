@@ -5,17 +5,17 @@ import {
   inject,
   OnInit,
   signal,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+} from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { FormsModule } from "@angular/forms";
 import {
   PadelService,
   type CreateTournamentInput,
-} from '../../services/padel.service';
-import { AdminService } from '../../services/admin.service';
-import { I18nService } from '../../services/i18n.service';
-import { ThemeService } from '../../services/theme.service';
+} from "../../services/padel.service";
+import { AdminService } from "../../services/admin.service";
+import { I18nService } from "../../services/i18n.service";
+import { ThemeService } from "../../services/theme.service";
 import {
   DEFAULT_BONUS,
   DEFAULT_SCORING,
@@ -28,19 +28,19 @@ import {
   type Tournament,
   type TournamentFormat,
   type TournamentTeam,
-} from '../../models/padel.model';
-import { CommonModule } from '@angular/common';
-import { ImgFallbackDirective } from '../../directives/img-fallback.directive';
+} from "../../models/padel.model";
+import { CommonModule } from "@angular/common";
+import { ImgFallbackDirective } from "../../directives/img-fallback.directive";
 
 interface FormatOption {
   value: TournamentFormat;
 }
 
 @Component({
-  selector: 'app-tournament-setup',
+  selector: "app-tournament-setup",
   imports: [CommonModule, FormsModule, RouterLink, ImgFallbackDirective],
-  templateUrl: './tournament-setup.component.html',
-  styleUrl: './tournament-setup.component.scss',
+  templateUrl: "./tournament-setup.component.html",
+  styleUrl: "./tournament-setup.component.scss",
 })
 export class TournamentSetupComponent implements OnInit {
   private service = inject(PadelService);
@@ -51,32 +51,32 @@ export class TournamentSetupComponent implements OnInit {
   readonly i18n = inject(I18nService);
 
   readonly formatOptions: FormatOption[] = [
-    { value: 'americano' },
-    { value: 'team-americano' },
-    { value: 'mexicano' },
-    { value: 'team-mexicano' },
-    { value: 'super-mexicano' },
-    { value: 'mexericano' },
-    { value: 'king-of-the-hill' },
+    { value: "americano" },
+    { value: "team-americano" },
+    { value: "mexicano" },
+    { value: "team-mexicano" },
+    { value: "super-mexicano" },
+    { value: "mexericano" },
+    { value: "king-of-the-hill" },
   ];
 
   readonly scoringMethods: ScoringMethod[] = [
-    'fixed-points',
-    'first-to',
-    'games-sets',
-    'timed',
+    "fixed-points",
+    "first-to",
+    "games-sets",
+    "timed",
   ];
 
   readonly players = signal<Player[]>([]);
 
   // Core config
-  readonly tournamentName = signal('');
-  readonly description = signal('');
-  readonly format = signal<TournamentFormat>('americano');
+  readonly tournamentName = signal("");
+  readonly description = signal("");
+  readonly format = signal<TournamentFormat>("americano");
   readonly seeded = signal(false);
   readonly courtNames = signal<string[]>([
-    this.i18n.t('court.default', { n: 1 }),
-    this.i18n.t('court.default', { n: 2 }),
+    this.i18n.t("court.default", { n: 1 }),
+    this.i18n.t("court.default", { n: 2 }),
   ]);
   readonly totalRounds = signal(7);
 
@@ -95,10 +95,10 @@ export class TournamentSetupComponent implements OnInit {
   // Team building
   readonly teams = signal<TournamentTeam[]>([]);
   readonly teamPick = signal<string[]>([]);
-  readonly teamName = signal('');
+  readonly teamName = signal("");
 
   readonly submitting = signal(false);
-  readonly error = signal('');
+  readonly error = signal("");
 
   private draftId: string | null = null;
   private draftLoaded = false;
@@ -106,10 +106,10 @@ export class TournamentSetupComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.admin.isAdmin()) {
-      this.router.navigate(['/']);
+      this.router.navigate(["/"]);
       return;
     }
-    this.draftId = this.route.snapshot.queryParamMap.get('draft');
+    this.draftId = this.route.snapshot.queryParamMap.get("draft");
     this.service
       .watchPlayers()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -132,7 +132,7 @@ export class TournamentSetupComponent implements OnInit {
 
   private populateFromDraft(t: Tournament): void {
     this.tournamentName.set(t.name);
-    this.description.set(t.description ?? '');
+    this.description.set(t.description ?? "");
     this.format.set(t.format);
     this.seeded.set(t.seeded);
     this.courtNames.set(
@@ -154,12 +154,12 @@ export class TournamentSetupComponent implements OnInit {
 
   readonly isTeam = computed(() => isTeamFormat(this.format()));
   readonly isDynamic = computed(() => isDynamicFormat(this.format()));
-  readonly isKoth = computed(() => this.format() === 'king-of-the-hill');
-  readonly isSuperMex = computed(() => this.format() === 'super-mexicano');
-  readonly isMexericano = computed(() => this.format() === 'mexericano');
+  readonly isKoth = computed(() => this.format() === "king-of-the-hill");
+  readonly isSuperMex = computed(() => this.format() === "super-mexicano");
+  readonly isMexericano = computed(() => this.format() === "mexericano");
   /** Formats that support the court-bonus config. */
   readonly showBonus = computed(() => this.isSuperMex() || this.isMexericano());
-  readonly isRoundRobin = computed(() => this.format() === 'team-americano');
+  readonly isRoundRobin = computed(() => this.format() === "team-americano");
   readonly courtCount = computed(() => this.courtNames().length);
 
   readonly selectedCount = computed(() => this.selectedIds().size);
@@ -187,27 +187,26 @@ export class TournamentSetupComponent implements OnInit {
   readonly validation = computed<{ ok: boolean; messages: string[] }>(() => {
     const messages: string[] = [];
     if (this.tournamentName().trim().length === 0) {
-      messages.push(this.i18n.t('val.name'));
+      messages.push(this.i18n.t("val.name"));
     }
-    if (this.courtCount() < 1) messages.push(this.i18n.t('val.court'));
+    if (this.courtCount() < 1) messages.push(this.i18n.t("val.court"));
 
     if (this.isTeam()) {
-      if (this.teamCount() < 2) messages.push(this.i18n.t('val.teams'));
+      if (this.teamCount() < 2) messages.push(this.i18n.t("val.teams"));
     } else if (this.isKoth()) {
       const needed = this.courtCount() * 4;
-      if (this.courtCount() < 2)
-        messages.push(this.i18n.t('val.kothCourts'));
+      if (this.courtCount() < 2) messages.push(this.i18n.t("val.kothCourts"));
       if (this.selectedCount() < needed)
-        messages.push(this.i18n.t('val.kothPlayers', { n: needed }));
+        messages.push(this.i18n.t("val.kothPlayers", { n: needed }));
     } else {
-      if (this.selectedCount() < 4) messages.push(this.i18n.t('val.min4'));
+      if (this.selectedCount() < 4) messages.push(this.i18n.t("val.min4"));
     }
 
     if (!this.isTeam() && this.perRoundInfo().matches < 1) {
-      messages.push(this.i18n.t('val.fillCourt'));
+      messages.push(this.i18n.t("val.fillCourt"));
     }
     if (!this.isRoundRobin() && this.totalRounds() < 1) {
-      messages.push(this.i18n.t('val.minRound'));
+      messages.push(this.i18n.t("val.minRound"));
     }
     return { ok: messages.length === 0, messages };
   });
@@ -216,10 +215,12 @@ export class TournamentSetupComponent implements OnInit {
   readonly fairnessWarning = computed(() => {
     const info = this.perRoundInfo();
     if (info.sitOut > 0 && !this.isKoth()) {
-      const who = this.isTeam() ? this.i18n.t('who.teams') : this.i18n.t('who.players');
-      return this.i18n.t('val.fairness', { n: info.sitOut, who });
+      const who = this.isTeam()
+        ? this.i18n.t("who.teams")
+        : this.i18n.t("who.players");
+      return this.i18n.t("val.fairness", { n: info.sitOut, who });
     }
-    return '';
+    return "";
   });
 
   readonly canSubmit = computed(() => this.validation().ok);
@@ -228,10 +229,10 @@ export class TournamentSetupComponent implements OnInit {
 
   selectFormat(f: TournamentFormat): void {
     this.format.set(f);
-    if (f === 'king-of-the-hill' && this.courtCount() < 2) {
+    if (f === "king-of-the-hill" && this.courtCount() < 2) {
       this.courtNames.set([
-        this.i18n.t('court.king'),
-        this.i18n.t('court.default', { n: 2 }),
+        this.i18n.t("court.king"),
+        this.i18n.t("court.default", { n: 2 }),
       ]);
     }
   }
@@ -253,7 +254,7 @@ export class TournamentSetupComponent implements OnInit {
 
   addCourt(): void {
     const next = [...this.courtNames()];
-    next.push(this.i18n.t('court.default', { n: next.length + 1 }));
+    next.push(this.i18n.t("court.default", { n: next.length + 1 }));
     this.courtNames.set(next);
   }
 
@@ -331,7 +332,7 @@ export class TournamentSetupComponent implements OnInit {
     };
     this.teams.set([...this.teams(), team]);
     this.teamPick.set([]);
-    this.teamName.set('');
+    this.teamName.set("");
   }
 
   removeTeam(id: string): void {
@@ -340,7 +341,7 @@ export class TournamentSetupComponent implements OnInit {
 
   // ── Submit ──────────────────────────────────────────────────────────────
 
-  private buildInput(status: 'draft' | 'active'): CreateTournamentInput {
+  private buildInput(status: "draft" | "active"): CreateTournamentInput {
     return {
       name: this.tournamentName(),
       description: this.description(),
@@ -358,20 +359,24 @@ export class TournamentSetupComponent implements OnInit {
 
   async saveDraft(): Promise<void> {
     if (this.tournamentName().trim().length === 0) {
-      this.error.set(this.i18n.t('err.draftName'));
+      this.error.set(this.i18n.t("err.draftName"));
       return;
     }
     this.submitting.set(true);
-    this.error.set('');
+    this.error.set("");
     try {
       if (this.draftId) {
-        await this.service.updateDraft(this.draftId, this.buildInput('draft'));
+        await this.service.updateDraft(this.draftId, this.buildInput("draft"));
       } else {
-        await this.service.createTournament(this.buildInput('draft'));
+        await this.service.createTournament(this.buildInput("draft"));
       }
-      this.router.navigate(['/']);
+      this.router.navigate(["/"]);
     } catch (error) {
-      this.error.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
+      this.error.set(
+        error instanceof Error
+          ? this.i18n.t(error.message)
+          : this.i18n.t("common.error"),
+      );
     } finally {
       this.submitting.set(false);
     }
@@ -380,19 +385,23 @@ export class TournamentSetupComponent implements OnInit {
   async start(): Promise<void> {
     if (!this.canSubmit()) return;
     this.submitting.set(true);
-    this.error.set('');
+    this.error.set("");
     try {
       let id: string;
       if (this.draftId) {
-        await this.service.updateDraft(this.draftId, this.buildInput('draft'));
+        await this.service.updateDraft(this.draftId, this.buildInput("draft"));
         await this.service.startTournament(this.draftId);
         id = this.draftId;
       } else {
-        id = await this.service.createTournament(this.buildInput('active'));
+        id = await this.service.createTournament(this.buildInput("active"));
       }
-      this.router.navigate(['/tournament', id]);
+      this.router.navigate(["/tournament", id]);
     } catch (error) {
-      this.error.set(error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'));
+      this.error.set(
+        error instanceof Error
+          ? this.i18n.t(error.message)
+          : this.i18n.t("common.error"),
+      );
       this.submitting.set(false);
     }
   }
