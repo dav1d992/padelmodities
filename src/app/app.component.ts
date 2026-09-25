@@ -30,6 +30,7 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly adminCode = signal("");
   readonly adminError = signal(false);
   readonly snowflakes = Array.from({ length: 44 }, (_, index) => index);
+  readonly lightningLeft = signal(42 + Math.random() * 16);
 
   toggleAdminInput(): void {
     this.adminInputOpen.set(!this.adminInputOpen());
@@ -60,7 +61,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   toggleHalloweenTheme(): void {
     const activating = !this.theme.halloween();
-    if (activating) this.audio.activateHalloweenMusic();
+    if (activating) {
+      this.lightningLeft.set(42 + Math.random() * 16);
+      this.audio.activateHalloweenMusic();
+    }
     this.theme.toggleHalloween();
     if (activating) this.audio.playOneShot("/assets/sounds-effects/thunder.mp3", 0.8);
   }

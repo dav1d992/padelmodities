@@ -75,6 +75,17 @@
   </div>
 }
 
+@if (theme.lightningActive()) {
+  <div
+    class="lightning"
+    [style.--lightning-left]="lightningLeft() + '%'"
+    aria-hidden="true"
+  >
+    <span class="lightning-bolt lightning-bolt-main"></span>
+    <span class="lightning-bolt lightning-bolt-branch"></span>
+  </div>
+}
+
 <main class="app-shell">
   <router-outlet></router-outlet>
 </main>

@@ -161,6 +161,58 @@ body::before {
   transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+.lightning {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  overflow: hidden;
+  pointer-events: none;
+  background: rgba(255, 247, 220, 0.05);
+  animation: lightning-flash 850ms ease-out both;
+}
+
+.lightning-bolt {
+  position: absolute;
+  top: -8vh;
+  left: var(--lightning-left);
+  width: clamp(7rem, 15vw, 13rem);
+  height: 116vh;
+  background: #fffaf0;
+  filter: drop-shadow(0 0 0.8rem rgba(255, 190, 82, 0.95));
+  opacity: 0;
+  transform-origin: 50% 0;
+  clip-path: polygon(47% 0, 68% 0, 55% 28%, 79% 28%, 36% 67%, 49% 67%, 18% 100%, 29% 63%, 8% 63%, 43% 28%, 27% 28%);
+  animation: lightning-strike 850ms ease-out both;
+}
+
+.lightning-bolt-branch {
+  left: calc(var(--lightning-left) + 7%);
+  width: clamp(4rem, 9vw, 8rem);
+  height: 72vh;
+  transform: rotate(12deg);
+  animation-delay: 90ms;
+}
+
+@keyframes lightning-flash {
+  0%, 100% { opacity: 0; }
+  5% { opacity: 0.92; }
+  13% { opacity: 0.08; }
+  22% { opacity: 0.72; }
+  34% { opacity: 0; }
+}
+
+@keyframes lightning-strike {
+  0%, 100% { opacity: 0; }
+  7% { opacity: 0.98; }
+  16% { opacity: 0.1; }
+  25% { opacity: 0.9; }
+  38% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightning { display: none; }
+}
+
 .snowflake:nth-child(1) { --snow-left: 3%; --snow-size: 0.7rem; --snow-duration: 8s; --snow-delay: -2s; --snow-opacity: 0.55; --push: -80px; }
 .snowflake:nth-child(2) { --snow-left: 8%; --snow-size: 1.2rem; --snow-duration: 12s; --snow-delay: -7s; --snow-opacity: 0.8; --push: 70px; }
 .snowflake:nth-child(3) { --snow-left: 13%; --snow-size: 0.85rem; --snow-duration: 10s; --snow-delay: -4s; --snow-opacity: 0.65; --push: -60px; }
