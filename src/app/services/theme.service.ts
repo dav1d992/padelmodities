@@ -30,7 +30,7 @@ export class ThemeService {
         if (this.transitionTimer) clearTimeout(this.transitionTimer);
         this.transitionTimer = setTimeout(() => {
           this.document.documentElement.classList.remove("theme-transitioning");
-        }, 700);
+        }, 300);
       }
     });
   }
