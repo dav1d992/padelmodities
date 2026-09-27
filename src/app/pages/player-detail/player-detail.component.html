@@ -146,6 +146,7 @@
           </div>
         }
 
+        @if (!editing()) {
         <div class="rating-row">
           <span class="rating-value">{{ p.matchesPlayed > 0 ? p.rating : '--' }}</span>
           <span class="muted">{{ i18n.t('common.pts') }}</span>
@@ -226,6 +227,7 @@
               <span>{{ i18n.t('detail.now', { n: ratingHistory()[ratingHistory().length - 1] }) }}</span>
             </div>
           </div>
+        }
         }
 
       </div>
