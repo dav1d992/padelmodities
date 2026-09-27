@@ -49,6 +49,20 @@ export class RanglistComponent implements OnInit, OnDestroy {
     this.players().filter((p) => p.matchesPlayed === 0),
   );
 
+  /** Draws aren't stored: a tie counts toward matchesPlayed but not wins/losses. */
+  draws(player: Player): number {
+    return Math.max(0, player.matchesPlayed - player.wins - player.losses);
+  }
+
+  /** Formatted "wins · losses · draws" record line for a player. */
+  record(player: Player): string {
+    return this.i18n.t('rank.record', {
+      w: player.wins,
+      l: player.losses,
+      d: this.draws(player),
+    });
+  }
+
   /** Shuffled once so the two rails never share an image. */
   private readonly shuffledNames = computed(() => this.shuffle([...RAIL_PHOTOS]));
 

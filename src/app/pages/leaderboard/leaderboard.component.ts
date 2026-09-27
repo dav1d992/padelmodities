@@ -63,6 +63,11 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     this.players().filter((p) => p.matchesPlayed === 0),
   );
 
+  /** Draws aren't stored: a tie counts toward matchesPlayed but not wins/losses. */
+  draws(player: Player): number {
+    return Math.max(0, player.matchesPlayed - player.wins - player.losses);
+  }
+
   /** Shuffled once so the two rails never share an image. */
   private readonly shuffledNames = computed(() =>
     this.shuffle([...RAIL_PHOTOS]),
