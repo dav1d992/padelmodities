@@ -135,32 +135,41 @@ body::before {
   100% {
     transform: translateX(0);
   }
-  10% {
+  8% {
     transform: translateX(-10px);
   }
-  20% {
+  16% {
+    transform: translateX(10px);
+  }
+  24% {
+    transform: translateX(-9px);
+  }
+  32% {
     transform: translateX(9px);
   }
-  30% {
+  40% {
     transform: translateX(-8px);
   }
-  40% {
-    transform: translateX(7px);
+  48% {
+    transform: translateX(8px);
   }
-  50% {
+  56% {
     transform: translateX(-6px);
   }
-  60% {
-    transform: translateX(5px);
+  64% {
+    transform: translateX(6px);
   }
-  70% {
+  72% {
     transform: translateX(-4px);
   }
   80% {
-    transform: translateX(3px);
+    transform: translateX(4px);
   }
-  90% {
+  88% {
     transform: translateX(-2px);
+  }
+  94% {
+    transform: translateX(2px);
   }
 }
 
