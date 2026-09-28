@@ -7,6 +7,7 @@ export type ThemeMode = "normal" | "christmas" | "halloween";
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
   private transitionTimer?: ReturnType<typeof setTimeout>;
+  private sparkleTimer?: ReturnType<typeof setTimeout>;
   private snowfallTimer?: ReturnType<typeof setTimeout>;
   private lightningTimer?: ReturnType<typeof setTimeout>;
   private initialized = false;
@@ -50,6 +51,17 @@ export class ThemeService {
   setMode(mode: ThemeMode): void {
     const previousMode = this.mode();
     if (previousMode === mode) return;
+
+    if (mode === "christmas") {
+      if (this.sparkleTimer) clearTimeout(this.sparkleTimer);
+      this.document.documentElement.classList.add("christmas-sparkle-active");
+      this.sparkleTimer = setTimeout(() => {
+        this.document.documentElement.classList.remove("christmas-sparkle-active");
+      }, 1000);
+    } else if (previousMode === "christmas") {
+      if (this.sparkleTimer) clearTimeout(this.sparkleTimer);
+      this.document.documentElement.classList.remove("christmas-sparkle-active");
+    }
 
     if (this.snowfallTimer) clearTimeout(this.snowfallTimer);
     if (this.lightningTimer) clearTimeout(this.lightningTimer);
