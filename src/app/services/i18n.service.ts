@@ -137,6 +137,7 @@ const DA: Dict = {
   "format.super-mexicano": "Super Mexicano",
   "format.mexericano": "Mexericano",
   "format.king-of-the-hill": "King of the Hill",
+  "format.beat-the-box": "Beat the Box",
   "format.americano.desc": "Individuelt. Roterende makkere, maks variation.",
   "format.team-americano.desc": "Faste hold. Alle møder alle (round robin).",
   "format.mexicano.desc": "Individuelt. Runder efter aktuel stilling.",
@@ -154,6 +155,8 @@ const DA: Dict = {
     "• Dine samlede point er de point du vinder i hver kamp plus eventuel bane-bonus. Finalerunden samler de fire bedste for at afgøre vinderen.\n" +
     "• Rating (Elo): når en turnering slutter, ændres din rating efter din endelige placering — vinderen får 3 point pr. deltager (fx +48 i et felt på 16 spillere), sidstepladsen taber det samme, og alle derimellem fordeles jævnt (nulsum).",
   "format.king-of-the-hill.desc": "Bane-stige. Vindere op, tabere ned.",
+  "format.beat-the-box.desc":
+    "ELO-seedede eller tilfældige firspillerbokse. Tre Americano-kampe; de to bedste rykker op, de to nederste ned.",
 
   // Scoring
   "scoring.fixed-points": "Faste point",
@@ -171,6 +174,8 @@ const DA: Dict = {
   "val.min4": "Vælg mindst 4 spillere.",
   "val.fillCourt": "Ikke nok deltagere til at fylde en bane.",
   "val.minRound": "Angiv mindst én runde.",
+  "val.beatBoxRounds":
+    "Antal runder skal være deleligt med 3, så alle makkerkombinationer spilles.",
   "val.fairness":
     "{n} {who} sidder over hver runde — oversidning fordeles så retfærdigt som muligt.",
   "who.teams": "hold",
@@ -297,7 +302,7 @@ const DA: Dict = {
   "test.subtitle": "Testside in-memory — intet gemmes.",
   "test.config": "Opsætning",
   "test.players": "Spillere",
-  "test.playersTeam": "Spillere (2 pr. hold)",
+  "test.playersTeam": "Spillere",
   "test.courts": "Baner",
   "test.pointsPerMatch": "Point pr. kamp",
   "test.rounds": "Runder",
@@ -454,6 +459,7 @@ const EN: Dict = {
   "format.super-mexicano": "Super Mexicano",
   "format.mexericano": "Mexericano",
   "format.king-of-the-hill": "King of the Hill",
+  "format.beat-the-box": "Beat the Box",
   "format.americano.desc": "Individual. Rotating partners, maximum variety.",
   "format.team-americano.desc":
     "Fixed teams. Everyone plays everyone (round robin).",
@@ -472,6 +478,8 @@ const EN: Dict = {
     "• Your total is the points you win in each match plus any court bonus. The final round groups the top four to decide the winner.\n" +
     "• Rating (Elo): when a tournament ends, your rating changes by final placement — the winner gains 3 points per participant (e.g. +48 in a 16-player field), last place loses the same, and everyone in between is spread evenly (zero-sum).",
   "format.king-of-the-hill.desc": "Court ladder. Winners move up, losers down.",
+  "format.beat-the-box.desc":
+    "ELO-seeded or random boxes of four. Three Americano matches; the top two move up and the bottom two move down.",
 
   // Scoring
   "scoring.fixed-points": "Fixed points",
@@ -489,6 +497,8 @@ const EN: Dict = {
   "val.min4": "Select at least 4 players.",
   "val.fillCourt": "Not enough participants to fill a court.",
   "val.minRound": "Enter at least one round.",
+  "val.beatBoxRounds":
+    "Number of rounds must be divisible by 3 so every partner combination is played.",
   "val.fairness":
     "{n} {who} sit out each round — sit-outs are distributed as fairly as possible.",
   "who.teams": "teams",
@@ -618,7 +628,7 @@ const EN: Dict = {
   "test.subtitle": "In-memory test page — nothing is saved.",
   "test.config": "Configuration",
   "test.players": "Players",
-  "test.playersTeam": "Players (2 per team)",
+  "test.playersTeam": "Players",
   "test.courts": "Courts",
   "test.pointsPerMatch": "Points per match",
   "test.rounds": "Rounds",

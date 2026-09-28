@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable } from "@angular/core";
 import {
   ref,
   set,
@@ -7,9 +7,9 @@ import {
   get,
   remove,
   onValue,
-} from 'firebase/database';
-import { Observable } from 'rxjs';
-import { FIREBASE_DB } from '../core/firebase';
+} from "firebase/database";
+import { Observable } from "rxjs";
+import { FIREBASE_DB } from "../core/firebase";
 import {
   DEFAULT_SKILLSET,
   PLACEMENT_RATING_PER_PLAYER,
@@ -25,9 +25,11 @@ import {
   type TournamentRound,
   type TournamentStatus,
   type TournamentTeam,
-} from '../models/padel.model';
+} from "../models/padel.model";
 import {
   computeStandings,
+  generateBeatTheBoxInitialRound,
+  generateBeatTheBoxNextRound,
   generateAmericanoRounds,
   generateKothInitialRound,
   generateKothNextRound,
@@ -38,7 +40,7 @@ import {
   generateTeamMexicanoRound,
   standingsOrder,
   validateScore,
-} from './tournament-engine';
+} from "./tournament-engine";
 
 /** Everything needed to create or update a tournament (draft or active). */
 export interface CreateTournamentInput {
@@ -54,14 +56,19 @@ export interface CreateTournamentInput {
   scoring: ScoringConfig;
   bonus?: CourtBonusConfig;
   seeded: boolean;
-  status: 'draft' | 'active';
+  status: "draft" | "active";
 }
 
 /** Reject if a Firebase call doesn't settle within the timeout. */
 function withTimeout<T>(promise: Promise<T>, ms = 10_000): Promise<T> {
   const timeout = new Promise<T>((_, reject) => {
     setTimeout(
-      () => reject(new Error("Couldn't reach the database. Check your connection or that the Realtime Database is active.")),
+      () =>
+        reject(
+          new Error(
+            "Couldn't reach the database. Check your connection or that the Realtime Database is active.",
+          ),
+        ),
       ms,
     );
   });
@@ -87,7 +94,7 @@ function normaliseSkillset(skillset?: Partial<Skillset>): Skillset {
 // Service
 // ---------------------------------------------------------------------------
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class PadelService {
   private db = inject(FIREBASE_DB);
 
@@ -95,7 +102,7 @@ export class PadelService {
 
   watchPlayers(): Observable<Player[]> {
     return new Observable<Player[]>((subscriber) => {
-      const playersRef = ref(this.db, 'players');
+      const playersRef = ref(this.db, "players");
       const unsubscribe = onValue(
         playersRef,
         (snapshot) => {
@@ -128,7 +135,7 @@ export class PadelService {
     startingRating = 1000,
     skillset?: Partial<Skillset>,
   ): Promise<string> {
-    const playerRef = push(ref(this.db, 'players'));
+    const playerRef = push(ref(this.db, "players"));
     const id = playerRef.key!;
     const player: Player = {
       id,
@@ -149,7 +156,9 @@ export class PadelService {
 
   async updatePlayerImage(playerId: string, shortname: string): Promise<void> {
     await withTimeout(
-      update(ref(this.db, `players/${playerId}`), { shortname: shortname.trim().toLowerCase() }),
+      update(ref(this.db, `players/${playerId}`), {
+        shortname: shortname.trim().toLowerCase(),
+      }),
     );
   }
 
@@ -191,7 +200,7 @@ export class PadelService {
 
   watchTournaments(): Observable<Tournament[]> {
     return new Observable<Tournament[]>((subscriber) => {
-      const tourRef = ref(this.db, 'tournaments');
+      const tourRef = ref(this.db, "tournaments");
       const unsubscribe = onValue(
         tourRef,
         (snapshot) => {
@@ -224,10 +233,10 @@ export class PadelService {
    */
   async createTournament(input: CreateTournamentInput): Promise<string> {
     const tournament = this.buildTournamentRecord(input);
-    const tourRef = push(ref(this.db, 'tournaments'));
+    const tourRef = push(ref(this.db, "tournaments"));
     tournament.id = tourRef.key!;
     await withTimeout(set(tourRef, tournament));
-    if (input.status === 'active') {
+    if (input.status === "active") {
       await this.generateInitialRounds(tournament);
     }
     return tournament.id;
@@ -240,32 +249,30 @@ export class PadelService {
   ): Promise<void> {
     const record = this.buildTournamentRecord(input);
     record.id = tournamentId;
-    await withTimeout(
-      set(ref(this.db, `tournaments/${tournamentId}`), record),
-    );
+    await withTimeout(set(ref(this.db, `tournaments/${tournamentId}`), record));
   }
 
   /** Promote a draft to active and generate its opening round(s). */
   async startTournament(tournamentId: string): Promise<void> {
     const tournament = await this.getTournament(tournamentId);
-    if (tournament.status !== 'draft') return;
+    if (tournament.status !== "draft") return;
     await withTimeout(
       update(ref(this.db, `tournaments/${tournamentId}`), {
-        status: 'active' satisfies TournamentStatus,
+        status: "active" satisfies TournamentStatus,
         updatedAt: Date.now(),
       }),
     );
-    await this.generateInitialRounds({ ...tournament, status: 'active' });
+    await this.generateInitialRounds({ ...tournament, status: "active" });
   }
 
   private buildTournamentRecord(input: CreateTournamentInput): Tournament {
     const team = isTeamFormat(input.format);
     if (team) {
       if (!input.teams || input.teams.length < 2) {
-        throw new Error('err.minTeams');
+        throw new Error("err.minTeams");
       }
     } else if (input.playerIds.length < 4) {
-      throw new Error('err.min4');
+      throw new Error("err.min4");
     }
 
     const courtNames: Record<string, string> = {};
@@ -274,7 +281,7 @@ export class PadelService {
     });
 
     const record: Tournament = {
-      id: '',
+      id: "",
       name: input.name.trim(),
       format: input.format,
       status: input.status,
@@ -306,7 +313,7 @@ export class PadelService {
     }
 
     if (
-      (input.format === 'super-mexicano' || input.format === 'mexericano') &&
+      (input.format === "super-mexicano" || input.format === "mexericano") &&
       input.bonus
     ) {
       record.bonus = input.bonus;
@@ -319,7 +326,7 @@ export class PadelService {
     const { format, courtCount } = tournament;
     const rounds: Record<string, TournamentRound> = {};
 
-    if (format === 'americano') {
+    if (format === "americano") {
       const playerIds = Object.values(tournament.playerIds ?? {});
       const generated = generateAmericanoRounds(
         playerIds,
@@ -327,7 +334,7 @@ export class PadelService {
         tournament.totalRounds,
       );
       generated.forEach((r) => (rounds[String(r.index)] = r));
-    } else if (format === 'team-americano') {
+    } else if (format === "team-americano") {
       const teamIds = Object.values(tournament.teams ?? {}).map((t) => t.id);
       const generated = generateTeamAmericanoRounds(
         teamIds,
@@ -341,16 +348,22 @@ export class PadelService {
           totalRounds: generated.length,
         }),
       );
-    } else if (format === 'king-of-the-hill') {
+    } else if (format === "king-of-the-hill") {
       const playerIds = Object.values(tournament.playerIds ?? {});
-      rounds['0'] = generateKothInitialRound(
+      rounds["0"] = generateKothInitialRound(
         playerIds,
+        courtCount,
+        tournament.seeded,
+      );
+    } else if (format === "beat-the-box") {
+      rounds["0"] = generateBeatTheBoxInitialRound(
+        Object.values(tournament.playerIds ?? {}),
         courtCount,
         tournament.seeded,
       );
     } else {
       // mexicano / super-mexicano / team-mexicano: only round 0 up front.
-      rounds['0'] = this.buildDynamicRound(tournament, 0, []);
+      rounds["0"] = this.buildDynamicRound(tournament, 0, []);
     }
 
     await withTimeout(
@@ -370,9 +383,31 @@ export class PadelService {
     roundIndex: number,
     priorRounds: TournamentRound[],
   ): TournamentRound {
-    const order = standingsOrder(tournament, (id) => this.participantName(tournament, id));
+    const order = standingsOrder(tournament, (id) =>
+      this.participantName(tournament, id),
+    );
 
-    if (tournament.format === 'team-mexicano') {
+    if (tournament.format === "beat-the-box") {
+      const playerIds = Object.values(tournament.playerIds ?? {});
+      if (roundIndex === 0) {
+        return generateBeatTheBoxInitialRound(
+          playerIds,
+          tournament.courtCount,
+          tournament.seeded,
+        );
+      }
+      const previousRound = priorRounds[priorRounds.length - 1];
+      if (!previousRound) throw new Error("err.roundNotFound");
+      return generateBeatTheBoxNextRound(
+        previousRound,
+        priorRounds,
+        roundIndex,
+        playerIds,
+        tournament.courtCount,
+      );
+    }
+
+    if (tournament.format === "team-mexicano") {
       const teamIds = Object.values(tournament.teams ?? {}).map((t) => t.id);
       return generateTeamMexicanoRound(
         teamIds,
@@ -385,7 +420,7 @@ export class PadelService {
     }
     // mexicano + super-mexicano
     const playerIds = Object.values(tournament.playerIds ?? {});
-    if (tournament.format === 'mexericano') {
+    if (tournament.format === "mexericano") {
       return generateMexericanoRound(
         playerIds,
         tournament.courtCount,
@@ -450,16 +485,16 @@ export class PadelService {
   async regenerateCurrentRound(tournamentId: string): Promise<void> {
     const tournament = await this.getTournament(tournamentId);
     if (!isDynamicFormat(tournament.format)) {
-      throw new Error('err.dynamicOnly');
+      throw new Error("err.dynamicOnly");
     }
     const roundIndex = tournament.currentRound;
     const round = tournament.rounds?.[roundIndex];
-    if (round?.completed) throw new Error('err.roundDone');
+    if (round?.completed) throw new Error("err.roundDone");
     const anyScore = Object.values(round?.matches ?? {}).some(
       (m) => m.score1 !== undefined || m.score2 !== undefined,
     );
     if (anyScore) {
-      throw new Error('err.regenScores');
+      throw new Error("err.regenScores");
     }
 
     const prior = this.sortedRounds(tournament).filter(
@@ -467,7 +502,7 @@ export class PadelService {
     );
 
     let newRound: TournamentRound;
-    if (tournament.format === 'king-of-the-hill') {
+    if (tournament.format === "king-of-the-hill") {
       if (roundIndex === 0) {
         newRound = generateKothInitialRound(
           Object.values(tournament.playerIds ?? {}),
@@ -483,7 +518,7 @@ export class PadelService {
           Object.values(tournament.playerIds ?? {}),
         );
       }
-    } else if (tournament.format === 'mexericano' && round?.isFinal) {
+    } else if (tournament.format === "mexericano" && round?.isFinal) {
       const order = standingsOrder(tournament, (id) =>
         this.participantName(tournament, id),
       );
@@ -513,20 +548,20 @@ export class PadelService {
    */
   async runFinalRound(tournamentId: string): Promise<void> {
     const tournament = await this.getTournament(tournamentId);
-    if (tournament.format !== 'mexericano') {
-      throw new Error('err.mexericanoOnly');
+    if (tournament.format !== "mexericano") {
+      throw new Error("err.mexericanoOnly");
     }
-    if (tournament.status !== 'active') throw new Error('err.notActive');
+    if (tournament.status !== "active") throw new Error("err.notActive");
 
     const rounds = this.sortedRounds(tournament);
     const completed = rounds.filter((r) => r.completed).length;
-    if (completed < 1) throw new Error('err.finalNeedsRound');
+    if (completed < 1) throw new Error("err.finalNeedsRound");
     // Idempotency / concurrency guard: never create a second final round.
-    if (rounds.some((r) => r.isFinal)) throw new Error('err.finalExists');
+    if (rounds.some((r) => r.isFinal)) throw new Error("err.finalExists");
 
     const roundIndex = tournament.currentRound;
     const current = tournament.rounds?.[roundIndex];
-    if (current?.completed) throw new Error('err.roundDone');
+    if (current?.completed) throw new Error("err.roundDone");
 
     const prior = rounds.filter((r) => r.index < roundIndex);
     const order = standingsOrder(tournament, (id) =>
@@ -553,15 +588,20 @@ export class PadelService {
     const tournament = await this.getTournament(tournamentId);
     const roundIndex = tournament.currentRound;
     const round = tournament.rounds?.[roundIndex];
-    if (!round) throw new Error('err.roundNotFound');
+    if (!round) throw new Error("err.roundNotFound");
 
     const matches = round.matches ? Object.values(round.matches) : [];
     for (const m of matches) {
       if (m.score1 === undefined || m.score2 === undefined) {
-        throw new Error('err.enterBeforeComplete');
+        throw new Error("err.enterBeforeComplete");
       }
-      const v = validateScore(m.score1, m.score2, tournament.scoring, tournament.format);
-      if (!v.valid) throw new Error(v.reason ?? 'err.invalidScore');
+      const v = validateScore(
+        m.score1,
+        m.score2,
+        tournament.scoring,
+        tournament.format,
+      );
+      if (!v.valid) throw new Error(v.reason ?? "err.invalidScore");
     }
 
     // Mark completed first so recomputed standings include this round.
@@ -579,8 +619,8 @@ export class PadelService {
     };
 
     const isStatic =
-      tournament.format === 'americano' ||
-      tournament.format === 'team-americano';
+      tournament.format === "americano" ||
+      tournament.format === "team-americano";
     const isFinalRound = !!round.isFinal;
     const nextRound = roundIndex + 1;
     const precomputedNext = tournament.rounds?.[nextRound];
@@ -592,7 +632,7 @@ export class PadelService {
       [`tournaments/${tournamentId}/updatedAt`]: Date.now(),
     };
     if (isLast) {
-      updates[`tournaments/${tournamentId}/status`] = 'finished';
+      updates[`tournaments/${tournamentId}/status`] = "finished";
       updates[`tournaments/${tournamentId}/currentRound`] = roundIndex;
     } else {
       updates[`tournaments/${tournamentId}/currentRound`] = nextRound;
@@ -610,7 +650,7 @@ export class PadelService {
     // Generate the next dynamic round if needed.
     if (!isLast && !isStatic) {
       let newRound: TournamentRound;
-      if (tournament.format === 'king-of-the-hill') {
+      if (tournament.format === "king-of-the-hill") {
         const prior = this.sortedRounds(completedTournament).filter(
           (r) => r.index < roundIndex,
         );
@@ -622,7 +662,11 @@ export class PadelService {
         );
       } else {
         const prior = this.sortedRounds(completedTournament);
-        newRound = this.buildDynamicRound(completedTournament, nextRound, prior);
+        newRound = this.buildDynamicRound(
+          completedTournament,
+          nextRound,
+          prior,
+        );
       }
       await withTimeout(
         set(
@@ -644,7 +688,7 @@ export class PadelService {
       get(ref(this.db, `tournaments/${tournamentId}`)),
     );
     const tournament = snap.val() as Tournament | null;
-    if (!tournament) throw new Error('err.tournamentNotFound');
+    if (!tournament) throw new Error("err.tournamentNotFound");
     return tournament;
   }
 
@@ -667,12 +711,14 @@ export class PadelService {
       get(ref(this.db, `tournaments/${tournamentId}`)),
     );
     const tournament = snap.val() as Tournament | null;
-    if (!tournament) throw new Error('err.tournamentNotFound');
+    if (!tournament) throw new Error("err.tournamentNotFound");
 
     await withTimeout(
-      update(ref(this.db, `tournaments/${tournamentId}`), { status: 'finished' }),
+      update(ref(this.db, `tournaments/${tournamentId}`), {
+        status: "finished",
+      }),
     );
-    await this.applyPlacementRatings({ ...tournament, status: 'finished' });
+    await this.applyPlacementRatings({ ...tournament, status: "finished" });
   }
 
   async deleteTournament(tournamentId: string): Promise<void> {
@@ -723,7 +769,9 @@ export class PadelService {
   }
 
   private teamPlayerIds(tournament: Tournament, teamId: string): string[] {
-    const t = Object.values(tournament.teams ?? {}).find((x) => x.id === teamId);
+    const t = Object.values(tournament.teams ?? {}).find(
+      (x) => x.id === teamId,
+    );
     return t ? [t.p1, t.p2] : [];
   }
 
@@ -750,22 +798,25 @@ export class PadelService {
         else if (myScore < oppScore) lost++;
       }
       const played = playerMatches.length;
-      const pf = matches
-        .filter((m) => m.a1 === id || m.a2 === id)
-        .reduce((s, m) => s + (m.score1 ?? 0), 0)
-        + matches
+      const pf =
+        matches
+          .filter((m) => m.a1 === id || m.a2 === id)
+          .reduce((s, m) => s + (m.score1 ?? 0), 0) +
+        matches
           .filter((m) => m.b1 === id || m.b2 === id)
           .reduce((s, m) => s + (m.score2 ?? 0), 0);
-      const pa = matches
-        .filter((m) => m.a1 === id || m.a2 === id)
-        .reduce((s, m) => s + (m.score2 ?? 0), 0)
-        + matches
+      const pa =
+        matches
+          .filter((m) => m.a1 === id || m.a2 === id)
+          .reduce((s, m) => s + (m.score2 ?? 0), 0) +
+        matches
           .filter((m) => m.b1 === id || m.b2 === id)
           .reduce((s, m) => s + (m.score1 ?? 0), 0);
 
       const baseSnap = await get(ref(this.db, `players/${id}`));
       const base = (baseSnap.val() as Player | null) ?? ({} as Player);
-      updates[`players/${id}/matchesPlayed`] = (base.matchesPlayed ?? 0) + played;
+      updates[`players/${id}/matchesPlayed`] =
+        (base.matchesPlayed ?? 0) + played;
       updates[`players/${id}/wins`] = (base.wins ?? 0) + won;
       updates[`players/${id}/losses`] = (base.losses ?? 0) + lost;
       updates[`players/${id}/pointsFor`] = (base.pointsFor ?? 0) + pf;
@@ -775,4 +826,3 @@ export class PadelService {
     await withTimeout(update(ref(this.db), updates));
   }
 }
-

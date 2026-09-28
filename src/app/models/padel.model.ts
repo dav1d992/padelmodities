@@ -1,12 +1,12 @@
 /** A registered padel player. */
-import { LOCAL_ADMIN_CODE } from '../../environments/admin-code';
+import { LOCAL_ADMIN_CODE } from "../../environments/admin-code";
 
 export type SkillName =
-  | 'power'
-  | 'agility'
-  | 'stamina'
-  | 'control'
-  | 'strategy';
+  | "power"
+  | "agility"
+  | "stamina"
+  | "control"
+  | "strategy";
 
 export interface Skillset {
   power: number;
@@ -17,19 +17,19 @@ export interface Skillset {
 }
 
 export const SKILL_LABELS: Record<SkillName, string> = {
-  power: 'Power',
-  agility: 'Agility',
-  stamina: 'Stamina',
-  control: 'Control',
-  strategy: 'Strategy',
+  power: "Power",
+  agility: "Agility",
+  stamina: "Stamina",
+  control: "Control",
+  strategy: "Strategy",
 };
 
 export const SKILL_NAMES: ReadonlyArray<SkillName> = [
-  'power',
-  'agility',
-  'stamina',
-  'control',
-  'strategy',
+  "power",
+  "agility",
+  "stamina",
+  "control",
+  "strategy",
 ];
 
 export const DEFAULT_SKILLSET: Skillset = {
@@ -63,40 +63,43 @@ export interface Player {
 }
 
 export type TournamentFormat =
-  | 'americano'
-  | 'team-americano'
-  | 'mexicano'
-  | 'team-mexicano'
-  | 'super-mexicano'
-  | 'mexericano'
-  | 'king-of-the-hill';
+  | "americano"
+  | "team-americano"
+  | "mexicano"
+  | "team-mexicano"
+  | "super-mexicano"
+  | "mexericano"
+  | "king-of-the-hill"
+  | "beat-the-box";
 
-export type TournamentStatus = 'draft' | 'active' | 'finished';
+export type TournamentStatus = "draft" | "active" | "finished";
 
 /** Formats where participants are fixed teams of two rather than individuals. */
 export const TEAM_FORMATS: readonly TournamentFormat[] = [
-  'team-americano',
-  'team-mexicano',
+  "team-americano",
+  "team-mexicano",
 ];
 
 /** Formats whose rounds are generated from live standings (regeneration allowed). */
 export const DYNAMIC_FORMATS: readonly TournamentFormat[] = [
-  'mexicano',
-  'team-mexicano',
-  'super-mexicano',
-  'mexericano',
-  'king-of-the-hill',
+  "mexicano",
+  "team-mexicano",
+  "super-mexicano",
+  "mexericano",
+  "king-of-the-hill",
+  "beat-the-box",
 ];
 
 /** Human-readable labels for each format. */
 export const FORMAT_LABELS: Record<TournamentFormat, string> = {
-  'americano': 'Americano',
-  'team-americano': 'Team Americano',
-  'mexicano': 'Mexicano',
-  'team-mexicano': 'Team Mexicano',
-  'super-mexicano': 'Super Mexicano',
-  'mexericano': 'Mexericano',
-  'king-of-the-hill': 'King of the Hill',
+  americano: "Americano",
+  "team-americano": "Team Americano",
+  mexicano: "Mexicano",
+  "team-mexicano": "Team Mexicano",
+  "super-mexicano": "Super Mexicano",
+  mexericano: "Mexericano",
+  "king-of-the-hill": "King of the Hill",
+  "beat-the-box": "Beat the Box",
 };
 
 export function isTeamFormat(format: TournamentFormat): boolean {
@@ -110,16 +113,16 @@ export function isDynamicFormat(format: TournamentFormat): boolean {
 // ── Scoring ────────────────────────────────────────────────────────────────
 
 export type ScoringMethod =
-  | 'fixed-points' // race to a fixed total (e.g. 16/24/32); sides split the total
-  | 'first-to' // first side to reach the target wins
-  | 'games-sets' // games and sets
-  | 'timed'; // timed round, leader wins
+  | "fixed-points" // race to a fixed total (e.g. 16/24/32); sides split the total
+  | "first-to" // first side to reach the target wins
+  | "games-sets" // games and sets
+  | "timed"; // timed round, leader wins
 
 export const SCORING_LABELS: Record<ScoringMethod, string> = {
-  'fixed-points': 'Faste point',
-  'first-to': 'Først til',
-  'games-sets': 'Games & sæt',
-  'timed': 'Tid',
+  "fixed-points": "Faste point",
+  "first-to": "Først til",
+  "games-sets": "Games & sæt",
+  timed: "Tid",
 };
 
 export interface ScoringConfig {
@@ -139,7 +142,7 @@ export interface ScoringConfig {
 }
 
 export const DEFAULT_SCORING: ScoringConfig = {
-  method: 'fixed-points',
+  method: "fixed-points",
   pointTarget: 24,
   winByTwo: false,
   goldenPoint: false,
@@ -163,7 +166,7 @@ export const DEFAULT_BONUS: CourtBonusConfig = {
   enabled: true,
   startRound: 1,
   winnersOnly: false,
-  points: { '0': 3, '1': 2, '2': 1 },
+  points: { "0": 3, "1": 2, "2": 1 },
 };
 
 /** A fixed team of two players (team formats). */
@@ -216,7 +219,7 @@ export interface TournamentRound {
 /** Per-player King of the Hill statistics (recomputed from rounds). */
 export interface KothStats {
   currentCourt: number;
-  lastMovement: 'up' | 'down' | 'stay-top' | 'stay-bottom' | 'none';
+  lastMovement: "up" | "down" | "stay-top" | "stay-bottom" | "none";
   /** Best (lowest) court index reached. 0 = King Court. */
   highestCourt: number;
   wins: number;
@@ -276,8 +279,10 @@ export interface StandingRow {
 }
 
 /** Admin access code. Injected from the ADMIN_CODE secret in CI; falls back to the local dev code. */
-const INJECTED_ADMIN_CODE = '__ADMIN_CODE__';
-export const ADMIN_CODE = INJECTED_ADMIN_CODE.startsWith('__') ? LOCAL_ADMIN_CODE : INJECTED_ADMIN_CODE;
+const INJECTED_ADMIN_CODE = "__ADMIN_CODE__";
+export const ADMIN_CODE = INJECTED_ADMIN_CODE.startsWith("__")
+  ? LOCAL_ADMIN_CODE
+  : INJECTED_ADMIN_CODE;
 
 /** ELO K-factor used when updating global ratings after a match. */
 export const ELO_K = 32;
@@ -341,7 +346,10 @@ export function estimateMatchScore(
   const p2 = Math.pow(strength2, exponent);
   const ratio = p1 + p2 > 0 ? p1 / (p1 + p2) : 0.5;
 
-  const score1 = Math.max(0, Math.min(totalPoints, Math.round(totalPoints * ratio)));
+  const score1 = Math.max(
+    0,
+    Math.min(totalPoints, Math.round(totalPoints * ratio)),
+  );
   return {
     score1,
     score2: totalPoints - score1,

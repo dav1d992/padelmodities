@@ -58,6 +58,7 @@ export class TournamentSetupComponent implements OnInit {
     { value: "super-mexicano" },
     { value: "mexericano" },
     { value: "king-of-the-hill" },
+    { value: "beat-the-box" },
   ];
 
   readonly scoringMethods: ScoringMethod[] = [
@@ -155,6 +156,7 @@ export class TournamentSetupComponent implements OnInit {
   readonly isTeam = computed(() => isTeamFormat(this.format()));
   readonly isDynamic = computed(() => isDynamicFormat(this.format()));
   readonly isKoth = computed(() => this.format() === "king-of-the-hill");
+  readonly isBeatTheBox = computed(() => this.format() === "beat-the-box");
   readonly isSuperMex = computed(() => this.format() === "super-mexicano");
   readonly isMexericano = computed(() => this.format() === "mexericano");
   /** Formats that support the court-bonus config. */
@@ -202,6 +204,10 @@ export class TournamentSetupComponent implements OnInit {
       if (this.selectedCount() < 4) messages.push(this.i18n.t("val.min4"));
     }
 
+    if (this.isBeatTheBox() && this.totalRounds() % 3 !== 0) {
+      messages.push(this.i18n.t("val.beatBoxRounds"));
+    }
+
     if (!this.isTeam() && this.perRoundInfo().matches < 1) {
       messages.push(this.i18n.t("val.fillCourt"));
     }
@@ -229,6 +235,9 @@ export class TournamentSetupComponent implements OnInit {
 
   selectFormat(f: TournamentFormat): void {
     this.format.set(f);
+    if (f === "beat-the-box" && this.totalRounds() === 7) {
+      this.totalRounds.set(6);
+    }
     if (f === "king-of-the-hill" && this.courtCount() < 2) {
       this.courtNames.set([
         this.i18n.t("court.king"),
@@ -342,11 +351,18 @@ export class TournamentSetupComponent implements OnInit {
   // ── Submit ──────────────────────────────────────────────────────────────
 
   private buildInput(status: "draft" | "active"): CreateTournamentInput {
+    const playerIds = this.isTeam() ? [] : [...this.selectedIds()];
+    if (this.isBeatTheBox() && this.seeded()) {
+      const ratings = new Map(
+        this.players().map((player) => [player.id, player.rating]),
+      );
+      playerIds.sort((a, b) => (ratings.get(b) ?? 0) - (ratings.get(a) ?? 0));
+    }
     return {
       name: this.tournamentName(),
       description: this.description(),
       format: this.format(),
-      playerIds: this.isTeam() ? [] : [...this.selectedIds()],
+      playerIds,
       teams: this.isTeam() ? this.teams() : undefined,
       courtNames: this.courtNames(),
       totalRounds: this.isRoundRobin() ? 0 : this.totalRounds(),

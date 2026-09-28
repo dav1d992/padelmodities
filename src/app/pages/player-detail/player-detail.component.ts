@@ -164,27 +164,19 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
 
   private pushSnowflakesFurther(): void {
-    const leftFlakes = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19, 22, 23, 28, 29, 30, 31, 37, 38, 39]);
-    const flakes = this.document.querySelectorAll<HTMLElement>(".snowflake > span");
+    const leftFlakes = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19, 22, 23, 28, 29, 30, 31, 37, 38, 39, 44, 46]);
+    const flakes = this.document.querySelectorAll<HTMLElement>(
+      ".snowflake > span, .santa-mort-slide",
+    );
+    const pushStep = Math.max(32, Math.min(140, window.innerWidth * 0.12));
 
     flakes.forEach((flake, index) => {
       const transform = getComputedStyle(flake).transform;
       const match = transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,([^,]+),/);
       const currentX = match ? Number(match[1]) : 0;
       const direction = leftFlakes.has(index) ? -1 : 1;
-      const nextX = currentX + direction * 120;
-
-      flake.animate(
-        [
-          { transform: `translateX(${currentX}px)` },
-          { transform: `translateX(${nextX}px)` },
-        ],
-        {
-          duration: 700,
-          easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
-          fill: "forwards",
-        },
-      );
+      const nextX = currentX + direction * pushStep;
+      flake.style.transform = `translateX(${nextX}px)`;
     });
   }
 

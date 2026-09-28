@@ -69,8 +69,29 @@
 
 @if (theme.snowfallActive()) {
   <div class="snowfall" [class.leaving]="theme.snowfallLeaving()" aria-hidden="true">
-    @for (flake of snowflakes; track flake) {
-      <span class="snowflake"><span>❄</span></span>
+    @for (flake of snowflakes; track flake.index) {
+      <span class="snowflake" [style.--snow-delay]="flake.delay"><span>❄</span></span>
+    }
+    @for (santa of santaMorts; track santa.left) {
+      <span
+        [class]="'santa-mort-flake santa-mort-' + santa.index"
+        [style.left]="santa.left"
+        [style.width]="santa.size"
+        [style.--snow-duration]="santa.duration"
+        [style.--snow-delay]="santa.delay"
+      >
+        <span class="santa-mort-slide">
+          <img
+            class="santa-mort-image"
+            src="/assets/optimized/santa-mort.webp"
+            alt=""
+            [style.--rotation-from]="santa.rotationFrom"
+            [style.--rotation-to]="santa.rotationTo"
+            [style.--rotation-duration]="santa.rotationDuration"
+            [style.--rotation-delay]="santa.rotationDelay"
+          />
+        </span>
+      </span>
     }
   </div>
 }

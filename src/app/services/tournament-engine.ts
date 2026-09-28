@@ -17,7 +17,7 @@ import {
   type TournamentMatch,
   type TournamentRound,
   type TournamentTeam,
-} from '../models/padel.model';
+} from "../models/padel.model";
 
 // ── Small utilities ──────────────────────────────────────────────────────────
 
@@ -186,7 +186,7 @@ export function generateAmericanoRounds(
 ): TournamentRound[] {
   const n = playerIds.length;
   const perRound = 4 * Math.min(courtCount, Math.floor(n / 4));
-  if (perRound < 4) throw new Error('err.americano4');
+  if (perRound < 4) throw new Error("err.americano4");
   const sitCount = n - perRound;
 
   const rounds: TournamentRound[] = [];
@@ -357,7 +357,7 @@ interface MexHistory extends ScheduleHistory {
 }
 
 function foursomeKey(ids: readonly string[]): string {
-  return [...ids].sort().join('|');
+  return [...ids].sort().join("|");
 }
 
 function buildMexHistory(
@@ -523,7 +523,7 @@ export function generateMexericanoRound(
 ): TournamentRound {
   const n = playerIds.length;
   const perRound = 4 * Math.min(courtCount, Math.floor(n / 4));
-  if (perRound < 4) throw new Error('err.mexericano4');
+  if (perRound < 4) throw new Error("err.mexericano4");
   const sitCount = n - perRound;
 
   const h = buildMexHistory(priorRounds, playerIds);
@@ -531,8 +531,7 @@ export function generateMexericanoRound(
   const window = options.rankingWindow ?? DEFAULT_RANKING_WINDOW;
   const attempts = options.attempts ?? 60;
 
-  const baseOrder =
-    roundIndex === 0 ? shuffle(playerIds) : [...standingsOrder];
+  const baseOrder = roundIndex === 0 ? shuffle(playerIds) : [...standingsOrder];
   const sitters = pickSitters(
     baseOrder,
     sitCount,
@@ -597,7 +596,7 @@ export function generateMexericanoFinalRound(
 /** Circle-method round-robin producing conflict-free logical rounds of pairs. */
 function roundRobinPairs(teamIds: string[]): [string, string][][] {
   const ids = [...teamIds];
-  if (ids.length % 2 !== 0) ids.push('__BYE__');
+  if (ids.length % 2 !== 0) ids.push("__BYE__");
   const n = ids.length;
   const rounds: [string, string][][] = [];
   const arr = [...ids];
@@ -606,7 +605,7 @@ function roundRobinPairs(teamIds: string[]): [string, string][][] {
     for (let i = 0; i < n / 2; i++) {
       const a = arr[i];
       const b = arr[n - 1 - i];
-      if (a !== '__BYE__' && b !== '__BYE__') pairs.push([a, b]);
+      if (a !== "__BYE__" && b !== "__BYE__") pairs.push([a, b]);
     }
     rounds.push(pairs);
     // rotate keeping first fixed
@@ -731,6 +730,156 @@ export function generateTeamMexicanoRound(
   };
 }
 
+const BEAT_THE_BOX_PAIRINGS: [number, number, number, number][] = [
+  [0, 1, 2, 3],
+  [0, 2, 1, 3],
+  [0, 3, 1, 2],
+];
+
+function beatTheBoxBoxes(round: TournamentRound): string[][] {
+  return Object.values(round.matches ?? {})
+    .sort((a, b) => a.courtIndex - b.courtIndex)
+    .map((match) => [match.a1, match.a2, match.b1, match.b2]);
+}
+
+function buildBeatTheBoxRound(
+  boxes: string[][],
+  roundIndex: number,
+  sitters: string[],
+): TournamentRound {
+  const pairing = BEAT_THE_BOX_PAIRINGS[roundIndex % 3];
+  const matches: TournamentMatch[] = boxes.map((players, courtIndex) => ({
+    id: `r${roundIndex}_c${courtIndex}`,
+    courtIndex,
+    a1: players[pairing[0]],
+    a2: players[pairing[1]],
+    b1: players[pairing[2]],
+    b2: players[pairing[3]],
+  }));
+  return {
+    index: roundIndex,
+    completed: false,
+    matches: toMatchRecord(matches),
+    sitOutIds: toIdRecord(sitters),
+  };
+}
+
+/** Place individuals into four-player boxes, optionally preserving ELO order. */
+export function generateBeatTheBoxInitialRound(
+  playerIds: string[],
+  courtCount: number,
+  seeded: boolean,
+): TournamentRound {
+  if (playerIds.length < 4) throw new Error("err.min4");
+  const order = seeded ? [...playerIds] : shuffle(playerIds);
+  const courtTotal = Math.min(courtCount, Math.floor(order.length / 4));
+  const activePlayers = order.slice(0, courtTotal * 4);
+  const boxes = Array.from({ length: courtTotal }, () => [] as string[]);
+  if (seeded) {
+    activePlayers.forEach((id, seedIndex) => {
+      const wave = Math.floor(seedIndex / courtTotal);
+      const offset = seedIndex % courtTotal;
+      const courtIndex = wave % 2 === 0 ? offset : courtTotal - 1 - offset;
+      boxes[courtIndex].push(id);
+    });
+  } else {
+    activePlayers.forEach((id, index) => boxes[Math.floor(index / 4)].push(id));
+  }
+  return buildBeatTheBoxRound(boxes, 0, order.slice(courtTotal * 4));
+}
+
+/** Keep each box for three partner rotations, then move its top/bottom two. */
+export function generateBeatTheBoxNextRound(
+  completed: TournamentRound,
+  priorRounds: TournamentRound[],
+  roundIndex: number,
+  playerIds: string[],
+  courtCount: number,
+): TournamentRound {
+  const previousBoxes = beatTheBoxBoxes(completed);
+  const maxCourts = Math.min(courtCount, Math.floor(playerIds.length / 4));
+  const sitOutCount = playerIds.length - maxCourts * 4;
+  let boxes = previousBoxes;
+  let sitters = Object.values(completed.sitOutIds ?? {});
+
+  if (roundIndex % 3 === 0) {
+    const points = new Map<string, { total: number; diff: number }>();
+    for (const id of playerIds) points.set(id, { total: 0, diff: 0 });
+    for (const round of priorRounds.slice(-3)) {
+      for (const match of Object.values(round.matches ?? {})) {
+        if (match.score1 == null || match.score2 == null) continue;
+        for (const id of [match.a1, match.a2]) {
+          const score = points.get(id);
+          if (score) {
+            score.total += match.score1;
+            score.diff += match.score1 - match.score2;
+          }
+        }
+        for (const id of [match.b1, match.b2]) {
+          const score = points.get(id);
+          if (score) {
+            score.total += match.score2;
+            score.diff += match.score2 - match.score1;
+          }
+        }
+      }
+    }
+
+    const rankedBoxes = previousBoxes.map((box) =>
+      [...box].sort(
+        (a, b) =>
+          (points.get(b)?.total ?? 0) - (points.get(a)?.total ?? 0) ||
+          (points.get(b)?.diff ?? 0) - (points.get(a)?.diff ?? 0) ||
+          playerIds.indexOf(a) - playerIds.indexOf(b),
+      ),
+    );
+    const movedBoxes = rankedBoxes.map((box, courtIndex) => {
+      if (rankedBoxes.length === 1) return [...box];
+      if (courtIndex === 0) {
+        return [...box.slice(0, 2), ...rankedBoxes[1].slice(0, 2)];
+      }
+      if (courtIndex === rankedBoxes.length - 1) {
+        return [...rankedBoxes[courtIndex - 1].slice(2), ...box.slice(2)];
+      }
+      return [
+        ...rankedBoxes[courtIndex - 1].slice(2),
+        ...rankedBoxes[courtIndex + 1].slice(0, 2),
+      ];
+    });
+
+    const history = buildHistory(priorRounds, playerIds);
+    sitters = pickSitters(playerIds, sitOutCount, history, roundIndex);
+    const previousPlayers = new Set(previousBoxes.flat());
+    const activePlayers = new Set(
+      playerIds.filter((id) => !sitters.includes(id)),
+    );
+    const entrants = [...activePlayers].filter(
+      (id) => !previousPlayers.has(id),
+    );
+    const exits = [...previousPlayers].filter((id) => !activePlayers.has(id));
+    for (const exitingPlayer of exits) {
+      let replaced = false;
+      for (
+        let courtIndex = movedBoxes.length - 1;
+        courtIndex >= 0;
+        courtIndex--
+      ) {
+        const playerIndex = movedBoxes[courtIndex].indexOf(exitingPlayer);
+        if (playerIndex < 0) continue;
+        const entrant = entrants.shift();
+        if (!entrant) throw new Error("err.min4");
+        movedBoxes[courtIndex][playerIndex] = entrant;
+        replaced = true;
+        break;
+      }
+      if (!replaced) throw new Error("err.min4");
+    }
+    boxes = movedBoxes;
+  }
+
+  return buildBeatTheBoxRound(boxes, roundIndex, sitters);
+}
+
 // ── King of the Hill ─────────────────────────────────────────────────────────
 
 /** Court occupancy: two pairs per court. */
@@ -748,11 +897,11 @@ function readCourts(round: TournamentRound): CourtState[] {
 }
 
 /** Winner side of a KotH match ('a' | 'b'); throws on tie. */
-function kothWinnerSide(m: TournamentMatch): 'a' | 'b' {
+function kothWinnerSide(m: TournamentMatch): "a" | "b" {
   const s1 = m.score1 ?? 0;
   const s2 = m.score2 ?? 0;
-  if (s1 === s2) throw new Error('err.kothWinner');
-  return s1 > s2 ? 'a' : 'b';
+  if (s1 === s2) throw new Error("err.kothWinner");
+  return s1 > s2 ? "a" : "b";
 }
 
 /** Generate the initial KotH round: courtCount courts of 4, random or seeded. */
@@ -763,7 +912,7 @@ export function generateKothInitialRound(
 ): TournamentRound {
   const active = courtCount * 4;
   if (playerIds.length < active) {
-    throw new Error('err.kothPlayersGeneric');
+    throw new Error("err.kothPlayersGeneric");
   }
   const order = seeded ? [...playerIds] : shuffle(playerIds);
   const sitters = order.slice(active);
@@ -810,8 +959,8 @@ export function generateKothNextRound(
   const losers: [string, string][] = [];
   matches.forEach((m) => {
     const side = kothWinnerSide(m);
-    winners.push(side === 'a' ? [m.a1, m.a2] : [m.b1, m.b2]);
-    losers.push(side === 'a' ? [m.b1, m.b2] : [m.a1, m.a2]);
+    winners.push(side === "a" ? [m.a1, m.a2] : [m.b1, m.b2]);
+    losers.push(side === "a" ? [m.b1, m.b2] : [m.a1, m.a2]);
   });
 
   // Determine the two incoming pairs for each destination court.
@@ -872,7 +1021,7 @@ export function computeKothStats(
   playerIds.forEach((id) => {
     stats[id] = {
       currentCourt: -1,
-      lastMovement: 'none',
+      lastMovement: "none",
       highestCourt: Number.MAX_SAFE_INTEGER,
       wins: 0,
       losses: 0,
@@ -901,10 +1050,10 @@ export function computeKothStats(
         if (court === 0 && round.completed) st.kingAppearances++;
         // movement vs previous round
         const previous = previousCourt[id];
-        if (previous === undefined) st.lastMovement = 'none';
-        else if (court < previous) st.lastMovement = 'up';
-        else if (court > previous) st.lastMovement = 'down';
-        else st.lastMovement = court === 0 ? 'stay-top' : 'stay-bottom';
+        if (previous === undefined) st.lastMovement = "none";
+        else if (court < previous) st.lastMovement = "up";
+        else if (court > previous) st.lastMovement = "down";
+        else st.lastMovement = court === 0 ? "stay-top" : "stay-bottom";
       }
 
       if (scored && round.completed) {
@@ -947,11 +1096,11 @@ export interface ScoreValidation {
 }
 
 /** Winner of a match: 'a' | 'b' | 'tie' based on primary scores. */
-export function matchWinner(m: TournamentMatch): 'a' | 'b' | 'tie' {
+export function matchWinner(m: TournamentMatch): "a" | "b" | "tie" {
   const s1 = m.score1 ?? 0;
   const s2 = m.score2 ?? 0;
-  if (s1 === s2) return 'tie';
-  return s1 > s2 ? 'a' : 'b';
+  if (s1 === s2) return "tie";
+  return s1 > s2 ? "a" : "b";
 }
 
 /** Validate a completed score against the scoring config and format. */
@@ -962,46 +1111,45 @@ export function validateScore(
   format: TournamentFormat,
 ): ScoreValidation {
   if (score1 < 0 || score2 < 0) {
-    return { valid: false, reason: 'err.negative' };
+    return { valid: false, reason: "err.negative" };
   }
-  const koth = format === 'king-of-the-hill';
-  if (koth && score1 === score2) {
+  if (format === "king-of-the-hill" && score1 === score2) {
     return {
       valid: false,
-      reason: 'err.kothTie',
+      reason: "err.kothTie",
     };
   }
 
   switch (scoring.method) {
-    case 'fixed-points': {
+    case "fixed-points": {
       const total = score1 + score2;
       if (total !== scoring.pointTarget) {
         return {
           valid: false,
-          reason: 'err.sumTo',
+          reason: "err.sumTo",
           reasonParams: { target: scoring.pointTarget },
         };
       }
       return { valid: true };
     }
-    case 'first-to': {
+    case "first-to": {
       const hi = Math.max(score1, score2);
       const lo = Math.min(score1, score2);
       if (hi < scoring.pointTarget) {
         return {
           valid: false,
-          reason: 'err.winnerReach',
+          reason: "err.winnerReach",
           reasonParams: { target: scoring.pointTarget },
         };
       }
       if (scoring.goldenPoint) return { valid: true };
       if (scoring.winByTwo && hi - lo < 2) {
-        return { valid: false, reason: 'err.diff2' };
+        return { valid: false, reason: "err.diff2" };
       }
       return { valid: true };
     }
-    case 'games-sets':
-    case 'timed':
+    case "games-sets":
+    case "timed":
     default:
       // Free-form: only the tie rule (for KotH) applies.
       return { valid: true };
@@ -1108,11 +1256,11 @@ export function computeStandings(
           tournament.bonus,
           m.courtIndex,
           round.index,
-          winner === 'a',
+          winner === "a",
           roundsWithoutBonus,
         );
-        if (winner === 'a') r.wins++;
-        else if (winner === 'b') r.losses++;
+        if (winner === "a") r.wins++;
+        else if (winner === "b") r.losses++;
         else r.draws++;
       }
       for (const id of sideB) {
@@ -1125,17 +1273,17 @@ export function computeStandings(
           tournament.bonus,
           m.courtIndex,
           round.index,
-          winner === 'b',
+          winner === "b",
           roundsWithoutBonus,
         );
-        if (winner === 'b') r.wins++;
-        else if (winner === 'a') r.losses++;
+        if (winner === "b") r.wins++;
+        else if (winner === "a") r.losses++;
         else r.draws++;
       }
 
       if (team) {
-        if (winner === 'a') addH2h(idA!, idB!);
-        else if (winner === 'b') addH2h(idB!, idA!);
+        if (winner === "a") addH2h(idA!, idB!);
+        else if (winner === "b") addH2h(idB!, idA!);
       }
     }
   }
@@ -1192,7 +1340,22 @@ export function buildDynamicRound(
   priorRounds: TournamentRound[],
 ): TournamentRound {
   const order = standingsOrder(t, (id) => participantNameOf(t, id));
-  if (t.format === 'team-mexicano') {
+  if (t.format === "beat-the-box") {
+    const playerIds = Object.values(t.playerIds ?? {});
+    if (roundIndex === 0) {
+      return generateBeatTheBoxInitialRound(playerIds, t.courtCount, t.seeded);
+    }
+    const previousRound = priorRounds[priorRounds.length - 1];
+    if (!previousRound) throw new Error("err.roundNotFound");
+    return generateBeatTheBoxNextRound(
+      previousRound,
+      priorRounds,
+      roundIndex,
+      playerIds,
+      t.courtCount,
+    );
+  }
+  if (t.format === "team-mexicano") {
     const teamIds = Object.values(t.teams ?? {}).map((x) => x.id);
     return generateTeamMexicanoRound(
       teamIds,
@@ -1204,7 +1367,7 @@ export function buildDynamicRound(
     );
   }
   const playerIds = Object.values(t.playerIds ?? {});
-  if (t.format === 'mexericano') {
+  if (t.format === "mexericano") {
     return generateMexericanoRound(
       playerIds,
       t.courtCount,
@@ -1234,12 +1397,12 @@ export function generateInitialRounds(t: Tournament): InitialRoundsResult {
   const rounds: Record<string, TournamentRound> = {};
   let totalRounds = t.totalRounds;
 
-  if (format === 'americano') {
+  if (format === "americano") {
     const playerIds = Object.values(t.playerIds ?? {});
     generateAmericanoRounds(playerIds, courtCount, t.totalRounds).forEach(
       (r) => (rounds[String(r.index)] = r),
     );
-  } else if (format === 'team-americano') {
+  } else if (format === "team-americano") {
     const teamIds = Object.values(t.teams ?? {}).map((x) => x.id);
     const generated = generateTeamAmericanoRounds(
       teamIds,
@@ -1248,11 +1411,17 @@ export function generateInitialRounds(t: Tournament): InitialRoundsResult {
     );
     generated.forEach((r) => (rounds[String(r.index)] = r));
     totalRounds = generated.length;
-  } else if (format === 'king-of-the-hill') {
+  } else if (format === "king-of-the-hill") {
     const playerIds = Object.values(t.playerIds ?? {});
-    rounds['0'] = generateKothInitialRound(playerIds, courtCount, t.seeded);
+    rounds["0"] = generateKothInitialRound(playerIds, courtCount, t.seeded);
+  } else if (format === "beat-the-box") {
+    rounds["0"] = generateBeatTheBoxInitialRound(
+      Object.values(t.playerIds ?? {}),
+      courtCount,
+      t.seeded,
+    );
   } else {
-    rounds['0'] = buildDynamicRound(t, 0, []);
+    rounds["0"] = buildDynamicRound(t, 0, []);
   }
 
   return { rounds, totalRounds };
@@ -1260,18 +1429,18 @@ export function generateInitialRounds(t: Tournament): InitialRoundsResult {
 
 /** Replace the current (unscored) round with a freshly generated one. */
 export function regenerateCurrentRound(t: Tournament): Tournament {
-  if (!isDynamicFormat(t.format)) throw new Error('err.dynamicOnly');
+  if (!isDynamicFormat(t.format)) throw new Error("err.dynamicOnly");
   const roundIndex = t.currentRound;
   const round = t.rounds?.[roundIndex];
-  if (round?.completed) throw new Error('err.roundDone');
+  if (round?.completed) throw new Error("err.roundDone");
   const anyScore = Object.values(round?.matches ?? {}).some(
     (m) => m.score1 !== undefined || m.score2 !== undefined,
   );
-  if (anyScore) throw new Error('err.regenScores');
+  if (anyScore) throw new Error("err.regenScores");
 
   const prior = sortedRoundsOf(t).filter((r) => r.index < roundIndex);
   let newRound: TournamentRound;
-  if (t.format === 'king-of-the-hill') {
+  if (t.format === "king-of-the-hill") {
     if (roundIndex === 0) {
       newRound = generateKothInitialRound(
         Object.values(t.playerIds ?? {}),
@@ -1287,7 +1456,7 @@ export function regenerateCurrentRound(t: Tournament): Tournament {
         Object.values(t.playerIds ?? {}),
       );
     }
-  } else if (t.format === 'mexericano' && round?.isFinal) {
+  } else if (t.format === "mexericano" && round?.isFinal) {
     const order = standingsOrder(t, (id) => participantNameOf(t, id));
     newRound = generateMexericanoFinalRound(
       Object.values(t.playerIds ?? {}),
@@ -1304,15 +1473,15 @@ export function regenerateCurrentRound(t: Tournament): Tournament {
 
 /** Replace the current (unscored) round with the decisive Mexericano final. */
 export function runFinalRound(t: Tournament): Tournament {
-  if (t.format !== 'mexericano') throw new Error('err.mexericanoOnly');
-  if (t.status !== 'active') throw new Error('err.notActive');
+  if (t.format !== "mexericano") throw new Error("err.mexericanoOnly");
+  if (t.status !== "active") throw new Error("err.notActive");
   const rounds = sortedRoundsOf(t);
   if (rounds.filter((r) => r.completed).length < 1) {
-    throw new Error('err.finalNeedsRound');
+    throw new Error("err.finalNeedsRound");
   }
-  if (rounds.some((r) => r.isFinal)) throw new Error('err.finalExists');
+  if (rounds.some((r) => r.isFinal)) throw new Error("err.finalExists");
   const roundIndex = t.currentRound;
-  if (t.rounds?.[roundIndex]?.completed) throw new Error('err.roundDone');
+  if (t.rounds?.[roundIndex]?.completed) throw new Error("err.roundDone");
 
   const prior = rounds.filter((r) => r.index < roundIndex);
   const order = standingsOrder(t, (id) => participantNameOf(t, id));
@@ -1334,7 +1503,7 @@ export function runFinalRound(t: Tournament): Tournament {
 export function completeCurrentRound(t: Tournament): Tournament {
   const roundIndex = t.currentRound;
   const round = t.rounds?.[roundIndex];
-  if (!round) throw new Error('err.roundNotFound');
+  if (!round) throw new Error("err.roundNotFound");
 
   const matches = round.matches ? Object.values(round.matches) : [];
   for (const m of matches) {
@@ -1344,10 +1513,10 @@ export function completeCurrentRound(t: Tournament): Tournament {
       m.score1 === null ||
       m.score2 === null
     ) {
-      throw new Error('err.enterBeforeComplete');
+      throw new Error("err.enterBeforeComplete");
     }
     const v = validateScore(m.score1, m.score2, t.scoring, t.format);
-    if (!v.valid) throw new Error(v.reason ?? 'err.invalidScore');
+    if (!v.valid) throw new Error(v.reason ?? "err.invalidScore");
   }
 
   const completedRound: TournamentRound = { ...round, completed: true };
@@ -1357,24 +1526,22 @@ export function completeCurrentRound(t: Tournament): Tournament {
     updatedAt: Date.now(),
   };
 
-  const isStatic =
-    t.format === 'americano' || t.format === 'team-americano';
+  const isStatic = t.format === "americano" || t.format === "team-americano";
   const isFinalRound = !!round.isFinal;
   const nextRound = roundIndex + 1;
   const precomputedNext = t.rounds?.[nextRound];
   const isLast =
-    isFinalRound ||
-    (isStatic ? !precomputedNext : nextRound >= t.totalRounds);
+    isFinalRound || (isStatic ? !precomputedNext : nextRound >= t.totalRounds);
 
   if (isLast) {
-    result = { ...result, status: 'finished', currentRound: roundIndex };
+    result = { ...result, status: "finished", currentRound: roundIndex };
   } else {
     result = { ...result, currentRound: nextRound };
   }
 
   if (!isLast && !isStatic) {
     let newRound: TournamentRound;
-    if (t.format === 'king-of-the-hill') {
+    if (t.format === "king-of-the-hill") {
       const prior = sortedRoundsOf(result).filter((r) => r.index < roundIndex);
       newRound = generateKothNextRound(
         completedRound,

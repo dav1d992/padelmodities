@@ -7,6 +7,8 @@ import sharp from "sharp";
 
 const SOURCE_DIR = path.join("src", "app", "assets", "player-photos");
 const OUTPUT_DIR = path.join("src", "app", "assets", "optimized");
+const SANTA_SOURCE = path.join("src", "app", "assets", "santa-mort.png");
+const SANTA_OUTPUT = path.join(OUTPUT_DIR, "santa-mort.webp");
 const MANIFEST_FILE = path.join("src", "app", "generated", "rail-photos.ts");
 const QUALITY = 78;
 
@@ -64,6 +66,22 @@ for (const file of files) {
       converted++;
     }
   }
+}
+
+const santaSource = await stat(SANTA_SOURCE);
+if (
+  !existsSync(SANTA_OUTPUT) ||
+  (await stat(SANTA_OUTPUT)).mtimeMs < santaSource.mtimeMs
+) {
+  await sharp(SANTA_SOURCE)
+    .resize({ width: 360, withoutEnlargement: true })
+    .webp({ quality: QUALITY })
+    .toFile(SANTA_OUTPUT);
+  const santaOutput = await stat(SANTA_OUTPUT);
+  savedBytes += santaSource.size - santaOutput.size;
+  converted++;
+} else {
+  skipped++;
 }
 
 const mb = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;

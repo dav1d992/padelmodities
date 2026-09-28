@@ -60,8 +60,10 @@ export class AudioService {
   }
 
   private backgroundTrackUrl(): string {
-    if (this.musicTheme === "christmas") return "/assets/sounds-effects/background-xmas.mp3";
-    if (this.musicTheme === "halloween") return "/assets/sounds-effects/background-halloween.mp3";
+    if (this.musicTheme === "christmas")
+      return "/assets/sounds-effects/background-xmas.mp3";
+    if (this.musicTheme === "halloween")
+      return "/assets/sounds-effects/background-halloween.mp3";
     return "/assets/sounds-effects/background";
   }
 

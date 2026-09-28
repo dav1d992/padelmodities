@@ -184,6 +184,11 @@ body::before {
 }
 
 .snowfall {
+  --snow-impact-left: clamp(-240px, -24vw, -48px);
+  --snow-impact-right: clamp(48px, 24vw, 240px);
+  --snow-impact-step: clamp(32px, 12vw, 140px);
+  --snow-impact-far-left: calc(var(--snow-impact-left) - var(--snow-impact-step));
+  --snow-impact-far-right: calc(var(--snow-impact-right) + var(--snow-impact-step));
   position: fixed;
   inset: 0;
   z-index: 120;
@@ -213,6 +218,36 @@ body::before {
   display: block;
   transform: translateX(0);
   transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.santa-mort-flake {
+  position: absolute;
+  top: -12vh;
+  opacity: 0.9;
+  animation: snowFall var(--snow-duration) linear var(--snow-delay) infinite;
+  will-change: transform;
+}
+
+.santa-mort-slide {
+  display: block;
+  width: 100%;
+  transform: translateX(0);
+  transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.santa-mort-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  transform-origin: center;
+  animation: santaMortTilt var(--rotation-duration) ease-in-out
+    var(--rotation-delay) infinite alternate;
+}
+
+@keyframes santaMortTilt {
+  from { transform: rotate(var(--rotation-from)); }
+  to { transform: rotate(var(--rotation-to)); }
 }
 
 .lightning {
@@ -683,7 +718,7 @@ body::before {
 :root.hero-impact .snowflake:nth-child(20) > span,
 :root.hero-impact .snowflake:nth-child(23) > span,
 :root.hero-impact .snowflake:nth-child(24) > span {
-  transform: translateX(-240px);
+  transform: translateX(var(--snow-impact-left));
 }
 
 :root.hero-impact .snowflake:nth-child(10) > span,
@@ -700,7 +735,7 @@ body::before {
 :root.hero-impact .snowflake:nth-child(26) > span,
 :root.hero-impact .snowflake:nth-child(27) > span,
 :root.hero-impact .snowflake:nth-child(28) > span {
-  transform: translateX(240px);
+  transform: translateX(var(--snow-impact-right));
 }
 
 :root.hero-impact .snowflake:nth-child(29) > span,
@@ -710,7 +745,7 @@ body::before {
 :root.hero-impact .snowflake:nth-child(38) > span,
 :root.hero-impact .snowflake:nth-child(39) > span,
 :root.hero-impact .snowflake:nth-child(40) > span {
-  transform: translateX(-240px);
+  transform: translateX(var(--snow-impact-left));
 }
 
 :root.hero-impact .snowflake:nth-child(33) > span,
@@ -722,34 +757,43 @@ body::before {
 :root.hero-impact .snowflake:nth-child(42) > span,
 :root.hero-impact .snowflake:nth-child(43) > span,
 :root.hero-impact .snowflake:nth-child(44) > span {
-  transform: translateX(240px);
+  transform: translateX(var(--snow-impact-right));
+}
+
+:root.hero-impact .santa-mort-0 > .santa-mort-slide,
+:root.hero-impact .santa-mort-2 > .santa-mort-slide {
+  transform: translateX(var(--snow-impact-left));
+}
+
+:root.hero-impact .santa-mort-1 > .santa-mort-slide {
+  transform: translateX(var(--snow-impact-right));
 }
 
 @media (max-width: 640px) {
   :root.hero-impact .snowflake:nth-child(odd) > span {
-    transform: translateX(-240px);
+    transform: translateX(var(--snow-impact-left));
   }
 
   :root.hero-impact .snowflake:nth-child(even) > span {
-    transform: translateX(240px);
+    transform: translateX(var(--snow-impact-right));
   }
 }
 
 @keyframes snowPushLeft {
   from {
-    transform: translateX(-240px);
+    transform: translateX(var(--snow-impact-far-left));
   }
   to {
-    transform: translateX(-380px);
+    transform: translateX(var(--snow-impact-far-left));
   }
 }
 
 @keyframes snowPushRight {
   from {
-    transform: translateX(240px);
+    transform: translateX(var(--snow-impact-right));
   }
   to {
-    transform: translateX(380px);
+    transform: translateX(var(--snow-impact-far-right));
   }
 }
 
@@ -784,6 +828,15 @@ body::before {
 :root.hero-impact-slam .snowflake:nth-child(26) > span,
 :root.hero-impact-slam .snowflake:nth-child(27) > span,
 :root.hero-impact-slam .snowflake:nth-child(28) > span {
+  animation: snowPushRight 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+:root.hero-impact-slam .santa-mort-0 > .santa-mort-slide,
+:root.hero-impact-slam .santa-mort-2 > .santa-mort-slide {
+  animation: snowPushLeft 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+:root.hero-impact-slam .santa-mort-1 > .santa-mort-slide {
   animation: snowPushRight 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 

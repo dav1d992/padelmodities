@@ -1,8 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { I18nService } from '../../services/i18n.service';
+import { Component, computed, inject, signal } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { RouterLink } from "@angular/router";
+import { I18nService } from "../../services/i18n.service";
 import {
   DEFAULT_BONUS,
   DEFAULT_SCORING,
@@ -15,9 +15,11 @@ import {
   type TournamentMatch,
   type TournamentRound,
   type TournamentTeam,
-} from '../../models/padel.model';
+} from "../../models/padel.model";
 import {
   computeStandings,
+  generateBeatTheBoxInitialRound,
+  generateBeatTheBoxNextRound,
   generateAmericanoRounds,
   generateKothInitialRound,
   generateKothNextRound,
@@ -28,11 +30,16 @@ import {
   generateTeamMexicanoRound,
   standingsOrder,
   validateScore,
-} from '../../services/tournament-engine';
+} from "../../services/tournament-engine";
 
 interface LocalScore {
   s1: number | null;
   s2: number | null;
+}
+
+interface CourtStandingGroup {
+  courtIndex: number;
+  rows: StandingRow[];
 }
 
 /**
@@ -41,10 +48,10 @@ interface LocalScore {
  * from anywhere in the UI.
  */
 @Component({
-  selector: 'app-mexericano-test',
+  selector: "app-mexericano-test",
   imports: [CommonModule, FormsModule, RouterLink],
-  templateUrl: './mexericano-test.component.html',
-  styleUrl: './mexericano-test.component.scss',
+  templateUrl: "./mexericano-test.component.html",
+  styleUrl: "./mexericano-test.component.scss",
 })
 export class MexericanoTestComponent {
   readonly i18n = inject(I18nService);
@@ -54,7 +61,7 @@ export class MexericanoTestComponent {
   ) as TournamentFormat[];
 
   // Config
-  readonly format = signal<TournamentFormat>('mexericano');
+  readonly format = signal<TournamentFormat>("mexericano");
   readonly numPlayers = signal(8);
   readonly numCourts = signal(2);
   readonly target = signal(24);
@@ -69,25 +76,26 @@ export class MexericanoTestComponent {
   readonly rounds = signal<TournamentRound[]>([]);
   readonly currentIndex = signal(0);
   readonly scores = signal<Record<string, LocalScore>>({});
-  readonly error = signal('');
+  readonly error = signal("");
 
   // ── Format flags ─────────────────────────────────────────────────────────
 
   readonly isTeam = computed(() => isTeamFormat(this.format()));
   readonly isDynamic = computed(() => isDynamicFormat(this.format()));
-  readonly isKoth = computed(() => this.format() === 'king-of-the-hill');
-  readonly isSuperMex = computed(() => this.format() === 'super-mexicano');
-  readonly isMexericano = computed(() => this.format() === 'mexericano');
+  readonly isKoth = computed(() => this.format() === "king-of-the-hill");
+  readonly isBeatTheBox = computed(() => this.format() === "beat-the-box");
+  readonly isSuperMex = computed(() => this.format() === "super-mexicano");
+  readonly isMexericano = computed(() => this.format() === "mexericano");
   readonly hasBonus = computed(() => this.isSuperMex() || this.isMexericano());
   readonly isStatic = computed(
-    () => this.format() === 'americano' || this.format() === 'team-americano',
+    () => this.format() === "americano" || this.format() === "team-americano",
   );
 
   formatLabel(f: TournamentFormat): string {
-    return this.i18n.t('format.' + f);
+    return this.i18n.t("format." + f);
   }
   formatDesc(f: TournamentFormat): string {
-    return this.i18n.t('format.' + f + '.desc');
+    return this.i18n.t("format." + f + ".desc");
   }
 
   selectFormat(f: TournamentFormat): void {
@@ -98,22 +106,22 @@ export class MexericanoTestComponent {
   // ── Config helpers ─────────────────────────────────────────────────────────
 
   setNumPlayers(v: string): void {
-    if (v === '') return;
+    if (v === "") return;
     const n = Number(v);
     if (!Number.isNaN(n)) this.numPlayers.set(n);
   }
   setNumCourts(v: string): void {
-    if (v === '') return;
+    if (v === "") return;
     const n = Number(v);
     if (!Number.isNaN(n)) this.numCourts.set(n);
   }
   setTarget(v: string): void {
-    if (v === '') return;
+    if (v === "") return;
     const n = Number(v);
     if (!Number.isNaN(n)) this.target.set(n);
   }
   setTotalRounds(v: string): void {
-    if (v === '') return;
+    if (v === "") return;
     const n = Number(v);
     if (!Number.isNaN(n)) this.totalRounds.set(n);
   }
@@ -121,7 +129,7 @@ export class MexericanoTestComponent {
   private scoringConfig() {
     return {
       ...DEFAULT_SCORING,
-      method: 'fixed-points' as const,
+      method: "fixed-points" as const,
       pointTarget: this.target(),
     };
   }
@@ -136,10 +144,10 @@ export class MexericanoTestComponent {
     const roundRec: Record<string, TournamentRound> = {};
     rounds.forEach((r) => (roundRec[String(r.index)] = r));
     const base: Tournament = {
-      id: 'sandbox',
-      name: 'Sandbox',
+      id: "sandbox",
+      name: "Sandbox",
       format: this.format(),
-      status: 'active',
+      status: "active",
       courtCount: this.numCourts(),
       totalRounds: this.totalRounds(),
       currentRound: this.currentIndex(),
@@ -157,7 +165,7 @@ export class MexericanoTestComponent {
       this.playerIds().forEach((id, i) => (pids[String(i)] = id));
       base.playerIds = pids;
     }
-    if (this.format() === 'super-mexicano' || this.format() === 'mexericano') {
+    if (this.format() === "super-mexicano" || this.format() === "mexericano") {
       base.bonus = { ...DEFAULT_BONUS, points: { ...DEFAULT_BONUS.points } };
     }
     return base;
@@ -169,8 +177,8 @@ export class MexericanoTestComponent {
     return this.names()[id] ?? id;
   }
   teamName(teamId?: string): string {
-    if (!teamId) return '';
-    return this.teams().find((t) => t.id === teamId)?.name ?? '';
+    if (!teamId) return "";
+    return this.teams().find((t) => t.id === teamId)?.name ?? "";
   }
   participantName(id: string): string {
     const team = this.teams().find((t) => t.id === id);
@@ -180,10 +188,12 @@ export class MexericanoTestComponent {
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
   start(): void {
-    this.error.set('');
+    this.error.set("");
     const ids = Array.from({ length: this.numPlayers() }, (_, i) => `p${i}`);
     const names: Record<string, string> = {};
-    ids.forEach((id, i) => (names[id] = this.i18n.t('test.playerName', { n: i + 1 })));
+    ids.forEach(
+      (id, i) => (names[id] = this.i18n.t("test.playerName", { n: i + 1 })),
+    );
     this.playerIds.set(ids);
     this.names.set(names);
 
@@ -193,13 +203,13 @@ export class MexericanoTestComponent {
       for (let i = 0; i + 1 < ids.length; i += 2) {
         teams.push({
           id: `t${i / 2}`,
-          name: this.i18n.t('test.teamName', { n: i / 2 + 1 }),
+          name: this.i18n.t("test.teamName", { n: i / 2 + 1 }),
           p1: ids[i],
           p2: ids[i + 1],
         });
       }
       if (teams.length < 2) {
-        this.error.set(this.i18n.t('err.minTeams'));
+        this.error.set(this.i18n.t("err.minTeams"));
         return;
       }
     }
@@ -212,7 +222,7 @@ export class MexericanoTestComponent {
       const generated = this.generateInitialRounds();
       this.rounds.set(generated);
       // team-americano fixes the round count from the schedule length.
-      if (this.format() === 'team-americano') {
+      if (this.format() === "team-americano") {
         this.totalRounds.set(generated.length);
       }
       this.started.set(true);
@@ -229,7 +239,7 @@ export class MexericanoTestComponent {
     this.rounds.set([]);
     this.teams.set([]);
     this.scores.set({});
-    this.error.set('');
+    this.error.set("");
     this.currentIndex.set(0);
   }
 
@@ -237,16 +247,20 @@ export class MexericanoTestComponent {
     const courts = this.numCourts();
     const ids = this.playerIds();
     switch (this.format()) {
-      case 'americano':
+      case "americano":
         return generateAmericanoRounds(ids, courts, this.totalRounds());
-      case 'team-americano':
+      case "team-americano":
         return generateTeamAmericanoRounds(
           this.teams().map((t) => t.id),
           this.teamMap(),
           courts,
         );
-      case 'king-of-the-hill':
+      case "king-of-the-hill":
         return [generateKothInitialRound(ids, courts, false)];
+      case "beat-the-box":
+        return [
+          generateBeatTheBoxInitialRound(this.playerIds(), courts, false),
+        ];
       default:
         return [this.buildDynamicRound(0, [])];
     }
@@ -260,7 +274,18 @@ export class MexericanoTestComponent {
       this.participantName(id),
     );
     const courts = this.numCourts();
-    if (this.format() === 'team-mexicano') {
+    if (this.isBeatTheBox()) {
+      const previousRound = prior[prior.length - 1];
+      if (!previousRound) throw new Error("err.roundNotFound");
+      return generateBeatTheBoxNextRound(
+        previousRound,
+        prior,
+        index,
+        this.playerIds(),
+        courts,
+      );
+    }
+    if (this.format() === "team-mexicano") {
       return generateTeamMexicanoRound(
         this.teams().map((t) => t.id),
         this.teamMap(),
@@ -270,8 +295,14 @@ export class MexericanoTestComponent {
         order,
       );
     }
-    if (this.format() === 'mexericano') {
-      return generateMexericanoRound(this.playerIds(), courts, index, prior, order);
+    if (this.format() === "mexericano") {
+      return generateMexericanoRound(
+        this.playerIds(),
+        courts,
+        index,
+        prior,
+        order,
+      );
     }
     return generateMexicanoRound(this.playerIds(), courts, index, prior, order);
   }
@@ -285,7 +316,9 @@ export class MexericanoTestComponent {
   readonly currentMatches = computed<TournamentMatch[]>(() => {
     const round = this.currentRound();
     if (!round?.matches) return [];
-    return Object.values(round.matches).sort((a, b) => a.courtIndex - b.courtIndex);
+    return Object.values(round.matches).sort(
+      (a, b) => a.courtIndex - b.courtIndex,
+    );
   });
 
   readonly sitOuts = computed<string[]>(() =>
@@ -293,7 +326,9 @@ export class MexericanoTestComponent {
   );
 
   readonly isFinalRound = computed(() => !!this.currentRound()?.isFinal);
-  readonly finalGenerated = computed(() => this.rounds().some((r) => r.isFinal));
+  readonly finalGenerated = computed(() =>
+    this.rounds().some((r) => r.isFinal),
+  );
   readonly completedCount = computed(
     () => this.rounds().filter((r) => r.completed).length,
   );
@@ -310,8 +345,8 @@ export class MexericanoTestComponent {
   );
 
   courtName(index: number): string {
-    if (this.isKoth() && index === 0) return this.i18n.t('view.kingCourt');
-    return this.i18n.t('court.default', { n: index + 1 });
+    if (this.isKoth() && index === 0) return this.i18n.t("view.kingCourt");
+    return this.i18n.t("court.default", { n: index + 1 });
   }
 
   private syncScores(round: TournamentRound): void {
@@ -328,8 +363,8 @@ export class MexericanoTestComponent {
     return this.scores()[id] ?? { s1: null, s2: null };
   }
 
-  setScore(id: string, field: 's1' | 's2', value: string): void {
-    const parsed = value === '' ? null : Number(value);
+  setScore(id: string, field: "s1" | "s2", value: string): void {
+    const parsed = value === "" ? null : Number(value);
     this.scores.set({
       ...this.scores(),
       [id]: { ...this.getScore(id), [field]: parsed },
@@ -338,9 +373,11 @@ export class MexericanoTestComponent {
 
   scoreError(id: string): string {
     const s = this.getScore(id);
-    if (s.s1 === null || s.s2 === null) return '';
+    if (s.s1 === null || s.s2 === null) return "";
     const v = validateScore(s.s1, s.s2, this.scoringConfig(), this.format());
-    return v.valid ? '' : this.i18n.t(v.reason ?? 'err.invalidScore', v.reasonParams);
+    return v.valid
+      ? ""
+      : this.i18n.t(v.reason ?? "err.invalidScore", v.reasonParams);
   }
 
   readonly allEntered = computed(() => {
@@ -371,7 +408,7 @@ export class MexericanoTestComponent {
 
   completeRound(): void {
     if (!this.allEntered()) return;
-    this.error.set('');
+    this.error.set("");
     const rounds = this.rounds();
     const idx = this.currentIndex();
     const round = rounds.find((r) => r.index === idx);
@@ -414,6 +451,8 @@ export class MexericanoTestComponent {
           nextIndex,
           this.playerIds(),
         );
+      } else if (this.isBeatTheBox()) {
+        nextRound = this.buildDynamicRound(nextIndex, updated);
       } else {
         nextRound = this.buildDynamicRound(nextIndex, updated);
       }
@@ -428,7 +467,7 @@ export class MexericanoTestComponent {
 
   runFinal(): void {
     if (!this.canRunFinal()) return;
-    this.error.set('');
+    this.error.set("");
     const idx = this.currentIndex();
     const prior = this.rounds().filter((r) => r.index < idx);
     const order = standingsOrder(this.buildTournament(prior), (id) =>
@@ -465,7 +504,119 @@ export class MexericanoTestComponent {
     );
   });
 
-  readonly winnerName = computed(() => this.standings()[0]?.name ?? '');
+  readonly courtStandings = computed<CourtStandingGroup[]>(() => {
+    if (!this.isBeatTheBox()) return [];
+    const round = this.currentRound();
+    if (!round) return [];
+
+    const cycleStart = Math.floor(this.currentIndex() / 3) * 3;
+    const cycleRounds = this.rounds().filter(
+      (item) =>
+        item.index >= cycleStart &&
+        item.index <= this.currentIndex() &&
+        item.completed,
+    );
+    const matches = Object.values(round.matches ?? {}).sort(
+      (a, b) => a.courtIndex - b.courtIndex,
+    );
+
+    return matches.map((courtMatch) => {
+      const playerIds = [
+        courtMatch.a1,
+        courtMatch.a2,
+        courtMatch.b1,
+        courtMatch.b2,
+      ];
+      const players = new Set(playerIds);
+      const rows = new Map<string, StandingRow>();
+      for (const id of playerIds) {
+        rows.set(id, {
+          participantId: id,
+          name: this.playerName(id),
+          played: 0,
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          pointsFor: 0,
+          pointsAgainst: 0,
+          diff: 0,
+          bonus: 0,
+          matchPoints: 0,
+          total: 0,
+          sitOuts: 0,
+        });
+      }
+
+      const addMatchScore = (
+        match: TournamentMatch,
+        score1: number,
+        score2: number,
+      ) => {
+        const sideA = [match.a1, match.a2];
+        const sideB = [match.b1, match.b2];
+        for (const id of sideA) {
+          const row = rows.get(id);
+          if (!row) continue;
+          row.played++;
+          row.pointsFor += score1;
+          row.pointsAgainst += score2;
+          row.matchPoints += score1;
+          if (score1 > score2) row.wins++;
+          else if (score1 < score2) row.losses++;
+          else row.draws++;
+        }
+        for (const id of sideB) {
+          const row = rows.get(id);
+          if (!row) continue;
+          row.played++;
+          row.pointsFor += score2;
+          row.pointsAgainst += score1;
+          row.matchPoints += score2;
+          if (score2 > score1) row.wins++;
+          else if (score2 < score1) row.losses++;
+          else row.draws++;
+        }
+      };
+
+      for (const cycleRound of cycleRounds) {
+        for (const match of Object.values(cycleRound.matches ?? {})) {
+          if (
+            ![match.a1, match.a2, match.b1, match.b2].every((id) =>
+              players.has(id),
+            )
+          ) {
+            continue;
+          }
+          if (match.score1 != null && match.score2 != null) {
+            addMatchScore(match, match.score1, match.score2);
+          }
+        }
+      }
+
+      if (!round.completed) {
+        const score = this.scores()[courtMatch.id];
+        if (score?.s1 != null && score.s2 != null) {
+          addMatchScore(courtMatch, score.s1, score.s2);
+        }
+      }
+
+      const orderedRows = [...rows.values()];
+      orderedRows.forEach((row) => {
+        row.diff = row.pointsFor - row.pointsAgainst;
+        row.total = row.matchPoints;
+      });
+      orderedRows.sort(
+        (a, b) =>
+          b.total - a.total ||
+          b.diff - a.diff ||
+          b.wins - a.wins ||
+          a.name.localeCompare(b.name),
+      );
+      return { courtIndex: courtMatch.courtIndex, rows: orderedRows };
+    });
+  });
+
+  readonly winnerName = computed(() => this.standings()[0]?.name ?? "");
 
   // ── Anti-repeat diagnostics ─────────────────────────────────────────────────
 
@@ -494,7 +645,7 @@ export class MexericanoTestComponent {
             opponent.set(ok, (opponent.get(ok) ?? 0) + 1);
           }
         }
-        const fk = [m.a1, m.a2, m.b1, m.b2].sort().join('|');
+        const fk = [m.a1, m.a2, m.b1, m.b2].sort().join("|");
         foursome.set(fk, (foursome.get(fk) ?? 0) + 1);
         curPartner[m.a1] = m.a2;
         curPartner[m.a2] = m.a1;

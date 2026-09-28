@@ -29,7 +29,30 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly adminInputOpen = signal(false);
   readonly adminCode = signal("");
   readonly adminError = signal(false);
-  readonly snowflakes = Array.from({ length: 44 }, (_, index) => index);
+  readonly snowflakes = Array.from({ length: 44 }, (_, index) => ({
+    index,
+    delay: `${(index * 0.055).toFixed(2)}s`,
+  }));
+  readonly santaMorts = [
+    { left: "6%", size: "2rem", duration: "16s", delay: "0s" },
+    { left: "17%", size: "2.6rem", duration: "14s", delay: "0.5s" },
+    { left: "34%", size: "2.2rem", duration: "18s", delay: "1s" },
+    { left: "52%", size: "2.2rem", duration: "17s", delay: "1.5s" },
+    { left: "68%", size: "1.9rem", duration: "13s", delay: "2s" },
+    { left: "84%", size: "2.8rem", duration: "15s", delay: "2.5s" },
+    { left: "96%", size: "2.1rem", duration: "19s", delay: "3s" },
+  ].map((santa, index) => {
+    const rotation = Math.random() * 24 - 12;
+    const swing = 9 + Math.random() * 7;
+    return {
+      ...santa,
+      index,
+      rotationFrom: `${rotation}deg`,
+      rotationTo: `${rotation + (index % 2 === 0 ? swing : -swing)}deg`,
+      rotationDuration: `${3.5 + Math.random() * 2.5}s`,
+      rotationDelay: `${-Math.random() * 4}s`,
+    };
+  });
   readonly lightningLeft = signal(42 + Math.random() * 16);
 
   toggleAdminInput(): void {
