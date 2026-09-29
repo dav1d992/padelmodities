@@ -1,3 +1,19 @@
+:host {
+  display: block;
+  width: 100%;
+  align-self: stretch;
+}
+
+.page {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 5vw, 2rem) clamp(1rem, 4vw, 1.5rem) 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
 .form-card {
   max-width: 720px;
   margin: 0 auto;
@@ -196,4 +212,16 @@ label {
   display: flex;
   justify-content: flex-end;
   gap: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .action-buttons {
+    flex-direction: column;
+  }
+  .action-buttons .btn {
+    width: 100%;
+  }
+  .court-row input[type="number"] {
+    max-width: 72px;
+  }
 }

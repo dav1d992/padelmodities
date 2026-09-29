@@ -1,3 +1,19 @@
+:host {
+  display: block;
+  width: 100%;
+  align-self: stretch;
+}
+
+.page {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 5vw, 2rem) clamp(1rem, 4vw, 1.5rem) 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
 .loader-center {
   display: flex;
   justify-content: center;
@@ -219,7 +235,7 @@
 
 .matches {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.9rem;
 }
 
@@ -233,10 +249,76 @@
 }
 
 .court-label-row {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.6rem;
+}
+
+/* Blowout tag: winner scored 5×+ the loser */
+.murder-tag {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 0 8px rgba(185, 28, 28, 0.45);
+}
+
+/* Blood dripping from the losing side's score */
+.score-slot {
+  position: relative;
+  display: inline-block;
+}
+
+.score-slot.blood-drip::before,
+.score-slot.blood-drip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  width: 5px;
+  height: 8px;
+  border-radius: 0 0 50% 50%;
+  background: linear-gradient(#c81e1e, #7f1010);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.score-slot.blood-drip::before {
+  left: 28%;
+  animation: blood-drop 2.2s ease-in infinite;
+}
+
+.score-slot.blood-drip::after {
+  left: 64%;
+  animation: blood-drop 2.8s ease-in 0.9s infinite;
+}
+
+@keyframes blood-drop {
+  0% {
+    transform: translateY(-4px) scaleY(0.4);
+    opacity: 0;
+  }
+  15% {
+    transform: translateY(0) scaleY(1);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(14px) scaleY(1.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(26px) scaleY(1.8);
+    opacity: 0;
+  }
 }
 
 .match-teams {
@@ -255,6 +337,14 @@
   flex-direction: column;
   gap: 0.25rem;
   font-size: 0.92rem;
+  min-width: 0;
+
+  span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
   &.team-players-right {
     text-align: right;
@@ -336,4 +426,42 @@
 .hint-center {
   text-align: center;
   margin-top: -0.6rem;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .tour-header-side {
+    align-items: stretch;
+    width: 100%;
+  }
+  .lock-btn {
+    width: 100%;
+  }
+  .action-buttons {
+    flex-direction: column;
+  }
+  .action-buttons.wrap {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .action-buttons .btn {
+    width: 100%;
+  }
+  .action-buttons.wrap .btn {
+    width: auto;
+    flex: 1 1 auto;
+  }
+  .round-nav-label {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .standings-table {
+    font-size: 0.8rem;
+  }
+  .standings-table th,
+  .standings-table td {
+    padding: 0.4rem 0.3rem;
+  }
 }

@@ -74,8 +74,6 @@ export class FreeViewComponent implements OnInit {
 
   // Participant / team editing
   readonly newParticipant = signal("");
-  readonly editingId = signal<string | null>(null);
-  readonly editName = signal("");
   readonly teamPick = signal<string[]>([]);
   readonly teamName = signal("");
 
@@ -200,27 +198,6 @@ export class FreeViewComponent implements OnInit {
     this.newParticipant.set("");
     try {
       await this.service.addParticipant(this.tournamentId(), name);
-    } catch (e) {
-      this.setError(e);
-    }
-  }
-
-  startEdit(p: FreeParticipant): void {
-    this.editingId.set(p.id);
-    this.editName.set(p.name);
-  }
-
-  cancelEdit(): void {
-    this.editingId.set(null);
-    this.editName.set("");
-  }
-
-  async saveEdit(pid: string): Promise<void> {
-    const name = this.editName().trim();
-    if (!name) return;
-    try {
-      await this.service.renameParticipant(this.tournamentId(), pid, name);
-      this.cancelEdit();
     } catch (e) {
       this.setError(e);
     }
@@ -484,6 +461,22 @@ export class FreeViewComponent implements OnInit {
     return v.valid
       ? ""
       : this.i18n.t(v.reason ?? "err.invalidScore", v.reasonParams);
+  }
+
+  /** A blowout where the winner scored at least 5× the loser's points. */
+  isMurder(match: TournamentMatch): boolean {
+    const s1 = match.score1;
+    const s2 = match.score2;
+    if (s1 == null || s2 == null || s1 === s2) return false;
+    const hi = Math.max(s1, s2);
+    const lo = Math.min(s1, s2);
+    return lo === 0 ? hi >= 5 : hi >= lo * 5;
+  }
+
+  /** The losing side of a murder ('a' | 'b'), or null when not a murder. */
+  murderLoser(match: TournamentMatch): "a" | "b" | null {
+    if (!this.isMurder(match)) return null;
+    return (match.score1 ?? 0) < (match.score2 ?? 0) ? "a" : "b";
   }
 
   async saveScore(matchId: string): Promise<void> {

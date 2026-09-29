@@ -3,6 +3,36 @@
   ><span class="back-label">{{ i18n.t("free.backCreate") }}</span></a
 >
 
+<!-- Keypad overlay (top-level so it always centers on the viewport) -->
+@if (keypadOpen()) {
+  <div class="keypad-backdrop" (click)="closeKeypad()">
+    <div
+      class="keypad glass panel"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      [attr.aria-label]="i18n.t('free.unlock')"
+    >
+      <h2>{{ i18n.t("free.enterCode") }}</h2>
+      <div class="code-dots" [class.error]="unlockError()">
+        @for (i of [0, 1, 2, 3]; track i) {
+          <span class="dot" [class.filled]="codeEntry().length > i"></span>
+        }
+      </div>
+      @if (unlockError()) {
+        <p class="warn small">{{ i18n.t("free.wrongCode") }}</p>
+      }
+      <div class="keypad-grid">
+        @for (d of [1, 2, 3, 4, 5, 6, 7, 8, 9]; track d) {
+          <button class="key" (click)="pressDigit(d)">{{ d }}</button>
+        }
+        <button class="key key-ghost" (click)="backspace()">⌫</button>
+        <button class="key" (click)="pressDigit(0)">0</button>
+        <button class="key key-ghost" (click)="closeKeypad()">✕</button>
+      </div>
+    </div>
+  </div>
+}
+
 <div class="page fade-up">
   @if (error()) {
     <p class="banner-error pop-in">{{ error() }}</p>
@@ -34,7 +64,6 @@
           <span class="badge badge-muted">{{
             i18n.t("scoring." + t.scoring.method)
           }}</span>
-          <span class="badge badge-free">{{ i18n.t("free.badge") }}</span>
         </div>
         @if (t.description) {
           <p class="muted small tour-desc">{{ t.description }}</p>
@@ -50,45 +79,15 @@
         }
         @if (unlocked()) {
           <button class="btn btn-ghost lock-btn" (click)="lock()">
-            🔓 {{ i18n.t("free.locked.relock") }}
+            {{ i18n.t("free.locked.relock") }}
           </button>
         } @else {
           <button class="btn btn-primary lock-btn" (click)="openKeypad()">
-            🔒 {{ i18n.t("free.unlock") }}
+            {{ i18n.t("free.unlock") }}
           </button>
         }
       </div>
     </header>
-
-    <!-- Keypad overlay -->
-    @if (keypadOpen()) {
-      <div class="keypad-backdrop" (click)="closeKeypad()">
-        <div
-          class="keypad glass panel"
-          (click)="$event.stopPropagation()"
-          role="dialog"
-          [attr.aria-label]="i18n.t('free.unlock')"
-        >
-          <h2>{{ i18n.t("free.enterCode") }}</h2>
-          <div class="code-dots" [class.error]="unlockError()">
-            @for (i of [0, 1, 2, 3]; track i) {
-              <span class="dot" [class.filled]="codeEntry().length > i"></span>
-            }
-          </div>
-          @if (unlockError()) {
-            <p class="warn small">{{ i18n.t("free.wrongCode") }}</p>
-          }
-          <div class="keypad-grid">
-            @for (d of [1, 2, 3, 4, 5, 6, 7, 8, 9]; track d) {
-              <button class="key" (click)="pressDigit(d)">{{ d }}</button>
-            }
-            <button class="key key-ghost" (click)="backspace()">⌫</button>
-            <button class="key" (click)="pressDigit(0)">0</button>
-            <button class="key key-ghost" (click)="closeKeypad()">✕</button>
-          </div>
-        </div>
-      </div>
-    }
 
     <!-- ─── DRAFT: setup ─────────────────────────────────────────────── -->
     @if (isDraft()) {
@@ -174,24 +173,10 @@
             <div class="chip-list">
               @for (p of participants(); track p.id) {
                 <div class="chip-item glass">
-                  @if (editingId() === p.id) {
-                    <input
-                      type="text"
-                      class="edit-input"
-                      maxlength="40"
-                      [ngModel]="editName()"
-                      (ngModelChange)="editName.set($event)"
-                      (keyup.enter)="saveEdit(p.id)"
-                    />
-                    <button class="btn-icon" (click)="saveEdit(p.id)">✓</button>
-                    <button class="btn-icon" (click)="cancelEdit()">✕</button>
-                  } @else {
-                    <span class="chip-item-name">{{ p.name }}</span>
-                    <button class="btn-icon" (click)="startEdit(p)">✏️</button>
-                    <button class="btn-icon" (click)="removeParticipant(p)">
-                      🗑️
-                    </button>
-                  }
+                  <span class="chip-item-name">{{ p.name }}</span>
+                  <button class="btn-icon" (click)="removeParticipant(p)">
+                    🗑️
+                  </button>
                 </div>
               }
             </div>
@@ -305,6 +290,9 @@
               <div class="match-card glass">
                 <div class="court-label-row">
                   <span class="court-label muted small">{{ courtName(match.courtIndex) }}</span>
+                  @if (isMurder(match)) {
+                    <span class="murder-tag">💀 {{ i18n.t("view.murder") }}</span>
+                  }
                 </div>
                 <div class="match-teams">
                   <div class="team">
@@ -317,23 +305,27 @@
                     </div>
                   </div>
                   <div class="score-center">
-                    <input
-                      type="number"
-                      class="score-input"
-                      [disabled]="isFinished() || !canEdit()"
-                      [value]="getScore(match.id).score1 ?? ''"
-                      (input)="setScore(match.id, 'score1', $any($event.target).value)"
-                      (change)="saveScore(match.id)"
-                    />
+                    <span class="score-slot" [class.blood-drip]="murderLoser(match) === 'a'">
+                      <input
+                        type="number"
+                        class="score-input"
+                        [disabled]="isFinished() || !canEdit()"
+                        [value]="getScore(match.id).score1 ?? ''"
+                        (input)="setScore(match.id, 'score1', $any($event.target).value)"
+                        (change)="saveScore(match.id)"
+                      />
+                    </span>
                     <span class="vs">VS</span>
-                    <input
-                      type="number"
-                      class="score-input"
-                      [disabled]="isFinished() || !canEdit()"
-                      [value]="getScore(match.id).score2 ?? ''"
-                      (input)="setScore(match.id, 'score2', $any($event.target).value)"
-                      (change)="saveScore(match.id)"
-                    />
+                    <span class="score-slot" [class.blood-drip]="murderLoser(match) === 'b'">
+                      <input
+                        type="number"
+                        class="score-input"
+                        [disabled]="isFinished() || !canEdit()"
+                        [value]="getScore(match.id).score2 ?? ''"
+                        (input)="setScore(match.id, 'score2', $any($event.target).value)"
+                        (change)="saveScore(match.id)"
+                      />
+                    </span>
                   </div>
                   <div class="team team-right">
                     <div class="team-players team-players-right">
@@ -392,7 +384,9 @@
                 <th>#</th>
                 <th>{{ isTeam() ? i18n.t("th.team") : i18n.t("th.player") }}</th>
                 <th>{{ i18n.t("th.played") }}</th>
-                <th>{{ i18n.t("th.wl") }}</th>
+                <th>{{ i18n.t("th.wins") }}</th>
+                <th>{{ i18n.t("th.losses") }}</th>
+                <th>{{ i18n.t("th.draws") }}</th>
                 <th>{{ i18n.t("th.diff") }}</th>
                 <th>{{ i18n.t("th.total") }}</th>
               </tr>
@@ -403,7 +397,9 @@
                   <td>{{ i + 1 }}</td>
                   <td class="name-cell">{{ row.name }}</td>
                   <td>{{ row.played }}</td>
-                  <td>{{ row.wins }}–{{ row.losses }}</td>
+                  <td>{{ row.wins }}</td>
+                  <td>{{ row.losses }}</td>
+                  <td>{{ row.draws }}</td>
                   <td>{{ row.diff > 0 ? "+" : "" }}{{ row.diff }}</td>
                   <td><strong>{{ row.total }}</strong></td>
                 </tr>

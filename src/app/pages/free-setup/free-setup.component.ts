@@ -35,6 +35,7 @@ export class FreeSetupComponent {
     "super-mexicano",
     "mexericano",
     "king-of-the-hill",
+    "beat-the-box",
   ];
 
   readonly scoringMethods: ScoringMethod[] = [
@@ -64,6 +65,7 @@ export class FreeSetupComponent {
   readonly error = signal("");
 
   readonly isKoth = computed(() => this.format() === "king-of-the-hill");
+  readonly isBeatTheBox = computed(() => this.format() === "beat-the-box");
   readonly isMexericano = computed(() => this.format() === "mexericano");
   readonly isSuperMex = computed(() => this.format() === "super-mexicano");
   readonly showBonus = computed(() => this.isSuperMex() || this.isMexericano());
@@ -83,6 +85,9 @@ export class FreeSetupComponent {
     if (this.isKoth() && this.courtCount() < 2) {
       messages.push(this.i18n.t("val.kothCourts"));
     }
+    if (this.isBeatTheBox() && this.totalRounds() % 3 !== 0) {
+      messages.push(this.i18n.t("val.beatBoxRounds"));
+    }
     if (!this.isRoundRobin() && this.totalRounds() < 1) {
       messages.push(this.i18n.t("val.minRound"));
     }
@@ -100,6 +105,10 @@ export class FreeSetupComponent {
         this.i18n.t("court.king"),
         this.i18n.t("court.default", { n: 2 }),
       ]);
+    }
+    // Beat the Box plays all three partner combos, so rounds must be a multiple of 3.
+    if (f === "beat-the-box" && this.totalRounds() % 3 !== 0) {
+      this.totalRounds.set(6);
     }
   }
 
