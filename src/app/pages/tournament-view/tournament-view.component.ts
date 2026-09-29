@@ -20,6 +20,8 @@ import { ConfirmService } from "../../services/confirm.service";
 import {
   isDynamicFormat,
   isTeamFormat,
+  isTwoPhase,
+  isSeatingRound,
   PLACEMENT_RATING_PER_PLAYER,
   type KothStats,
   type Player,
@@ -204,6 +206,25 @@ export class TournamentViewComponent implements OnInit {
   readonly isFinished = computed(
     () => this.tournament()?.status === "finished",
   );
+
+  /** Whether this tournament runs a seating phase then a final phase. */
+  readonly isTwoPhase = computed(() => {
+    const t = this.tournament();
+    return !!t && isTwoPhase(t);
+  });
+
+  /** Rounds in the final phase (two-phase only). */
+  readonly finalPhaseRounds = computed(() => {
+    const t = this.tournament();
+    if (!t || !isTwoPhase(t)) return 0;
+    return Math.max(0, (t.totalRounds ?? 0) - (t.seatingRounds ?? 0));
+  });
+
+  /** Whether the currently displayed round is in the seating phase. */
+  readonly currentPhaseSeating = computed(() => {
+    const t = this.tournament();
+    return !!t && isSeatingRound(t, this.displayRound());
+  });
 
   // ── Round navigation ────────────────────────────────────────────────────
 
@@ -496,9 +517,24 @@ export class TournamentViewComponent implements OnInit {
   setScore(matchId: string, field: "score1" | "score2", value: string): void {
     const parsedScore = value === "" ? null : Number(value);
     const current = this.getScore(matchId);
+    const next = { ...current, [field]: parsedScore };
+
+    // Fixed-points: the two scores must sum to the target, so prefill the other.
+    const scoring = this.tournament()?.scoring;
+    if (
+      scoring?.method === "fixed-points" &&
+      scoring.pointTarget != null &&
+      parsedScore !== null &&
+      parsedScore >= 0 &&
+      parsedScore <= scoring.pointTarget
+    ) {
+      const other = field === "score1" ? "score2" : "score1";
+      next[other] = scoring.pointTarget - parsedScore;
+    }
+
     this.scores.set({
       ...this.scores(),
-      [matchId]: { ...current, [field]: parsedScore },
+      [matchId]: next,
     });
   }
 

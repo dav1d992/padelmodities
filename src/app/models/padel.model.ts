@@ -110,6 +110,43 @@ export function isDynamicFormat(format: TournamentFormat): boolean {
   return DYNAMIC_FORMATS.includes(format);
 }
 
+/** True when the tournament has a distinct seating phase before the final phase. */
+export function isTwoPhase(t: {
+  seatingFormat?: TournamentFormat;
+  seatingRounds?: number;
+}): boolean {
+  return !!t.seatingFormat && (t.seatingRounds ?? 0) >= 1;
+}
+
+/** True when the given round index falls inside the seating phase. */
+export function isSeatingRound(
+  t: { seatingFormat?: TournamentFormat; seatingRounds?: number },
+  roundIndex: number,
+): boolean {
+  return isTwoPhase(t) && roundIndex < (t.seatingRounds ?? 0);
+}
+
+/** The effective format for a given round index (seating vs final phase). */
+export function phaseFormatFor(
+  t: {
+    format: TournamentFormat;
+    seatingFormat?: TournamentFormat;
+    seatingRounds?: number;
+  },
+  roundIndex: number,
+): TournamentFormat {
+  return isSeatingRound(t, roundIndex) ? t.seatingFormat! : t.format;
+}
+
+/** The first round index of the phase that `roundIndex` belongs to. */
+export function phaseStartIndex(
+  t: { seatingFormat?: TournamentFormat; seatingRounds?: number },
+  roundIndex: number,
+): number {
+  if (!isTwoPhase(t)) return 0;
+  return roundIndex < (t.seatingRounds ?? 0) ? 0 : (t.seatingRounds ?? 0);
+}
+
 // ── Scoring ────────────────────────────────────────────────────────────────
 
 export type ScoringMethod =
@@ -236,6 +273,14 @@ export interface Tournament {
   /** Free-text notes shown read-only to everyone; admin-editable while drafting. */
   description?: string;
   format: TournamentFormat;
+  /**
+   * Optional seating-phase format. When set (together with {@link seatingRounds}),
+   * the first `seatingRounds` rounds use this format and the remaining rounds use
+   * {@link format} (the final phase). Points from both phases accumulate together.
+   */
+  seatingFormat?: TournamentFormat;
+  /** Number of rounds played in the seating phase (>=1 when {@link seatingFormat} is set). */
+  seatingRounds?: number;
   status: TournamentStatus;
   /** Player IDs keyed by insertion index (RTDB-safe) — individual formats. */
   playerIds?: Record<string, string>;

@@ -14,6 +14,51 @@
   gap: 1.25rem;
 }
 
+/* Staggered fade-in for the tournament blocks */
+.tour-header,
+.notice,
+.winner-banner,
+.section {
+  animation: fadeUp 0.4s ease both;
+}
+
+.tour-header {
+  animation-delay: 0.02s;
+}
+
+.section:nth-of-type(1) {
+  animation-delay: 0.06s;
+}
+.section:nth-of-type(2) {
+  animation-delay: 0.13s;
+}
+.section:nth-of-type(3) {
+  animation-delay: 0.2s;
+}
+.section:nth-of-type(4) {
+  animation-delay: 0.27s;
+}
+
+/* Cascade the match cards within a round */
+.match-card {
+  animation: fadeUp 0.35s ease both;
+}
+@for $i from 1 through 12 {
+  .match-card:nth-child(#{$i}) {
+    animation-delay: #{0.05 + $i * 0.04}s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-header,
+  .notice,
+  .winner-banner,
+  .section,
+  .match-card {
+    animation: none;
+  }
+}
+
 .loader-center {
   display: flex;
   justify-content: center;

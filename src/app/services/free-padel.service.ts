@@ -33,6 +33,10 @@ export interface CreateFreeTournamentInput {
   /** 4-digit unlock code chosen by the creator. */
   code: string;
   format: TournamentFormat;
+  /** Optional seating-phase format (two-phase tournaments). */
+  seatingFormat?: TournamentFormat;
+  /** Number of rounds in the seating phase (when seatingFormat is set). */
+  seatingRounds?: number;
   courtNames: string[];
   totalRounds: number;
   scoring: ScoringConfig;
@@ -90,6 +94,26 @@ export class FreePadelService {
     });
   }
 
+  /** Live list of all free tournaments, newest first. */
+  watchAllFreeTournaments(): Observable<FreeTournament[]> {
+    return new Observable<FreeTournament[]>((subscriber) => {
+      const listRef = ref(this.db, 'freeTournaments');
+      const unsubscribe = onValue(
+        listRef,
+        (snapshot) => {
+          const val =
+            (snapshot.val() as Record<string, FreeTournament> | null) ?? {};
+          const list = Object.values(val).sort(
+            (a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0),
+          );
+          subscriber.next(list);
+        },
+        (error) => subscriber.error(error),
+      );
+      return () => unsubscribe();
+    });
+  }
+
   private async getFree(id: string): Promise<FreeTournament> {
     const snap = await withTimeout(get(ref(this.db, this.path(id))));
     const t = snap.val() as FreeTournament | null;
@@ -136,6 +160,11 @@ export class FreePadelService {
       record.bonus = input.bonus;
     }
 
+    if (input.seatingFormat && input.seatingRounds && input.seatingRounds >= 1) {
+      record.seatingFormat = input.seatingFormat;
+      record.seatingRounds = input.seatingRounds;
+    }
+
     await withTimeout(set(tourRef, record));
     return id;
   }
@@ -152,6 +181,12 @@ export class FreePadelService {
     if (patch.name !== undefined) updates['name'] = patch.name.trim();
     if (patch.code !== undefined) updates['code'] = patch.code;
     if (patch.format !== undefined) updates['format'] = patch.format;
+    if (patch.seatingFormat !== undefined) {
+      updates['seatingFormat'] = patch.seatingFormat ?? null;
+    }
+    if (patch.seatingRounds !== undefined) {
+      updates['seatingRounds'] = patch.seatingRounds ?? null;
+    }
     if (patch.totalRounds !== undefined) updates['totalRounds'] = patch.totalRounds;
     if (patch.seeded !== undefined) updates['seeded'] = patch.seeded;
     if (patch.scoring !== undefined) updates['scoring'] = patch.scoring;

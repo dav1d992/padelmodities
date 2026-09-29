@@ -16,9 +16,28 @@
       <div class="tour-meta">
         <h1>{{ t.name }}</h1>
         <div class="tour-badges">
-          <span class="badge badge-blue">{{
-            i18n.t("format." + t.format)
-          }}</span>
+          @if (isTwoPhase()) {
+            <span
+              class="badge"
+              [class.badge-blue]="currentPhaseSeating()"
+              [class.badge-muted]="!currentPhaseSeating()"
+            >
+              {{ i18n.t("view.seatingPhase") }}:
+              {{ i18n.t("format." + t.seatingFormat) }} ({{ t.seatingRounds }})
+            </span>
+            <span
+              class="badge"
+              [class.badge-blue]="!currentPhaseSeating()"
+              [class.badge-muted]="currentPhaseSeating()"
+            >
+              {{ i18n.t("view.finalPhase") }}:
+              {{ i18n.t("format." + t.format) }} ({{ finalPhaseRounds() }})
+            </span>
+          } @else {
+            <span class="badge badge-blue">{{
+              i18n.t("format." + t.format)
+            }}</span>
+          }
           <span
             class="badge"
             [class.badge-green]="t.status === 'active'"

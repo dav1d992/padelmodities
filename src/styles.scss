@@ -137,7 +137,7 @@ body::before {
   box-shadow: 0 0 18px rgba(255, 226, 157, 0.28);
 }
 
-:root.christmas-sparkle-active .app-shell img {
+:root.christmas-sparkle-active .app-shell img:not(.player-img) {
   animation: christmas-image-glint 1s ease-out both;
 }
 
@@ -185,7 +185,7 @@ body::before {
 
 @media (prefers-reduced-motion: reduce) {
   :root.christmas-sparkle-active body::after,
-  :root.christmas-sparkle-active .app-shell img,
+  :root.christmas-sparkle-active .app-shell img:not(.player-img),
   :root.christmas-sparkle-active .app-shell img.avatar,
   :root.christmas-sparkle-active .app-shell .rail-track img {
     animation: none;

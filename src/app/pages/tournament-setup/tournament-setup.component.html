@@ -34,9 +34,45 @@
       ></textarea>
     </label>
 
+    <!-- Two-phase toggle -->
+    <label class="switch standalone">
+      <input
+        type="checkbox"
+        [ngModel]="twoPhase()"
+        (ngModelChange)="toggleTwoPhase($event)"
+      />
+      <span>{{ i18n.t("setup.twoPhase") }}</span>
+    </label>
+    @if (twoPhase()) {
+      <p class="muted small">{{ i18n.t("setup.twoPhaseHint") }}</p>
+
+      <!-- Seating format -->
+      <div class="format-section">
+        <span class="field-label muted">{{
+          i18n.t("setup.seatingFormat")
+        }}</span>
+        <div class="format-cards">
+          @for (opt of formatOptions; track opt.value) {
+            <button
+              class="format-card glass"
+              [class.selected]="seatingFormat() === opt.value"
+              (click)="selectSeatingFormat(opt.value)"
+            >
+              <strong>{{ i18n.t("format." + opt.value) }}</strong>
+              <span class="muted small">{{
+                i18n.t("format." + opt.value + ".desc")
+              }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Format -->
     <div class="format-section">
-      <span class="field-label muted">{{ i18n.t("setup.format") }}</span>
+      <span class="field-label muted">{{
+        twoPhase() ? i18n.t("setup.finalFormat") : i18n.t("setup.format")
+      }}</span>
       <div class="format-cards">
         @for (opt of formatOptions; track opt.value) {
           <button
@@ -184,14 +220,36 @@
 
     <!-- Rounds (not for round robin) -->
     @if (!isRoundRobin()) {
-      <label class="inline">
-        {{ i18n.t("setup.numRounds") }}
-        <input
-          type="number"
-          [ngModel]="totalRounds()"
-          (ngModelChange)="totalRounds.set(+$event)"
-        />
-      </label>
+      @if (twoPhase()) {
+        <label class="inline">
+          {{ i18n.t("setup.seatingRounds") }}
+          <input
+            type="number"
+            [ngModel]="seatingRounds()"
+            (ngModelChange)="seatingRounds.set(+$event)"
+          />
+        </label>
+        <label class="inline">
+          {{ i18n.t("setup.finalRounds") }}
+          <input
+            type="number"
+            [ngModel]="finalRounds()"
+            (ngModelChange)="finalRounds.set(+$event)"
+          />
+        </label>
+        <p class="muted small">
+          {{ i18n.t("setup.totalRoundsInfo", { n: effectiveTotalRounds() }) }}
+        </p>
+      } @else {
+        <label class="inline">
+          {{ i18n.t("setup.numRounds") }}
+          <input
+            type="number"
+            [ngModel]="totalRounds()"
+            (ngModelChange)="totalRounds.set(+$event)"
+          />
+        </label>
+      }
     } @else {
       <p class="muted small">{{ i18n.t("setup.roundRobinNote") }}</p>
     }
@@ -383,7 +441,16 @@
       @if (!isRoundRobin()) {
         <div class="preview-row">
           <span class="muted small">{{ i18n.t("setup.rounds") }}</span>
-          <strong>{{ totalRounds() }}</strong>
+          <strong>{{ effectiveTotalRounds() }}</strong>
+        </div>
+      }
+      @if (twoPhase()) {
+        <div class="preview-row">
+          <span class="muted small">{{ i18n.t("setup.phases") }}</span>
+          <strong>
+            {{ i18n.t("format." + seatingFormat()) }} ({{ seatingRounds() }})
+            → {{ i18n.t("format." + format()) }} ({{ finalRounds() }})
+          </strong>
         </div>
       }
       @if (fairnessWarning()) {

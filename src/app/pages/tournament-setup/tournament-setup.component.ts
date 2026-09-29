@@ -75,6 +75,12 @@ export class TournamentSetupComponent implements OnInit {
   readonly description = signal("");
   readonly format = signal<TournamentFormat>("americano");
   readonly seeded = signal(false);
+
+  // Two-phase (seating + final)
+  readonly twoPhase = signal(false);
+  readonly seatingFormat = signal<TournamentFormat>("beat-the-box");
+  readonly seatingRounds = signal(3);
+  readonly finalRounds = signal(4);
   readonly courtNames = signal<string[]>([
     this.i18n.t("court.default", { n: 1 }),
     this.i18n.t("court.default", { n: 2 }),
@@ -144,6 +150,12 @@ export class TournamentSetupComponent implements OnInit {
     this.totalRounds.set(t.totalRounds || 7);
     this.scoring.set({ ...DEFAULT_SCORING, ...t.scoring });
     if (t.bonus) this.bonus.set({ ...t.bonus, points: { ...t.bonus.points } });
+    if (t.seatingFormat && (t.seatingRounds ?? 0) >= 1) {
+      this.twoPhase.set(true);
+      this.seatingFormat.set(t.seatingFormat);
+      this.seatingRounds.set(t.seatingRounds!);
+      this.finalRounds.set(Math.max(1, (t.totalRounds || 0) - t.seatingRounds!));
+    }
     if (isTeamFormat(t.format)) {
       this.teams.set(Object.values(t.teams ?? {}));
     } else {
@@ -163,6 +175,21 @@ export class TournamentSetupComponent implements OnInit {
   readonly showBonus = computed(() => this.isSuperMex() || this.isMexericano());
   readonly isRoundRobin = computed(() => this.format() === "team-americano");
   readonly courtCount = computed(() => this.courtNames().length);
+
+  // Two-phase derived
+  readonly seatingIsTeam = computed(() => isTeamFormat(this.seatingFormat()));
+  readonly seatingIsBeatBox = computed(
+    () => this.seatingFormat() === "beat-the-box",
+  );
+  readonly seatingIsKoth = computed(
+    () => this.seatingFormat() === "king-of-the-hill",
+  );
+  /** All rounds across both phases (or single-phase count). */
+  readonly effectiveTotalRounds = computed(() =>
+    this.twoPhase()
+      ? this.seatingRounds() + this.finalRounds()
+      : this.totalRounds(),
+  );
 
   readonly selectedCount = computed(() => this.selectedIds().size);
   readonly teamCount = computed(() => this.teams().length);
@@ -204,8 +231,29 @@ export class TournamentSetupComponent implements OnInit {
       if (this.selectedCount() < 4) messages.push(this.i18n.t("val.min4"));
     }
 
-    if (this.isBeatTheBox() && this.totalRounds() % 3 !== 0) {
+    if (this.isBeatTheBox() && !this.twoPhase() && this.totalRounds() % 3 !== 0) {
       messages.push(this.i18n.t("val.beatBoxRounds"));
+    }
+
+    if (this.twoPhase()) {
+      if (
+        this.seatingFormat() === "team-americano" ||
+        this.format() === "team-americano"
+      ) {
+        messages.push(this.i18n.t("val.twoPhaseNoRoundRobin"));
+      } else if (this.seatingIsTeam() !== this.isTeam()) {
+        messages.push(this.i18n.t("val.twoPhaseTeamMismatch"));
+      }
+      if (this.seatingRounds() < 1)
+        messages.push(this.i18n.t("val.twoPhaseSeatingRounds"));
+      if (this.finalRounds() < 1)
+        messages.push(this.i18n.t("val.twoPhaseFinalRounds"));
+      if (this.seatingIsBeatBox() && this.seatingRounds() % 3 !== 0)
+        messages.push(this.i18n.t("val.beatBoxSeatingRounds"));
+      if (this.isBeatTheBox() && this.finalRounds() % 3 !== 0)
+        messages.push(this.i18n.t("val.beatBoxFinalRounds"));
+      if (this.seatingIsKoth() && this.courtCount() < 2)
+        messages.push(this.i18n.t("val.kothCourts"));
     }
 
     if (!this.isTeam() && this.perRoundInfo().matches < 1) {
@@ -238,12 +286,32 @@ export class TournamentSetupComponent implements OnInit {
     if (f === "beat-the-box" && this.totalRounds() === 7) {
       this.totalRounds.set(6);
     }
+    if (f === "beat-the-box" && this.twoPhase() && this.finalRounds() % 3 !== 0) {
+      this.finalRounds.set(3);
+    }
     if (f === "king-of-the-hill" && this.courtCount() < 2) {
       this.courtNames.set([
         this.i18n.t("court.king"),
         this.i18n.t("court.default", { n: 2 }),
       ]);
     }
+  }
+
+  selectSeatingFormat(f: TournamentFormat): void {
+    this.seatingFormat.set(f);
+    if (f === "beat-the-box" && this.seatingRounds() % 3 !== 0) {
+      this.seatingRounds.set(3);
+    }
+    if (f === "king-of-the-hill" && this.courtCount() < 2) {
+      this.courtNames.set([
+        this.i18n.t("court.king"),
+        this.i18n.t("court.default", { n: 2 }),
+      ]);
+    }
+  }
+
+  toggleTwoPhase(on: boolean): void {
+    this.twoPhase.set(on);
   }
 
   // ── Scoring ─────────────────────────────────────────────────────────────
@@ -351,8 +419,16 @@ export class TournamentSetupComponent implements OnInit {
   // ── Submit ──────────────────────────────────────────────────────────────
 
   private buildInput(status: "draft" | "active"): CreateTournamentInput {
+    const twoPhase = this.twoPhase();
     const playerIds = this.isTeam() ? [] : [...this.selectedIds()];
-    if (this.isBeatTheBox() && this.seeded()) {
+    // ELO balancing: snake-seed ELO-sorted players into boxes / seeded formats.
+    const seatingBox = twoPhase && this.seatingFormat() === "beat-the-box";
+    const seeded = this.seeded() || seatingBox;
+    const needsEloSort =
+      !this.isTeam() &&
+      seeded &&
+      (this.isBeatTheBox() || seatingBox);
+    if (needsEloSort) {
       const ratings = new Map(
         this.players().map((player) => [player.id, player.rating]),
       );
@@ -362,13 +438,19 @@ export class TournamentSetupComponent implements OnInit {
       name: this.tournamentName(),
       description: this.description(),
       format: this.format(),
+      seatingFormat: twoPhase ? this.seatingFormat() : undefined,
+      seatingRounds: twoPhase ? this.seatingRounds() : undefined,
       playerIds,
       teams: this.isTeam() ? this.teams() : undefined,
       courtNames: this.courtNames(),
-      totalRounds: this.isRoundRobin() ? 0 : this.totalRounds(),
+      totalRounds: this.isRoundRobin()
+        ? 0
+        : twoPhase
+          ? this.seatingRounds() + this.finalRounds()
+          : this.totalRounds(),
       scoring: this.scoring(),
       bonus: this.showBonus() ? this.bonus() : undefined,
-      seeded: this.seeded(),
+      seeded,
       status,
     };
   }

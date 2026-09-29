@@ -214,6 +214,97 @@ label {
   gap: 0.8rem;
 }
 
+.admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.tournament-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  li {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+}
+
+.tournament-row {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 0.15s ease,
+    transform 0.1s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+  }
+}
+
+.btn-icon.danger {
+  flex-shrink: 0;
+  align-self: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--danger, #e5484d);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    border-color: var(--danger, #e5484d);
+    background: color-mix(in srgb, var(--danger, #e5484d) 12%, transparent);
+  }
+}
+
+.tournament-row-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-badge {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted-fg, var(--text));
+
+  &[data-status="active"] {
+    background: color-mix(in srgb, var(--primary) 22%, transparent);
+    color: var(--primary);
+  }
+
+  &[data-status="finished"] {
+    background: color-mix(in srgb, var(--gold) 22%, transparent);
+    color: var(--gold);
+  }
+}
+
 @media (max-width: 640px) {
   .action-buttons {
     flex-direction: column;

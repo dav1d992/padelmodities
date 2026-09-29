@@ -15,6 +15,8 @@ import {
   PLACEMENT_RATING_PER_PLAYER,
   isDynamicFormat,
   isTeamFormat,
+  phaseFormatFor,
+  phaseStartIndex,
   type CourtBonusConfig,
   type Player,
   type ScoringConfig,
@@ -30,13 +32,12 @@ import {
   computeStandings,
   generateBeatTheBoxInitialRound,
   generateBeatTheBoxNextRound,
-  generateAmericanoRounds,
+  generateInitialRounds as engineGenerateInitialRounds,
   generateKothInitialRound,
   generateKothNextRound,
   generateMexericanoFinalRound,
   generateMexericanoRound,
   generateMexicanoRound,
-  generateTeamAmericanoRounds,
   generateTeamMexicanoRound,
   standingsOrder,
   validateScore,
@@ -47,6 +48,10 @@ export interface CreateTournamentInput {
   name: string;
   description?: string;
   format: TournamentFormat;
+  /** Optional seating-phase format (two-phase tournaments). */
+  seatingFormat?: TournamentFormat;
+  /** Number of rounds in the seating phase (when seatingFormat is set). */
+  seatingRounds?: number;
   /** Individual formats. */
   playerIds: string[];
   /** Team formats. */
@@ -318,54 +323,26 @@ export class PadelService {
     ) {
       record.bonus = input.bonus;
     }
+
+    if (
+      input.seatingFormat &&
+      input.seatingRounds &&
+      input.seatingRounds >= 1
+    ) {
+      record.seatingFormat = input.seatingFormat;
+      record.seatingRounds = input.seatingRounds;
+    }
     return record;
   }
 
   /** Generate and store the opening round(s) for a freshly-started tournament. */
   private async generateInitialRounds(tournament: Tournament): Promise<void> {
-    const { format, courtCount } = tournament;
-    const rounds: Record<string, TournamentRound> = {};
-
-    if (format === "americano") {
-      const playerIds = Object.values(tournament.playerIds ?? {});
-      const generated = generateAmericanoRounds(
-        playerIds,
-        courtCount,
-        tournament.totalRounds,
-      );
-      generated.forEach((r) => (rounds[String(r.index)] = r));
-    } else if (format === "team-americano") {
-      const teamIds = Object.values(tournament.teams ?? {}).map((t) => t.id);
-      const generated = generateTeamAmericanoRounds(
-        teamIds,
-        this.teamMap(tournament),
-        courtCount,
-      );
-      generated.forEach((r) => (rounds[String(r.index)] = r));
-      // Round-robin length is fixed by the number of teams/courts.
+    const { rounds, totalRounds } = engineGenerateInitialRounds(tournament);
+    if (totalRounds !== tournament.totalRounds) {
       await withTimeout(
-        update(ref(this.db, `tournaments/${tournament.id}`), {
-          totalRounds: generated.length,
-        }),
+        update(ref(this.db, `tournaments/${tournament.id}`), { totalRounds }),
       );
-    } else if (format === "king-of-the-hill") {
-      const playerIds = Object.values(tournament.playerIds ?? {});
-      rounds["0"] = generateKothInitialRound(
-        playerIds,
-        courtCount,
-        tournament.seeded,
-      );
-    } else if (format === "beat-the-box") {
-      rounds["0"] = generateBeatTheBoxInitialRound(
-        Object.values(tournament.playerIds ?? {}),
-        courtCount,
-        tournament.seeded,
-      );
-    } else {
-      // mexicano / super-mexicano / team-mexicano: only round 0 up front.
-      rounds["0"] = this.buildDynamicRound(tournament, 0, []);
     }
-
     await withTimeout(
       set(ref(this.db, `tournaments/${tournament.id}/rounds`), rounds),
     );
@@ -386,28 +363,38 @@ export class PadelService {
     const order = standingsOrder(tournament, (id) =>
       this.participantName(tournament, id),
     );
+    const fmt = phaseFormatFor(tournament, roundIndex);
 
-    if (tournament.format === "beat-the-box") {
+    if (fmt === "beat-the-box") {
       const playerIds = Object.values(tournament.playerIds ?? {});
-      if (roundIndex === 0) {
-        return generateBeatTheBoxInitialRound(
+      const phaseStart = phaseStartIndex(tournament, roundIndex);
+      const localIndex = roundIndex - phaseStart;
+      if (localIndex === 0) {
+        return {
+          ...generateBeatTheBoxInitialRound(
+            playerIds,
+            tournament.courtCount,
+            tournament.seeded,
+          ),
+          index: roundIndex,
+        };
+      }
+      const priorInPhase = priorRounds.filter((r) => r.index >= phaseStart);
+      const previousRound = priorInPhase[priorInPhase.length - 1];
+      if (!previousRound) throw new Error("err.roundNotFound");
+      return {
+        ...generateBeatTheBoxNextRound(
+          previousRound,
+          priorInPhase,
+          localIndex,
           playerIds,
           tournament.courtCount,
-          tournament.seeded,
-        );
-      }
-      const previousRound = priorRounds[priorRounds.length - 1];
-      if (!previousRound) throw new Error("err.roundNotFound");
-      return generateBeatTheBoxNextRound(
-        previousRound,
-        priorRounds,
-        roundIndex,
-        playerIds,
-        tournament.courtCount,
-      );
+        ),
+        index: roundIndex,
+      };
     }
 
-    if (tournament.format === "team-mexicano") {
+    if (fmt === "team-mexicano") {
       const teamIds = Object.values(tournament.teams ?? {}).map((t) => t.id);
       return generateTeamMexicanoRound(
         teamIds,
@@ -420,7 +407,7 @@ export class PadelService {
     }
     // mexicano + super-mexicano
     const playerIds = Object.values(tournament.playerIds ?? {});
-    if (tournament.format === "mexericano") {
+    if (fmt === "mexericano") {
       return generateMexericanoRound(
         playerIds,
         tournament.courtCount,
@@ -484,10 +471,11 @@ export class PadelService {
   /** Regenerate the current round of a dynamic format (only if unscored). */
   async regenerateCurrentRound(tournamentId: string): Promise<void> {
     const tournament = await this.getTournament(tournamentId);
-    if (!isDynamicFormat(tournament.format)) {
+    const roundIndex = tournament.currentRound;
+    const fmt = phaseFormatFor(tournament, roundIndex);
+    if (!isDynamicFormat(fmt)) {
       throw new Error("err.dynamicOnly");
     }
-    const roundIndex = tournament.currentRound;
     const round = tournament.rounds?.[roundIndex];
     if (round?.completed) throw new Error("err.roundDone");
     const anyScore = Object.values(round?.matches ?? {}).some(
@@ -502,23 +490,25 @@ export class PadelService {
     );
 
     let newRound: TournamentRound;
-    if (tournament.format === "king-of-the-hill") {
-      if (roundIndex === 0) {
+    if (fmt === "king-of-the-hill") {
+      const phaseStart = phaseStartIndex(tournament, roundIndex);
+      if (roundIndex === phaseStart) {
         newRound = generateKothInitialRound(
           Object.values(tournament.playerIds ?? {}),
           tournament.courtCount,
           tournament.seeded,
         );
       } else {
-        const prev = prior[prior.length - 1];
+        const priorInPhase = prior.filter((r) => r.index >= phaseStart);
+        const prev = priorInPhase[priorInPhase.length - 1];
         newRound = generateKothNextRound(
           prev,
-          prior.slice(0, -1),
+          priorInPhase.slice(0, -1),
           roundIndex,
           Object.values(tournament.playerIds ?? {}),
         );
       }
-    } else if (tournament.format === "mexericano" && round?.isFinal) {
+    } else if (fmt === "mexericano" && round?.isFinal) {
       const order = standingsOrder(tournament, (id) =>
         this.participantName(tournament, id),
       );
@@ -599,7 +589,7 @@ export class PadelService {
         m.score1,
         m.score2,
         tournament.scoring,
-        tournament.format,
+        phaseFormatFor(tournament, roundIndex),
       );
       if (!v.valid) throw new Error(v.reason ?? "err.invalidScore");
     }
@@ -618,15 +608,15 @@ export class PadelService {
       },
     };
 
-    const isStatic =
-      tournament.format === "americano" ||
-      tournament.format === "team-americano";
     const isFinalRound = !!round.isFinal;
     const nextRound = roundIndex + 1;
     const precomputedNext = tournament.rounds?.[nextRound];
+    const nextFmt = phaseFormatFor(tournament, nextRound);
+    const nextIsStatic =
+      nextFmt === "americano" || nextFmt === "team-americano";
     const isLast =
       isFinalRound ||
-      (isStatic ? !precomputedNext : nextRound >= tournament.totalRounds);
+      (nextIsStatic ? !precomputedNext : nextRound >= tournament.totalRounds);
 
     const updates: Record<string, unknown> = {
       [`tournaments/${tournamentId}/updatedAt`]: Date.now(),
@@ -648,18 +638,29 @@ export class PadelService {
     }
 
     // Generate the next dynamic round if needed.
-    if (!isLast && !isStatic) {
+    if (!isLast && !nextIsStatic) {
       let newRound: TournamentRound;
-      if (tournament.format === "king-of-the-hill") {
-        const prior = this.sortedRounds(completedTournament).filter(
-          (r) => r.index < roundIndex,
-        );
-        newRound = generateKothNextRound(
-          { ...round, completed: true },
-          prior,
-          nextRound,
-          Object.values(tournament.playerIds ?? {}),
-        );
+      if (nextFmt === "king-of-the-hill") {
+        const phaseStart = phaseStartIndex(completedTournament, nextRound);
+        const priorAll = this.sortedRounds(completedTournament);
+        if (nextRound === phaseStart) {
+          newRound = generateKothInitialRound(
+            Object.values(tournament.playerIds ?? {}),
+            tournament.courtCount,
+            tournament.seeded,
+          );
+        } else {
+          const priorInPhase = priorAll.filter(
+            (r) => r.index >= phaseStart && r.index < nextRound,
+          );
+          const prev = priorInPhase[priorInPhase.length - 1];
+          newRound = generateKothNextRound(
+            prev,
+            priorInPhase.slice(0, -1),
+            nextRound,
+            Object.values(tournament.playerIds ?? {}),
+          );
+        }
       } else {
         const prior = this.sortedRounds(completedTournament);
         newRound = this.buildDynamicRound(

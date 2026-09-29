@@ -125,6 +125,15 @@ const DA: Dict = {
   "setup.playersCount": "{n} spillere",
   "setup.matchesPerRound": "Kampe pr. runde",
   "setup.rounds": "Runder",
+  "setup.twoPhase": "To faser (seedning + finale)",
+  "setup.twoPhaseHint":
+    "Spil et seedningsformat først, derefter et finaleformat. Point fra begge faser tæller med i den samlede stilling.",
+  "setup.seatingFormat": "Seedningsformat",
+  "setup.finalFormat": "Finaleformat",
+  "setup.seatingRounds": "Runder i seedningsfasen",
+  "setup.finalRounds": "Runder i finalefasen",
+  "setup.totalRoundsInfo": "I alt {n} runder",
+  "setup.phases": "Faser",
   "setup.saveDraft": "💾 Gem som kommende",
   "setup.start": "Start turnering",
   "setup.starting": "Starter…",
@@ -176,6 +185,16 @@ const DA: Dict = {
   "val.minRound": "Angiv mindst én runde.",
   "val.beatBoxRounds":
     "Antal runder skal være deleligt med 3, så alle makkerkombinationer spilles.",
+  "val.beatBoxSeatingRounds":
+    "Beat the Box som seedningsformat kræver runder deleligt med 3.",
+  "val.beatBoxFinalRounds":
+    "Beat the Box som finaleformat kræver runder deleligt med 3.",
+  "val.twoPhaseNoRoundRobin":
+    "Team Americano kan ikke bruges i en to-fase-turnering.",
+  "val.twoPhaseTeamMismatch":
+    "Begge faser skal være enten individuelle eller hold-formater.",
+  "val.twoPhaseSeatingRounds": "Angiv mindst én runde i seedningsfasen.",
+  "val.twoPhaseFinalRounds": "Angiv mindst én runde i finalefasen.",
   "val.fairness":
     "{n} {who} sidder over hver runde — oversidning fordeles så retfærdigt som muligt.",
   "who.teams": "hold",
@@ -191,6 +210,8 @@ const DA: Dict = {
   "status.finished": "Afsluttet",
   "view.round": "Runde",
   "view.roundTitle": "Runde {n}",
+  "view.seatingPhase": "Seedning",
+  "view.finalPhase": "Finale",
   "view.draftSaved": "Kommende turnering gemt",
   "view.deleteTournament": "Slet turnering",
   "view.deleteConfirm": "Slet turneringen „{name}”? Dette kan ikke fortrydes.",
@@ -327,6 +348,11 @@ const DA: Dict = {
   "free.navLink": "Fri turnering",
   "free.badge": "Fri",
   "free.setup.title": "Ny fri turnering",
+  "free.setup.editTitle": "Rediger turnering",
+  "free.editSettings": "Rediger indstillinger",
+  "free.list.show": "Vis alle turneringer",
+  "free.list.hide": "Skjul turneringer",
+  "free.list.empty": "Ingen frie turneringer endnu.",
   "free.setup.subtitle":
     "Vært en turnering uden spillerprofiler. Deltagere er blot navne, og intet gemmes på ranglisten.",
   "free.setup.code": "4-cifret kode *",
@@ -349,6 +375,7 @@ const DA: Dict = {
   "free.teamNamePlaceholder": "Holdnavn (valgfrit)",
   "free.confirmRemoveParticipant": "Fjern {name}?",
   "free.confirmDelete": "Slet denne turnering permanent?",
+  "free.confirmDeleteNamed": "Slet \"{name}\" permanent?",
   "free.startHint": "Tilføj nok deltagere for at starte turneringen.",
 
   // Route titles (always English, even in Danish UI)
@@ -480,6 +507,15 @@ const EN: Dict = {
   "setup.playersCount": "{n} players",
   "setup.matchesPerRound": "Matches per round",
   "setup.rounds": "Rounds",
+  "setup.twoPhase": "Two phases (seating + final)",
+  "setup.twoPhaseHint":
+    "Play a seating format first, then a final format. Points from both phases count towards the overall standings.",
+  "setup.seatingFormat": "Seating format",
+  "setup.finalFormat": "Final format",
+  "setup.seatingRounds": "Seating-phase rounds",
+  "setup.finalRounds": "Final-phase rounds",
+  "setup.totalRoundsInfo": "{n} rounds total",
+  "setup.phases": "Phases",
   "setup.saveDraft": "💾 Save as upcoming",
   "setup.start": "Start tournament",
   "setup.starting": "Starting…",
@@ -532,6 +568,16 @@ const EN: Dict = {
   "val.minRound": "Enter at least one round.",
   "val.beatBoxRounds":
     "Number of rounds must be divisible by 3 so every partner combination is played.",
+  "val.beatBoxSeatingRounds":
+    "Beat the Box as the seating format requires rounds divisible by 3.",
+  "val.beatBoxFinalRounds":
+    "Beat the Box as the final format requires rounds divisible by 3.",
+  "val.twoPhaseNoRoundRobin":
+    "Team Americano can't be used in a two-phase tournament.",
+  "val.twoPhaseTeamMismatch":
+    "Both phases must be either individual or team formats.",
+  "val.twoPhaseSeatingRounds": "Enter at least one seating-phase round.",
+  "val.twoPhaseFinalRounds": "Enter at least one final-phase round.",
   "val.fairness":
     "{n} {who} sit out each round — sit-outs are distributed as fairly as possible.",
   "who.teams": "teams",
@@ -547,6 +593,8 @@ const EN: Dict = {
   "status.finished": "Finished",
   "view.round": "Round",
   "view.roundTitle": "Round {n}",
+  "view.seatingPhase": "Seating",
+  "view.finalPhase": "Final",
   "view.draftSaved": "Upcoming tournament saved",
   "view.deleteTournament": "Delete tournament",
   "view.deleteConfirm":
@@ -686,6 +734,11 @@ const EN: Dict = {
   "free.navLink": "Free tournament",
   "free.badge": "Free",
   "free.setup.title": "New free tournament",
+  "free.setup.editTitle": "Edit tournament",
+  "free.editSettings": "Edit settings",
+  "free.list.show": "View all tournaments",
+  "free.list.hide": "Hide tournaments",
+  "free.list.empty": "No free tournaments yet.",
   "free.setup.subtitle":
     "Host a tournament without player profiles. Participants are just names, and nothing is saved to the leaderboard.",
   "free.setup.code": "4-digit code *",
@@ -708,6 +761,7 @@ const EN: Dict = {
   "free.teamNamePlaceholder": "Team name (optional)",
   "free.confirmRemoveParticipant": "Remove {name}?",
   "free.confirmDelete": "Permanently delete this tournament?",
+  "free.confirmDeleteNamed": "Permanently delete \"{name}\"?",
   "free.startHint": "Add enough participants to start the tournament.",
 
   // Route titles
