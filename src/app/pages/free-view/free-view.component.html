@@ -1,0 +1,425 @@
+<a routerLink="/free" class="back-link" [attr.aria-label]="i18n.t('common.back')"
+  ><span class="back-arrow" aria-hidden="true">←</span
+  ><span class="back-label">{{ i18n.t("free.backCreate") }}</span></a
+>
+
+<div class="page fade-up">
+  @if (error()) {
+    <p class="banner-error pop-in">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <div class="loader-center"><span class="loader"></span></div>
+  } @else if (tournament(); as t) {
+    <!-- Header -->
+    <header class="tour-header glass panel">
+      <div class="tour-meta">
+        <h1>{{ t.name }}</h1>
+        <div class="tour-badges">
+          <span class="badge badge-blue">{{ i18n.t("format." + t.format) }}</span>
+          <span
+            class="badge"
+            [class.badge-green]="t.status === 'active'"
+            [class.badge-gold]="t.status === 'draft'"
+            [class.badge-muted]="t.status === 'finished'"
+          >
+            {{
+              t.status === "active"
+                ? i18n.t("status.active")
+                : t.status === "draft"
+                  ? i18n.t("status.draft")
+                  : i18n.t("status.finished")
+            }}
+          </span>
+          <span class="badge badge-muted">{{
+            i18n.t("scoring." + t.scoring.method)
+          }}</span>
+          <span class="badge badge-free">{{ i18n.t("free.badge") }}</span>
+        </div>
+        @if (t.description) {
+          <p class="muted small tour-desc">{{ t.description }}</p>
+        }
+      </div>
+
+      <div class="tour-header-side">
+        @if (isActive()) {
+          <div class="round-indicator">
+            {{ i18n.t("view.round") }} <strong>{{ displayRound() + 1 }}</strong>
+            <span class="muted">/ {{ t.totalRounds }}</span>
+          </div>
+        }
+        @if (unlocked()) {
+          <button class="btn btn-ghost lock-btn" (click)="lock()">
+            🔓 {{ i18n.t("free.locked.relock") }}
+          </button>
+        } @else {
+          <button class="btn btn-primary lock-btn" (click)="openKeypad()">
+            🔒 {{ i18n.t("free.unlock") }}
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- Keypad overlay -->
+    @if (keypadOpen()) {
+      <div class="keypad-backdrop" (click)="closeKeypad()">
+        <div
+          class="keypad glass panel"
+          (click)="$event.stopPropagation()"
+          role="dialog"
+          [attr.aria-label]="i18n.t('free.unlock')"
+        >
+          <h2>{{ i18n.t("free.enterCode") }}</h2>
+          <div class="code-dots" [class.error]="unlockError()">
+            @for (i of [0, 1, 2, 3]; track i) {
+              <span class="dot" [class.filled]="codeEntry().length > i"></span>
+            }
+          </div>
+          @if (unlockError()) {
+            <p class="warn small">{{ i18n.t("free.wrongCode") }}</p>
+          }
+          <div class="keypad-grid">
+            @for (d of [1, 2, 3, 4, 5, 6, 7, 8, 9]; track d) {
+              <button class="key" (click)="pressDigit(d)">{{ d }}</button>
+            }
+            <button class="key key-ghost" (click)="backspace()">⌫</button>
+            <button class="key" (click)="pressDigit(0)">0</button>
+            <button class="key key-ghost" (click)="closeKeypad()">✕</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ─── DRAFT: setup ─────────────────────────────────────────────── -->
+    @if (isDraft()) {
+      @if (!unlocked()) {
+        <div class="glass panel notice">
+          <p>{{ i18n.t("free.locked.hint") }}</p>
+        </div>
+      } @else {
+        @if (isTeam()) {
+          <!-- Team building -->
+          <section class="section">
+            <h2 class="section-title">
+              {{ i18n.t("setup.teams", { n: teams().length }) }}
+            </h2>
+            @if (teams().length > 0) {
+              <div class="chip-list">
+                @for (tm of teams(); track tm.id) {
+                  <div class="chip-item glass">
+                    <span class="chip-item-name">{{ tm.name }}</span>
+                    <span class="muted small">
+                      {{ participantName(tm.p1) }} + {{ participantName(tm.p2) }}
+                    </span>
+                    <button class="btn-icon" (click)="removeTeam(tm.id)">✕</button>
+                  </div>
+                }
+              </div>
+            }
+            <div class="glass panel builder">
+              <p class="muted small">{{ i18n.t("setup.pickTwo") }}</p>
+              <div class="pick-grid">
+                @for (p of availableForTeams(); track p.id) {
+                  <button
+                    class="pill"
+                    [class.selected]="isPicked(p.id)"
+                    (click)="toggleTeamPick(p.id)"
+                  >
+                    {{ p.name }}
+                  </button>
+                }
+              </div>
+              <div class="row-add">
+                <input
+                  type="text"
+                  maxlength="40"
+                  [placeholder]="i18n.t('free.teamNamePlaceholder')"
+                  [ngModel]="teamName()"
+                  (ngModelChange)="teamName.set($event)"
+                />
+                <button
+                  class="btn btn-ghost"
+                  [disabled]="teamPick().length !== 2"
+                  (click)="addTeam()"
+                >
+                  {{ i18n.t("setup.addTeam") }}
+                </button>
+              </div>
+            </div>
+          </section>
+        }
+
+        <!-- Participants -->
+        <section class="section">
+          <h2 class="section-title">
+            {{ i18n.t("free.participants", { n: participants().length }) }}
+          </h2>
+          <div class="row-add">
+            <input
+              type="text"
+              maxlength="40"
+              [placeholder]="i18n.t('free.participantPlaceholder')"
+              [ngModel]="newParticipant()"
+              (ngModelChange)="newParticipant.set($event)"
+              (keyup.enter)="addParticipant()"
+            />
+            <button class="btn btn-primary" (click)="addParticipant()">
+              {{ i18n.t("free.addParticipant") }}
+            </button>
+          </div>
+
+          @if (participants().length === 0) {
+            <p class="muted small">{{ i18n.t("free.noParticipants") }}</p>
+          } @else {
+            <div class="chip-list">
+              @for (p of participants(); track p.id) {
+                <div class="chip-item glass">
+                  @if (editingId() === p.id) {
+                    <input
+                      type="text"
+                      class="edit-input"
+                      maxlength="40"
+                      [ngModel]="editName()"
+                      (ngModelChange)="editName.set($event)"
+                      (keyup.enter)="saveEdit(p.id)"
+                    />
+                    <button class="btn-icon" (click)="saveEdit(p.id)">✓</button>
+                    <button class="btn-icon" (click)="cancelEdit()">✕</button>
+                  } @else {
+                    <span class="chip-item-name">{{ p.name }}</span>
+                    <button class="btn-icon" (click)="startEdit(p)">✏️</button>
+                    <button class="btn-icon" (click)="removeParticipant(p)">
+                      🗑️
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <div class="action-buttons">
+          <button class="btn btn-danger" (click)="deleteTournament()">
+            {{ i18n.t("common.deleteLabel") }}
+          </button>
+          <button
+            class="btn btn-primary big"
+            [disabled]="!canStart() || starting()"
+            (click)="start()"
+          >
+            {{ starting() ? i18n.t("setup.starting") : i18n.t("setup.start") }}
+          </button>
+        </div>
+        @if (!canStart()) {
+          <p class="muted small hint-center">{{ i18n.t("free.startHint") }}</p>
+        }
+      }
+    }
+
+    <!-- ─── ACTIVE / FINISHED: play ──────────────────────────────────── -->
+    @if (isActive() || isFinished()) {
+      @if (isFinished() && winnerName()) {
+        <div class="glass panel winner-banner">
+          🏆 {{ i18n.t("view.winner") }}: <strong>{{ winnerName() }}</strong>
+        </div>
+      }
+
+      @if (totalGeneratedRounds() > 1) {
+        <div class="round-nav">
+          <button class="btn-icon" [disabled]="!hasPrevRound()" (click)="prevRound()">
+            ←
+          </button>
+          <span class="round-nav-label">
+            {{ i18n.t("view.round") }} {{ displayRound() + 1 }}
+          </span>
+          <button class="btn-icon" [disabled]="!hasNextRound()" (click)="nextRound()">
+            →
+          </button>
+        </div>
+      }
+
+      <!-- King of the Hill ladder -->
+      @if (isKoth()) {
+        <section class="section">
+          <h2 class="section-title">{{ i18n.t("view.ladder") }}</h2>
+          <div class="matches">
+            @for (court of ladder(); track court.courtIndex) {
+              <div class="match-card glass" [class.king-court]="court.isKing">
+                <div class="court-label-row">
+                  <span class="court-label muted small">{{ court.courtName }}</span>
+                  @if (court.isKing) {
+                    <span class="badge badge-gold">{{ i18n.t("view.kingCourt") }}</span>
+                  }
+                </div>
+                <div class="match-teams">
+                  <div class="team">
+                    <div class="team-players">
+                      <span>{{ kothMovementIcon(court.match.a1) }} {{ participantName(court.match.a1) }}</span>
+                      <span>{{ kothMovementIcon(court.match.a2) }} {{ participantName(court.match.a2) }}</span>
+                    </div>
+                  </div>
+                  <div class="score-center">
+                    <input
+                      type="number"
+                      class="score-input"
+                      [disabled]="isFinished() || !canEdit()"
+                      [value]="getScore(court.match.id).score1 ?? ''"
+                      (input)="setScore(court.match.id, 'score1', $any($event.target).value)"
+                      (change)="saveScore(court.match.id)"
+                    />
+                    <span class="vs">VS</span>
+                    <input
+                      type="number"
+                      class="score-input"
+                      [disabled]="isFinished() || !canEdit()"
+                      [value]="getScore(court.match.id).score2 ?? ''"
+                      (input)="setScore(court.match.id, 'score2', $any($event.target).value)"
+                      (change)="saveScore(court.match.id)"
+                    />
+                  </div>
+                  <div class="team team-right">
+                    <div class="team-players team-players-right">
+                      <span>{{ participantName(court.match.b1) }} {{ kothMovementIcon(court.match.b1) }}</span>
+                      <span>{{ participantName(court.match.b2) }} {{ kothMovementIcon(court.match.b2) }}</span>
+                    </div>
+                  </div>
+                </div>
+                @if (scoreError(court.match.id)) {
+                  <p class="warn small">{{ scoreError(court.match.id) }}</p>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      } @else {
+        <!-- Standard matches -->
+        <section class="section">
+          <h2 class="section-title">
+            {{ i18n.t("view.roundTitle", { n: displayRound() + 1 }) }}
+            @if (isFinalRound()) {
+              <span class="badge badge-gold">{{ i18n.t("view.finalBadge") }}</span>
+            }
+          </h2>
+          <div class="matches">
+            @for (match of currentMatches(); track match.id) {
+              <div class="match-card glass">
+                <div class="court-label-row">
+                  <span class="court-label muted small">{{ courtName(match.courtIndex) }}</span>
+                </div>
+                <div class="match-teams">
+                  <div class="team">
+                    <div class="team-players">
+                      @if (isTeam()) {
+                        <div class="team-title">{{ teamLabel(match.teamAId) }}</div>
+                      }
+                      <span>{{ participantName(match.a1) }}</span>
+                      <span>{{ participantName(match.a2) }}</span>
+                    </div>
+                  </div>
+                  <div class="score-center">
+                    <input
+                      type="number"
+                      class="score-input"
+                      [disabled]="isFinished() || !canEdit()"
+                      [value]="getScore(match.id).score1 ?? ''"
+                      (input)="setScore(match.id, 'score1', $any($event.target).value)"
+                      (change)="saveScore(match.id)"
+                    />
+                    <span class="vs">VS</span>
+                    <input
+                      type="number"
+                      class="score-input"
+                      [disabled]="isFinished() || !canEdit()"
+                      [value]="getScore(match.id).score2 ?? ''"
+                      (input)="setScore(match.id, 'score2', $any($event.target).value)"
+                      (change)="saveScore(match.id)"
+                    />
+                  </div>
+                  <div class="team team-right">
+                    <div class="team-players team-players-right">
+                      @if (isTeam()) {
+                        <div class="team-title">{{ teamLabel(match.teamBId) }}</div>
+                      }
+                      <span>{{ participantName(match.b1) }}</span>
+                      <span>{{ participantName(match.b2) }}</span>
+                    </div>
+                  </div>
+                </div>
+                @if (scoreError(match.id)) {
+                  <p class="warn small">{{ scoreError(match.id) }}</p>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Round actions -->
+      @if (canEdit() && !isFinished()) {
+        <div class="action-buttons wrap">
+          @if (canRegenerate()) {
+            <button class="btn btn-ghost" [disabled]="regenerating()" (click)="regenerate()">
+              {{ regenerating() ? i18n.t("common.saving") : i18n.t("view.regenerate") }}
+            </button>
+          }
+          @if (canRunFinal()) {
+            <button class="btn btn-gold" [disabled]="runningFinal()" (click)="runFinal()">
+              {{ runningFinal() ? i18n.t("common.saving") : i18n.t("view.finalRound") }}
+            </button>
+          }
+          <button class="btn btn-ghost" (click)="finish()" [disabled]="finishing()">
+            {{ i18n.t("view.finish") }}
+          </button>
+          @if (isCurrentRound()) {
+            <button
+              class="btn btn-primary big"
+              [disabled]="!allScoresEntered() || completing()"
+              (click)="completeRound()"
+            >
+              {{ completing() ? i18n.t("common.saving") : i18n.t("view.completeRound") }}
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Standings -->
+      <section class="section">
+        <h2 class="section-title">{{ i18n.t("view.standings") }}</h2>
+        <div class="glass panel table-wrap">
+          <table class="standings-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>{{ isTeam() ? i18n.t("th.team") : i18n.t("th.player") }}</th>
+                <th>{{ i18n.t("th.played") }}</th>
+                <th>{{ i18n.t("th.wl") }}</th>
+                <th>{{ i18n.t("th.diff") }}</th>
+                <th>{{ i18n.t("th.total") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of standings(); track row.participantId; let i = $index) {
+                <tr [class.leader]="i === 0">
+                  <td>{{ i + 1 }}</td>
+                  <td class="name-cell">{{ row.name }}</td>
+                  <td>{{ row.played }}</td>
+                  <td>{{ row.wins }}–{{ row.losses }}</td>
+                  <td>{{ row.diff > 0 ? "+" : "" }}{{ row.diff }}</td>
+                  <td><strong>{{ row.total }}</strong></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      @if (canEdit()) {
+        <div class="action-buttons">
+          <button class="btn btn-danger" [disabled]="deleting()" (click)="deleteTournament()">
+            {{ i18n.t("common.deleteLabel") }}
+          </button>
+        </div>
+      }
+    }
+  }
+</div>

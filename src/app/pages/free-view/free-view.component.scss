@@ -1,0 +1,339 @@
+.loader-center {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.tour-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+
+  h1 {
+    font-size: 1.5rem;
+  }
+}
+
+.tour-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.badge-free {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.tour-desc {
+  margin-top: 0.5rem;
+  max-width: 52ch;
+}
+
+.tour-header-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.round-indicator {
+  font-size: 1.05rem;
+}
+
+.lock-btn {
+  white-space: nowrap;
+}
+
+/* ── Keypad ─────────────────────────────────────────────────────────────── */
+.keypad-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  padding: 1rem;
+}
+
+.keypad {
+  width: min(320px, 92vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+
+  h2 {
+    font-size: 1.2rem;
+  }
+}
+
+.code-dots {
+  display: flex;
+  gap: 0.9rem;
+
+  &.error .dot {
+    border-color: var(--danger);
+    animation: shake 0.3s;
+  }
+}
+
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  transition: var(--transition);
+
+  &.filled {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.key {
+  aspect-ratio: 1.4;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover {
+    background: var(--card-hover);
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+
+  &.key-ghost {
+    background: transparent;
+    font-size: 1.2rem;
+    color: var(--text-muted);
+  }
+}
+
+/* ── Notices / sections ─────────────────────────────────────────────────── */
+.notice {
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  border-left: 3px solid var(--primary);
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.chip-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.4rem 0.4rem 0.8rem;
+  border-radius: 999px;
+
+  .chip-item-name {
+    font-weight: 600;
+  }
+}
+
+.builder {
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.pick-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pill.selected {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.row-add {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+
+  input {
+    flex: 1;
+  }
+}
+
+.edit-input {
+  min-width: 120px;
+}
+
+/* ── Play ───────────────────────────────────────────────────────────────── */
+.round-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0.8rem 0 1.2rem;
+}
+
+.round-nav-label {
+  font-weight: 600;
+  min-width: 100px;
+  text-align: center;
+}
+
+.matches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.9rem;
+}
+
+.match-card {
+  padding: 0.9rem;
+
+  &.king-court {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px var(--gold) inset;
+  }
+}
+
+.court-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.match-teams {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.team {
+  flex: 1;
+  min-width: 0;
+}
+
+.team-players {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.92rem;
+
+  &.team-players-right {
+    text-align: right;
+  }
+}
+
+.team-title {
+  font-weight: 700;
+}
+
+.score-center {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.winner-banner {
+  padding: 0.9rem 1.2rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 1.15rem;
+  border: 1px solid var(--gold);
+}
+
+/* ── Standings ──────────────────────────────────────────────────────────── */
+.table-wrap {
+  padding: 0.4rem;
+  overflow-x: auto;
+}
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.5rem 0.6rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .name-cell {
+    text-align: left;
+    font-weight: 600;
+  }
+
+  tbody tr:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr.leader td {
+    color: var(--gold);
+  }
+}
+
+/* ── Actions ────────────────────────────────────────────────────────────── */
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  margin: 1.2rem 0;
+
+  &.wrap {
+    flex-wrap: wrap;
+  }
+}
+
+.warn {
+  color: var(--gold);
+}
+
+.hint-center {
+  text-align: center;
+  margin-top: -0.6rem;
+}

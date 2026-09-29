@@ -319,6 +319,38 @@ const DA: Dict = {
   "test.playerName": "Spiller {n}",
   "test.teamName": "Hold {n}",
 
+  // Free mode
+  "th.wl": "V–T",
+  "th.diff": "Diff",
+  "view.winner": "Vinder",
+  "view.confirmFinish": "Afslut turneringen nu?",
+  "free.navLink": "Fri turnering",
+  "free.badge": "Fri",
+  "free.setup.title": "Ny fri turnering",
+  "free.setup.subtitle":
+    "Vært en turnering uden spillerprofiler. Deltagere er blot navne, og intet gemmes på ranglisten.",
+  "free.setup.code": "4-cifret kode *",
+  "free.setup.codeHint": "(bruges til at låse op for redigering)",
+  "free.setup.create": "Opret turnering",
+  "free.setup.participantsNote":
+    "Du tilføjer deltagere inde i turneringen, når den er oprettet.",
+  "free.val.code": "Vælg en 4-cifret kode.",
+  "free.backCreate": "Ny fri turnering",
+  "free.unlock": "Lås op",
+  "free.enterCode": "Indtast koden",
+  "free.wrongCode": "Forkert kode. Prøv igen.",
+  "free.locked.relock": "Lås",
+  "free.locked.hint":
+    "Denne turnering er låst. Tryk på Lås op og indtast den 4-cifrede kode for at redigere.",
+  "free.participants": "Deltagere ({n})",
+  "free.addParticipant": "+ Tilføj",
+  "free.participantPlaceholder": "Deltagerens navn",
+  "free.noParticipants": "Ingen deltagere endnu. Tilføj navne ovenfor.",
+  "free.teamNamePlaceholder": "Holdnavn (valgfrit)",
+  "free.confirmRemoveParticipant": "Fjern {name}?",
+  "free.confirmDelete": "Slet denne turnering permanent?",
+  "free.startHint": "Tilføj nok deltagere for at starte turneringen.",
+
   // Route titles (always English, even in Danish UI)
   "title.rank": "Ranking · Danske Padelmodities",
   "title.player": "Player · Danske Padelmodities",
@@ -326,6 +358,7 @@ const DA: Dict = {
   "title.setup": "New tournament · Danske Padelmodities",
   "title.view": "Tournament · Danske Padelmodities",
   "title.simulate": "Simulator · Danske Padelmodities",
+  "title.free": "Free tournament · Danske Padelmodities",
 };
 
 /** English translations. */
@@ -645,6 +678,38 @@ const EN: Dict = {
   "test.playerName": "Player {n}",
   "test.teamName": "Team {n}",
 
+  // Free mode
+  "th.wl": "W–L",
+  "th.diff": "Diff",
+  "view.winner": "Winner",
+  "view.confirmFinish": "Finish the tournament now?",
+  "free.navLink": "Free tournament",
+  "free.badge": "Free",
+  "free.setup.title": "New free tournament",
+  "free.setup.subtitle":
+    "Host a tournament without player profiles. Participants are just names, and nothing is saved to the leaderboard.",
+  "free.setup.code": "4-digit code *",
+  "free.setup.codeHint": "(used to unlock editing)",
+  "free.setup.create": "Create tournament",
+  "free.setup.participantsNote":
+    "You'll add participants inside the tournament once it's created.",
+  "free.val.code": "Choose a 4-digit code.",
+  "free.backCreate": "New free tournament",
+  "free.unlock": "Unlock",
+  "free.enterCode": "Enter the code",
+  "free.wrongCode": "Wrong code. Try again.",
+  "free.locked.relock": "Lock",
+  "free.locked.hint":
+    "This tournament is locked. Tap Unlock and enter the 4-digit code to edit.",
+  "free.participants": "Participants ({n})",
+  "free.addParticipant": "+ Add",
+  "free.participantPlaceholder": "Participant name",
+  "free.noParticipants": "No participants yet. Add names above.",
+  "free.teamNamePlaceholder": "Team name (optional)",
+  "free.confirmRemoveParticipant": "Remove {name}?",
+  "free.confirmDelete": "Permanently delete this tournament?",
+  "free.startHint": "Add enough participants to start the tournament.",
+
   // Route titles
   "title.rank": "Ranking · Danske Padelmodities",
   "title.player": "Player · Danske Padelmodities",
@@ -652,6 +717,7 @@ const EN: Dict = {
   "title.setup": "New tournament · Danske Padelmodities",
   "title.view": "Tournament · Danske Padelmodities",
   "title.simulate": "Simulator · Danske Padelmodities",
+  "title.free": "Free tournament · Danske Padelmodities",
 };
 
 const DICTS: Record<Lang, Dict> = { da: DA, en: EN };

@@ -1,0 +1,199 @@
+.form-card {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+
+  h1 {
+    font-size: 1.6rem;
+  }
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+
+  &.inline {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    input {
+      max-width: 120px;
+    }
+  }
+}
+
+.label-hint-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.label-hint {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.code-input {
+  letter-spacing: 0.6em;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  max-width: 200px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.format-section,
+.config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.format-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+
+.format-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text);
+  transition: var(--transition);
+
+  &:hover {
+    background: var(--card-hover);
+  }
+
+  &.selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary) inset;
+  }
+}
+
+.chip-row,
+.quick-targets,
+.toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pill.selected {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.scoring-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.switch {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+
+  input {
+    width: auto;
+  }
+
+  &.standalone {
+    margin: 0.2rem 0;
+  }
+}
+
+.court-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.court-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  input[type="text"] {
+    flex: 1;
+  }
+
+  input[type="number"] {
+    max-width: 90px;
+  }
+}
+
+.court-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.court-name-label {
+  flex: 1;
+}
+
+.small-btn {
+  align-self: flex-start;
+}
+
+.bonus-section {
+  padding: 0.9rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.note {
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--primary);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+}
+
+.preview-box {
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.warn {
+  color: var(--gold);
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+}

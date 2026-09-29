@@ -261,6 +261,29 @@ export interface Tournament {
   updatedAt?: number;
 }
 
+/**
+ * A lightweight participant inside a "free mode" tournament. Not a global
+ * {@link Player}: it is just a name that lives inside a single free tournament
+ * and never affects ratings, stats or the leaderboard.
+ */
+export interface FreeParticipant {
+  id: string;
+  name: string;
+}
+
+/**
+ * A standalone tournament hosted via /free. Structurally a {@link Tournament}
+ * (so the whole tournament engine works unchanged) plus a 4-digit unlock
+ * `code` and an embedded `participants` map. Free tournaments live under the
+ * separate `freeTournaments` path and never touch players/ratings/stats.
+ */
+export interface FreeTournament extends Tournament {
+  /** 4-digit code required to unlock editing of this tournament. */
+  code: string;
+  /** Embedded participants (id → {id,name}), keyed by insertion index. */
+  participants?: Record<string, FreeParticipant>;
+}
+
 /** A computed standings row (players or teams). */
 export interface StandingRow {
   participantId: string;

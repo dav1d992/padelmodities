@@ -34,6 +34,9 @@
       <a routerLink="/simulate" class="btn btn-ghost">{{
         i18n.t("rank.simulate")
       }}</a>
+      <a routerLink="/free" class="btn btn-ghost">{{
+        i18n.t("free.navLink")
+      }}</a>
       @if (admin.isAdmin()) {
         <a routerLink="/tournament/new" class="btn btn-ghost">{{
           i18n.t("rank.newTournament")
