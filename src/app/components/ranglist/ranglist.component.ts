@@ -66,13 +66,13 @@ export class RanglistComponent implements OnInit, OnDestroy {
   /** Shuffled once so the two rails never share an image. */
   private readonly shuffledNames = computed(() => this.shuffle([...RAIL_PHOTOS]));
 
-  readonly leftImages = computed(() => {
+  readonly leftNames = computed(() => {
     const all = this.shuffledNames();
-    return all.slice(0, Math.ceil(all.length / 2)).map((name) => this.theme.railImage(name, true));
+    return all.slice(0, Math.ceil(all.length / 2));
   });
-  readonly rightImages = computed(() => {
+  readonly rightNames = computed(() => {
     const all = this.shuffledNames();
-    return all.slice(Math.ceil(all.length / 2)).map((name) => this.theme.railImage(name, true));
+    return all.slice(Math.ceil(all.length / 2));
   });
 
   private shuffle(list: string[]): string[] {
