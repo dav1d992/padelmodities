@@ -20,9 +20,9 @@ import { CommonModule } from '@angular/common';
   styleUrl: './create-player.component.scss',
 })
 export class CreatePlayerComponent implements OnInit {
-  private service = inject(PadelService);
-  private admin = inject(AdminService);
-  private router = inject(Router);
+  readonly #service = inject(PadelService);
+  readonly #admin = inject(AdminService);
+  readonly #router = inject(Router);
   readonly i18n = inject(I18nService);
 
   readonly name = signal('');
@@ -35,8 +35,8 @@ export class CreatePlayerComponent implements OnInit {
   readonly skillLabels = SKILL_LABELS;
 
   ngOnInit(): void {
-    if (!this.admin.isAdmin()) {
-      this.router.navigate(['/']);
+    if (!this.#admin.isAdmin()) {
+      this.#router.navigate(['/']);
     }
   }
 
@@ -64,13 +64,13 @@ export class CreatePlayerComponent implements OnInit {
     this.submitting.set(true);
     this.submitError.set('');
     try {
-      const id = await this.service.createPlayer(
+      const id = await this.#service.createPlayer(
         this.name(),
         this.shortname() || undefined,
         this.startingRating(),
         this.skills(),
       );
-      this.router.navigate(['/player', id]);
+      this.#router.navigate(['/player', id]);
     } catch (error) {
       this.submitError.set(
         error instanceof Error ? this.i18n.t(error.message) : this.i18n.t('common.error'),

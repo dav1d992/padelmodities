@@ -55,12 +55,12 @@ interface LadderCourt {
 export class FreeViewComponent implements OnInit {
   readonly tournamentId = input.required<string>();
 
-  private service = inject(FreePadelService);
-  private access = inject(FreeAccessService);
-  private router = inject(Router);
-  private confirm = inject(ConfirmService);
+  readonly #service = inject(FreePadelService);
+  readonly #access = inject(FreeAccessService);
+  readonly #router = inject(Router);
+  readonly #confirm = inject(ConfirmService);
   readonly i18n = inject(I18nService);
-  private readonly destroyRef = inject(DestroyRef);
+  readonly #destroyRef = inject(DestroyRef);
 
   readonly tournament = signal<FreeTournament | null>(null);
   readonly loading = signal(true);
@@ -76,7 +76,7 @@ export class FreeViewComponent implements OnInit {
 
   // Participant / team editing
   readonly newParticipant = signal("");
-  readonly teamPick = signal<string[]>([]);
+  readonly teamPick = signal<Array<string>>([]);
   readonly teamName = signal("");
 
   readonly starting = signal(false);
@@ -87,15 +87,15 @@ export class FreeViewComponent implements OnInit {
   readonly deleting = signal(false);
 
   ngOnInit(): void {
-    this.service
+    this.#service
       .watchFreeTournament(this.tournamentId())
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe({
         next: (t) => {
           this.tournament.set(t);
           this.loading.set(false);
           if (!t) {
-            this.router.navigate(["/free"]);
+            this.#router.navigate(["/free"]);
             return;
           }
           if (t.status === "finished" && this.viewRound() === null) {
@@ -112,7 +112,7 @@ export class FreeViewComponent implements OnInit {
 
   // ── Access / unlock ────────────────────────────────────────────────────────
 
-  readonly unlocked = computed(() => this.access.isUnlocked(this.tournamentId()));
+  readonly unlocked = computed(() => this.#access.isUnlocked(this.tournamentId()));
 
   openKeypad(): void {
     this.keypadOpen.set(true);
@@ -141,7 +141,7 @@ export class FreeViewComponent implements OnInit {
   submitCode(): void {
     const t = this.tournament();
     if (!t) return;
-    if (this.access.unlock(this.tournamentId(), this.codeEntry(), t.code)) {
+    if (this.#access.unlock(this.tournamentId(), this.codeEntry(), t.code)) {
       this.keypadOpen.set(false);
       this.codeEntry.set("");
       this.unlockError.set(false);
@@ -152,7 +152,7 @@ export class FreeViewComponent implements OnInit {
   }
 
   lock(): void {
-    this.access.lock(this.tournamentId());
+    this.#access.lock(this.tournamentId());
   }
 
   /** True when the user may edit this tournament (unlocked with the code). */
@@ -160,12 +160,14 @@ export class FreeViewComponent implements OnInit {
 
   // ── Format flags ───────────────────────────────────────────────────────────
 
-  readonly isTeam = computed(() =>
-    this.tournament() ? isTeamFormat(this.tournament()!.format) : false,
-  );
-  readonly isDynamic = computed(() =>
-    this.tournament() ? isDynamicFormat(this.tournament()!.format) : false,
-  );
+  readonly isTeam = computed(() => {
+    const t = this.tournament();
+    return t ? isTeamFormat(t.format) : false;
+  });
+  readonly isDynamic = computed(() => {
+    const t = this.tournament();
+    return t ? isDynamicFormat(t.format) : false;
+  });
   readonly isKoth = computed(
     () => this.tournament()?.format === "king-of-the-hill",
   );
@@ -199,16 +201,16 @@ export class FreeViewComponent implements OnInit {
 
   // ── Participants / teams ─────────────────────────────────────────────────
 
-  readonly participants = computed<FreeParticipant[]>(() =>
+  readonly participants = computed<Array<FreeParticipant>>(() =>
     Object.values(this.tournament()?.participants ?? {}),
   );
 
-  readonly teams = computed<TournamentTeam[]>(() =>
+  readonly teams = computed<Array<TournamentTeam>>(() =>
     Object.values(this.tournament()?.teams ?? {}),
   );
 
   /** Participants not yet assigned to a team (team formats). */
-  readonly availableForTeams = computed<FreeParticipant[]>(() => {
+  readonly availableForTeams = computed<Array<FreeParticipant>>(() => {
     const used = new Set(this.teams().flatMap((t) => [t.p1, t.p2]));
     return this.participants().filter((p) => !used.has(p.id));
   });
@@ -218,20 +220,20 @@ export class FreeViewComponent implements OnInit {
     if (!name || !this.canEdit()) return;
     this.newParticipant.set("");
     try {
-      await this.service.addParticipant(this.tournamentId(), name);
+      await this.#service.addParticipant(this.tournamentId(), name);
     } catch (e) {
       this.setError(e);
     }
   }
 
   async removeParticipant(p: FreeParticipant): Promise<void> {
-    const ok = await this.confirm.ask({
+    const ok = await this.#confirm.ask({
       message: this.i18n.t("free.confirmRemoveParticipant", { name: p.name }),
       confirmLabel: this.i18n.t("common.deleteLabel"),
     });
     if (!ok) return;
     try {
-      await this.service.removeParticipant(this.tournamentId(), p.id);
+      await this.#service.removeParticipant(this.tournamentId(), p.id);
     } catch (e) {
       this.setError(e);
     }
@@ -265,7 +267,7 @@ export class FreeViewComponent implements OnInit {
     this.teamPick.set([]);
     this.teamName.set("");
     try {
-      await this.service.setTeams(this.tournamentId(), [...this.teams(), team]);
+      await this.#service.setTeams(this.tournamentId(), [...this.teams(), team]);
     } catch (e) {
       this.setError(e);
     }
@@ -273,7 +275,7 @@ export class FreeViewComponent implements OnInit {
 
   async removeTeam(teamId: string): Promise<void> {
     try {
-      await this.service.setTeams(
+      await this.#service.setTeams(
         this.tournamentId(),
         this.teams().filter((t) => t.id !== teamId),
       );
@@ -297,7 +299,7 @@ export class FreeViewComponent implements OnInit {
     this.starting.set(true);
     this.error.set("");
     try {
-      await this.service.startFreeTournament(this.tournamentId());
+      await this.#service.startFreeTournament(this.tournamentId());
     } catch (e) {
       this.setError(e);
     } finally {
@@ -356,7 +358,7 @@ export class FreeViewComponent implements OnInit {
     return t.rounds?.[this.displayRound()] ?? null;
   });
 
-  readonly currentMatches = computed<TournamentMatch[]>(() => {
+  readonly currentMatches = computed<Array<TournamentMatch>>(() => {
     const round = this.currentRound();
     if (!round?.matches) return [];
     return Object.values(round.matches).sort(
@@ -364,7 +366,7 @@ export class FreeViewComponent implements OnInit {
     );
   });
 
-  readonly ladder = computed<LadderCourt[]>(() => {
+  readonly ladder = computed<Array<LadderCourt>>(() => {
     if (!this.isKoth()) return [];
     return this.currentMatches().map((m) => ({
       courtIndex: m.courtIndex,
@@ -403,7 +405,7 @@ export class FreeViewComponent implements OnInit {
 
   // ── Standings / KotH ──────────────────────────────────────────────────────
 
-  readonly standings = computed<StandingRow[]>(() => {
+  readonly standings = computed<Array<StandingRow>>(() => {
     const t = this.tournament();
     if (!t) return [];
     return computeStandings(t, (id) => this.participantName(id));
@@ -529,7 +531,7 @@ export class FreeViewComponent implements OnInit {
     }
     this.error.set("");
     try {
-      await this.service.saveMatchScore(
+      await this.#service.saveMatchScore(
         this.tournamentId(),
         this.displayRound(),
         matchId,
@@ -548,7 +550,7 @@ export class FreeViewComponent implements OnInit {
       [matchId]: { score1: null, score2: null },
     });
     try {
-      await this.service.resetMatchScore(
+      await this.#service.resetMatchScore(
         this.tournamentId(),
         this.displayRound(),
         matchId,
@@ -566,7 +568,7 @@ export class FreeViewComponent implements OnInit {
     this.error.set("");
     for (const match of this.currentMatches()) await this.saveScore(match.id);
     try {
-      await this.service.completeRound(this.tournamentId());
+      await this.#service.completeRound(this.tournamentId());
       this.scores.set({});
       this.viewRound.set(null);
     } catch (e) {
@@ -595,7 +597,7 @@ export class FreeViewComponent implements OnInit {
     this.regenerating.set(true);
     this.error.set("");
     try {
-      await this.service.regenerateCurrentRound(this.tournamentId());
+      await this.#service.regenerateCurrentRound(this.tournamentId());
       this.scores.set({});
     } catch (e) {
       this.setError(e);
@@ -621,7 +623,7 @@ export class FreeViewComponent implements OnInit {
     this.runningFinal.set(true);
     this.error.set("");
     try {
-      await this.service.runFinalRound(this.tournamentId());
+      await this.#service.runFinalRound(this.tournamentId());
       this.scores.set({});
     } catch (e) {
       this.setError(e);
@@ -632,7 +634,7 @@ export class FreeViewComponent implements OnInit {
 
   async finish(): Promise<void> {
     if (!this.canEdit()) return;
-    const ok = await this.confirm.ask({
+    const ok = await this.#confirm.ask({
       message: this.i18n.t("view.confirmFinish"),
       confirmLabel: this.i18n.t("view.finish"),
     });
@@ -640,7 +642,7 @@ export class FreeViewComponent implements OnInit {
     this.finishing.set(true);
     this.error.set("");
     try {
-      await this.service.finishTournament(this.tournamentId());
+      await this.#service.finishTournament(this.tournamentId());
     } catch (e) {
       this.setError(e);
     } finally {
@@ -650,7 +652,7 @@ export class FreeViewComponent implements OnInit {
 
   async deleteTournament(): Promise<void> {
     if (!this.canEdit()) return;
-    const ok = await this.confirm.ask({
+    const ok = await this.#confirm.ask({
       message: this.i18n.t("free.confirmDelete"),
       confirmLabel: this.i18n.t("common.deleteLabel"),
       danger: true,
@@ -658,8 +660,8 @@ export class FreeViewComponent implements OnInit {
     if (!ok) return;
     this.deleting.set(true);
     try {
-      await this.service.deleteFreeTournament(this.tournamentId());
-      this.router.navigate(["/free"]);
+      await this.#service.deleteFreeTournament(this.tournamentId());
+      this.#router.navigate(["/free"]);
     } catch (e) {
       this.setError(e);
       this.deleting.set(false);

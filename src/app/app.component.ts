@@ -93,21 +93,21 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   // Browsers block autoplay until a user gesture — start music on the first interaction of any kind.
-  private readonly unlockEvents = [
+  readonly #unlockEvents = [
     "pointerdown",
     "touchstart",
     "keydown",
     "scroll",
   ] as const;
-  private readonly unlockMusic = () => {
+  readonly #unlockMusic = () => {
     this.audio.startBackground();
     if (this.audio.isPlaying()) this.removeUnlockListeners();
   };
 
   ngOnInit(): void {
     this.audio.startBackground();
-    for (const event of this.unlockEvents) {
-      window.addEventListener(event, this.unlockMusic, { passive: true });
+    for (const event of this.#unlockEvents) {
+      window.addEventListener(event, this.#unlockMusic, { passive: true });
     }
   }
 
@@ -116,8 +116,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private removeUnlockListeners(): void {
-    for (const event of this.unlockEvents) {
-      window.removeEventListener(event, this.unlockMusic);
+    for (const event of this.#unlockEvents) {
+      window.removeEventListener(event, this.#unlockMusic);
     }
   }
 

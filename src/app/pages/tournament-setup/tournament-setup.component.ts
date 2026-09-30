@@ -43,14 +43,14 @@ interface FormatOption {
   styleUrl: "./tournament-setup.component.scss",
 })
 export class TournamentSetupComponent implements OnInit {
-  private service = inject(PadelService);
-  private admin = inject(AdminService);
+  readonly #service = inject(PadelService);
+  readonly #admin = inject(AdminService);
   readonly theme = inject(ThemeService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
+  readonly #router = inject(Router);
+  readonly #route = inject(ActivatedRoute);
   readonly i18n = inject(I18nService);
 
-  readonly formatOptions: FormatOption[] = [
+  readonly formatOptions: Array<FormatOption> = [
     { value: "americano" },
     { value: "team-americano" },
     { value: "mexicano" },
@@ -61,14 +61,14 @@ export class TournamentSetupComponent implements OnInit {
     { value: "beat-the-box" },
   ];
 
-  readonly scoringMethods: ScoringMethod[] = [
+  readonly scoringMethods: Array<ScoringMethod> = [
     "fixed-points",
     "first-to",
     "games-sets",
     "timed",
   ];
 
-  readonly players = signal<Player[]>([]);
+  readonly players = signal<Array<Player>>([]);
 
   // Core config
   readonly tournamentName = signal("");
@@ -81,7 +81,7 @@ export class TournamentSetupComponent implements OnInit {
   readonly seatingFormat = signal<TournamentFormat>("beat-the-box");
   readonly seatingRounds = signal(3);
   readonly finalRounds = signal(4);
-  readonly courtNames = signal<string[]>([
+  readonly courtNames = signal<Array<string>>([
     this.i18n.t("court.default", { n: 1 }),
     this.i18n.t("court.default", { n: 2 }),
   ]);
@@ -100,26 +100,26 @@ export class TournamentSetupComponent implements OnInit {
   readonly selectedIds = signal<Set<string>>(new Set());
 
   // Team building
-  readonly teams = signal<TournamentTeam[]>([]);
-  readonly teamPick = signal<string[]>([]);
+  readonly teams = signal<Array<TournamentTeam>>([]);
+  readonly teamPick = signal<Array<string>>([]);
   readonly teamName = signal("");
 
   readonly submitting = signal(false);
   readonly error = signal("");
 
-  private draftId: string | null = null;
-  private draftLoaded = false;
-  private readonly destroyRef = inject(DestroyRef);
+  #draftId: string | null = null;
+  #draftLoaded = false;
+  readonly #destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
-    if (!this.admin.isAdmin()) {
-      this.router.navigate(["/"]);
+    if (!this.#admin.isAdmin()) {
+      this.#router.navigate(["/"]);
       return;
     }
-    this.draftId = this.route.snapshot.queryParamMap.get("draft");
-    this.service
+    this.#draftId = this.#route.snapshot.queryParamMap.get("draft");
+    this.#service
       .watchPlayers()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((list) => {
         this.players.set(list);
         this.maybeLoadDraft();
@@ -127,11 +127,11 @@ export class TournamentSetupComponent implements OnInit {
   }
 
   private maybeLoadDraft(): void {
-    if (!this.draftId || this.draftLoaded) return;
-    this.draftLoaded = true;
-    this.service
-      .watchTournament(this.draftId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    if (!this.#draftId || this.#draftLoaded) return;
+    this.#draftLoaded = true;
+    this.#service
+      .watchTournament(this.#draftId)
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((t) => {
         if (t) this.populateFromDraft(t);
       });
@@ -142,10 +142,11 @@ export class TournamentSetupComponent implements OnInit {
     this.description.set(t.description ?? "");
     this.format.set(t.format);
     this.seeded.set(t.seeded);
+    const courtNames = t.courtNames ?? {};
     this.courtNames.set(
-      Object.keys(t.courtNames ?? {})
+      Object.keys(courtNames)
         .sort((a, b) => Number(a) - Number(b))
-        .map((k) => t.courtNames![k]),
+        .map((k) => courtNames[k]),
     );
     this.totalRounds.set(t.totalRounds || 7);
     this.scoring.set({ ...DEFAULT_SCORING, ...t.scoring });
@@ -153,8 +154,9 @@ export class TournamentSetupComponent implements OnInit {
     if (t.seatingFormat && (t.seatingRounds ?? 0) >= 1) {
       this.twoPhase.set(true);
       this.seatingFormat.set(t.seatingFormat);
-      this.seatingRounds.set(t.seatingRounds!);
-      this.finalRounds.set(Math.max(1, (t.totalRounds || 0) - t.seatingRounds!));
+      const seatingRounds = t.seatingRounds ?? 0;
+      this.seatingRounds.set(seatingRounds);
+      this.finalRounds.set(Math.max(1, (t.totalRounds || 0) - seatingRounds));
     }
     if (isTeamFormat(t.format)) {
       this.teams.set(Object.values(t.teams ?? {}));
@@ -213,8 +215,8 @@ export class TournamentSetupComponent implements OnInit {
     return { matches, active: matches * 4, sitOut: n - matches * 4 };
   });
 
-  readonly validation = computed<{ ok: boolean; messages: string[] }>(() => {
-    const messages: string[] = [];
+  readonly validation = computed<{ ok: boolean; messages: Array<string> }>(() => {
+    const messages: Array<string> = [];
     if (this.tournamentName().trim().length === 0) {
       messages.push(this.i18n.t("val.name"));
     }
@@ -463,12 +465,12 @@ export class TournamentSetupComponent implements OnInit {
     this.submitting.set(true);
     this.error.set("");
     try {
-      if (this.draftId) {
-        await this.service.updateDraft(this.draftId, this.buildInput("draft"));
+      if (this.#draftId) {
+        await this.#service.updateDraft(this.#draftId, this.buildInput("draft"));
       } else {
-        await this.service.createTournament(this.buildInput("draft"));
+        await this.#service.createTournament(this.buildInput("draft"));
       }
-      this.router.navigate(["/"]);
+      this.#router.navigate(["/"]);
     } catch (error) {
       this.error.set(
         error instanceof Error
@@ -486,14 +488,14 @@ export class TournamentSetupComponent implements OnInit {
     this.error.set("");
     try {
       let id: string;
-      if (this.draftId) {
-        await this.service.updateDraft(this.draftId, this.buildInput("draft"));
-        await this.service.startTournament(this.draftId);
-        id = this.draftId;
+      if (this.#draftId) {
+        await this.#service.updateDraft(this.#draftId, this.buildInput("draft"));
+        await this.#service.startTournament(this.#draftId);
+        id = this.#draftId;
       } else {
-        id = await this.service.createTournament(this.buildInput("active"));
+        id = await this.#service.createTournament(this.buildInput("active"));
       }
-      this.router.navigate(["/tournament", id]);
+      this.#router.navigate(["/tournament", id]);
     } catch (error) {
       this.error.set(
         error instanceof Error

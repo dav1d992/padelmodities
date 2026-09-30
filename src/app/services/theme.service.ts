@@ -5,12 +5,12 @@ export type ThemeMode = "normal" | "christmas" | "halloween";
 
 @Injectable({ providedIn: "root" })
 export class ThemeService {
-  private readonly document = inject(DOCUMENT);
-  private transitionTimer?: ReturnType<typeof setTimeout>;
-  private sparkleTimer?: ReturnType<typeof setTimeout>;
-  private snowfallTimer?: ReturnType<typeof setTimeout>;
-  private lightningTimer?: ReturnType<typeof setTimeout>;
-  private initialized = false;
+  readonly #document = inject(DOCUMENT);
+  #transitionTimer?: ReturnType<typeof setTimeout>;
+  #sparkleTimer?: ReturnType<typeof setTimeout>;
+  #snowfallTimer?: ReturnType<typeof setTimeout>;
+  #lightningTimer?: ReturnType<typeof setTimeout>;
+  #initialized = false;
   readonly mode = signal<ThemeMode>("normal");
   readonly christmas = computed(() => this.mode() === "christmas");
   readonly halloween = computed(() => this.mode() === "halloween");
@@ -20,17 +20,17 @@ export class ThemeService {
 
   constructor() {
     effect(() => {
-      const changed = this.initialized;
+      const changed = this.#initialized;
       const mode = this.mode();
-      this.document.documentElement.classList.toggle("christmas-theme", mode === "christmas");
-      this.document.documentElement.classList.toggle("halloween-theme", mode === "halloween");
-      this.initialized = true;
+      this.#document.documentElement.classList.toggle("christmas-theme", mode === "christmas");
+      this.#document.documentElement.classList.toggle("halloween-theme", mode === "halloween");
+      this.#initialized = true;
 
       if (changed) {
-        this.document.documentElement.classList.add("theme-transitioning");
-        if (this.transitionTimer) clearTimeout(this.transitionTimer);
-        this.transitionTimer = setTimeout(() => {
-          this.document.documentElement.classList.remove("theme-transitioning");
+        this.#document.documentElement.classList.add("theme-transitioning");
+        if (this.#transitionTimer) clearTimeout(this.#transitionTimer);
+        this.#transitionTimer = setTimeout(() => {
+          this.#document.documentElement.classList.remove("theme-transitioning");
         }, 300);
       }
     });
@@ -53,25 +53,25 @@ export class ThemeService {
     if (previousMode === mode) return;
 
     if (mode === "christmas") {
-      if (this.sparkleTimer) clearTimeout(this.sparkleTimer);
-      this.document.documentElement.classList.add("christmas-sparkle-active");
-      this.sparkleTimer = setTimeout(() => {
-        this.document.documentElement.classList.remove("christmas-sparkle-active");
+      if (this.#sparkleTimer) clearTimeout(this.#sparkleTimer);
+      this.#document.documentElement.classList.add("christmas-sparkle-active");
+      this.#sparkleTimer = setTimeout(() => {
+        this.#document.documentElement.classList.remove("christmas-sparkle-active");
       }, 1000);
     } else if (previousMode === "christmas") {
-      if (this.sparkleTimer) clearTimeout(this.sparkleTimer);
-      this.document.documentElement.classList.remove("christmas-sparkle-active");
+      if (this.#sparkleTimer) clearTimeout(this.#sparkleTimer);
+      this.#document.documentElement.classList.remove("christmas-sparkle-active");
     }
 
-    if (this.snowfallTimer) clearTimeout(this.snowfallTimer);
-    if (this.lightningTimer) clearTimeout(this.lightningTimer);
+    if (this.#snowfallTimer) clearTimeout(this.#snowfallTimer);
+    if (this.#lightningTimer) clearTimeout(this.#lightningTimer);
     if (mode === "christmas") {
       this.snowfallActive.set(true);
       this.snowfallLeaving.set(false);
     } else if (previousMode === "christmas") {
       this.snowfallActive.set(true);
       this.snowfallLeaving.set(true);
-      this.snowfallTimer = setTimeout(() => {
+      this.#snowfallTimer = setTimeout(() => {
         this.snowfallActive.set(false);
         this.snowfallLeaving.set(false);
       }, 700);
@@ -79,7 +79,7 @@ export class ThemeService {
 
     if (mode === "halloween") {
       this.lightningActive.set(true);
-      this.lightningTimer = setTimeout(() => {
+      this.#lightningTimer = setTimeout(() => {
         this.lightningActive.set(false);
       }, 850);
     } else {

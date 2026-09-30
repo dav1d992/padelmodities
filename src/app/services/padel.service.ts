@@ -53,10 +53,10 @@ export interface CreateTournamentInput {
   /** Number of rounds in the seating phase (when seatingFormat is set). */
   seatingRounds?: number;
   /** Individual formats. */
-  playerIds: string[];
+  playerIds: Array<string>;
   /** Team formats. */
   teams?: TournamentTeam[];
-  courtNames: string[];
+  courtNames: Array<string>;
   totalRounds: number;
   scoring: ScoringConfig;
   bonus?: CourtBonusConfig;
@@ -101,13 +101,13 @@ function normaliseSkillset(skillset?: Partial<Skillset>): Skillset {
 
 @Injectable({ providedIn: "root" })
 export class PadelService {
-  private db = inject(FIREBASE_DB);
+  readonly #db = inject(FIREBASE_DB);
 
   // ── Players ──────────────────────────────────────────────────────────────
 
   watchPlayers(): Observable<Player[]> {
     return new Observable<Player[]>((subscriber) => {
-      const playersRef = ref(this.db, "players");
+      const playersRef = ref(this.#db, "players");
       const unsubscribe = onValue(
         playersRef,
         (snapshot) => {
@@ -124,7 +124,7 @@ export class PadelService {
 
   watchPlayer(playerId: string): Observable<Player | null> {
     return new Observable<Player | null>((subscriber) => {
-      const playerRef = ref(this.db, `players/${playerId}`);
+      const playerRef = ref(this.#db, `players/${playerId}`);
       const unsubscribe = onValue(
         playerRef,
         (snapshot) => subscriber.next(snapshot.val() as Player | null),
@@ -140,8 +140,8 @@ export class PadelService {
     startingRating = 1000,
     skillset?: Partial<Skillset>,
   ): Promise<string> {
-    const playerRef = push(ref(this.db, "players"));
-    const id = playerRef.key!;
+    const playerRef = push(ref(this.#db, "players"));
+    const id = playerRef.key ?? "";
     const player: Player = {
       id,
       name: name.trim(),
@@ -161,7 +161,7 @@ export class PadelService {
 
   async updatePlayerImage(playerId: string, shortname: string): Promise<void> {
     await withTimeout(
-      update(ref(this.db, `players/${playerId}`), {
+      update(ref(this.#db, `players/${playerId}`), {
         shortname: shortname.trim().toLowerCase(),
       }),
     );
@@ -194,18 +194,18 @@ export class PadelService {
       pointsFor: Math.max(0, Math.round(changes.pointsFor)),
       pointsAgainst: Math.max(0, Math.round(changes.pointsAgainst)),
     };
-    await withTimeout(update(ref(this.db, `players/${playerId}`), payload));
+    await withTimeout(update(ref(this.#db, `players/${playerId}`), payload));
   }
 
   async deletePlayer(playerId: string): Promise<void> {
-    await withTimeout(remove(ref(this.db, `players/${playerId}`)));
+    await withTimeout(remove(ref(this.#db, `players/${playerId}`)));
   }
 
   // ── Tournaments ──────────────────────────────────────────────────────────
 
   watchTournaments(): Observable<Tournament[]> {
     return new Observable<Tournament[]>((subscriber) => {
-      const tourRef = ref(this.db, "tournaments");
+      const tourRef = ref(this.#db, "tournaments");
       const unsubscribe = onValue(
         tourRef,
         (snapshot) => {
@@ -222,7 +222,7 @@ export class PadelService {
 
   watchTournament(tournamentId: string): Observable<Tournament | null> {
     return new Observable<Tournament | null>((subscriber) => {
-      const tourRef = ref(this.db, `tournaments/${tournamentId}`);
+      const tourRef = ref(this.#db, `tournaments/${tournamentId}`);
       const unsubscribe = onValue(
         tourRef,
         (snapshot) => subscriber.next(snapshot.val() as Tournament | null),
@@ -238,8 +238,8 @@ export class PadelService {
    */
   async createTournament(input: CreateTournamentInput): Promise<string> {
     const tournament = this.buildTournamentRecord(input);
-    const tourRef = push(ref(this.db, "tournaments"));
-    tournament.id = tourRef.key!;
+    const tourRef = push(ref(this.#db, "tournaments"));
+    tournament.id = tourRef.key ?? "";
     await withTimeout(set(tourRef, tournament));
     if (input.status === "active") {
       await this.generateInitialRounds(tournament);
@@ -254,7 +254,7 @@ export class PadelService {
   ): Promise<void> {
     const record = this.buildTournamentRecord(input);
     record.id = tournamentId;
-    await withTimeout(set(ref(this.db, `tournaments/${tournamentId}`), record));
+    await withTimeout(set(ref(this.#db, `tournaments/${tournamentId}`), record));
   }
 
   /** Promote a draft to active and generate its opening round(s). */
@@ -262,7 +262,7 @@ export class PadelService {
     const tournament = await this.getTournament(tournamentId);
     if (tournament.status !== "draft") return;
     await withTimeout(
-      update(ref(this.db, `tournaments/${tournamentId}`), {
+      update(ref(this.#db, `tournaments/${tournamentId}`), {
         status: "active" satisfies TournamentStatus,
         updatedAt: Date.now(),
       }),
@@ -309,7 +309,7 @@ export class PadelService {
 
     if (team) {
       const teamsRecord: Record<string, TournamentTeam> = {};
-      input.teams!.forEach((t, i) => (teamsRecord[String(i)] = t));
+      (input.teams ?? []).forEach((t, i) => (teamsRecord[String(i)] = t));
       record.teams = teamsRecord;
     } else {
       const playerIdsRecord: Record<string, string> = {};
@@ -340,11 +340,11 @@ export class PadelService {
     const { rounds, totalRounds } = engineGenerateInitialRounds(tournament);
     if (totalRounds !== tournament.totalRounds) {
       await withTimeout(
-        update(ref(this.db, `tournaments/${tournament.id}`), { totalRounds }),
+        update(ref(this.#db, `tournaments/${tournament.id}`), { totalRounds }),
       );
     }
     await withTimeout(
-      set(ref(this.db, `tournaments/${tournament.id}/rounds`), rounds),
+      set(ref(this.#db, `tournaments/${tournament.id}/rounds`), rounds),
     );
   }
 
@@ -358,7 +358,7 @@ export class PadelService {
   private buildDynamicRound(
     tournament: Tournament,
     roundIndex: number,
-    priorRounds: TournamentRound[],
+    priorRounds: Array<TournamentRound>,
   ): TournamentRound {
     const order = standingsOrder(tournament, (id) =>
       this.participantName(tournament, id),
@@ -441,7 +441,7 @@ export class PadelService {
     await withTimeout(
       update(
         ref(
-          this.db,
+          this.#db,
           `tournaments/${tournamentId}/rounds/${roundIndex}/matches/${matchId}`,
         ),
         { score1, score2 },
@@ -459,7 +459,7 @@ export class PadelService {
     await withTimeout(
       update(
         ref(
-          this.db,
+          this.#db,
           `tournaments/${tournamentId}/rounds/${roundIndex}/matches/${matchId}`,
         ),
         { score1: null, score2: null, setScores: null },
@@ -525,7 +525,7 @@ export class PadelService {
 
     await withTimeout(
       set(
-        ref(this.db, `tournaments/${tournamentId}/rounds/${roundIndex}`),
+        ref(this.#db, `tournaments/${tournamentId}/rounds/${roundIndex}`),
         newRound,
       ),
     );
@@ -567,7 +567,7 @@ export class PadelService {
 
     await withTimeout(
       set(
-        ref(this.db, `tournaments/${tournamentId}/rounds/${roundIndex}`),
+        ref(this.#db, `tournaments/${tournamentId}/rounds/${roundIndex}`),
         finalRound,
       ),
     );
@@ -596,7 +596,7 @@ export class PadelService {
 
     // Mark completed first so recomputed standings include this round.
     await withTimeout(
-      update(ref(this.db, `tournaments/${tournamentId}/rounds/${roundIndex}`), {
+      update(ref(this.#db, `tournaments/${tournamentId}/rounds/${roundIndex}`), {
         completed: true,
       }),
     );
@@ -627,7 +627,7 @@ export class PadelService {
     } else {
       updates[`tournaments/${tournamentId}/currentRound`] = nextRound;
     }
-    await withTimeout(update(ref(this.db), updates));
+    await withTimeout(update(ref(this.#db), updates));
 
     // Per-player match counters from the completed round (no rating change here).
     await this.applyMatchStats(matches);
@@ -671,7 +671,7 @@ export class PadelService {
       }
       await withTimeout(
         set(
-          ref(this.db, `tournaments/${tournamentId}/rounds/${nextRound}`),
+          ref(this.#db, `tournaments/${tournamentId}/rounds/${nextRound}`),
           newRound,
         ),
       );
@@ -680,13 +680,13 @@ export class PadelService {
     await this.refreshPointsTable(tournamentId);
   }
 
-  private sortedRounds(t: Tournament): TournamentRound[] {
+  private sortedRounds(t: Tournament): Array<TournamentRound> {
     return Object.values(t.rounds ?? {}).sort((a, b) => a.index - b.index);
   }
 
   private async getTournament(tournamentId: string): Promise<Tournament> {
     const snap = await withTimeout(
-      get(ref(this.db, `tournaments/${tournamentId}`)),
+      get(ref(this.#db, `tournaments/${tournamentId}`)),
     );
     const tournament = snap.val() as Tournament | null;
     if (!tournament) throw new Error("err.tournamentNotFound");
@@ -702,20 +702,20 @@ export class PadelService {
     const pointsTable: Record<string, number> = {};
     standings.forEach((row) => (pointsTable[row.participantId] = row.total));
     await withTimeout(
-      update(ref(this.db, `tournaments/${tournamentId}`), { pointsTable }),
+      update(ref(this.#db, `tournaments/${tournamentId}`), { pointsTable }),
     );
   }
 
   /** Manually finish a tournament early. */
   async finishTournament(tournamentId: string): Promise<void> {
     const snap = await withTimeout(
-      get(ref(this.db, `tournaments/${tournamentId}`)),
+      get(ref(this.#db, `tournaments/${tournamentId}`)),
     );
     const tournament = snap.val() as Tournament | null;
     if (!tournament) throw new Error("err.tournamentNotFound");
 
     await withTimeout(
-      update(ref(this.db, `tournaments/${tournamentId}`), {
+      update(ref(this.#db, `tournaments/${tournamentId}`), {
         status: "finished",
       }),
     );
@@ -723,7 +723,7 @@ export class PadelService {
   }
 
   async deleteTournament(tournamentId: string): Promise<void> {
-    await withTimeout(remove(ref(this.db, `tournaments/${tournamentId}`)));
+    await withTimeout(remove(ref(this.#db, `tournaments/${tournamentId}`)));
   }
 
   // ── Private: ratings & stats ───────────────────────────────────────────────
@@ -744,7 +744,7 @@ export class PadelService {
     );
     const n = standings.length;
     if (n < 2) {
-      await withTimeout(update(ref(this.db), { [flagRef]: true }));
+      await withTimeout(update(ref(this.#db), { [flagRef]: true }));
       return;
     }
 
@@ -759,17 +759,17 @@ export class PadelService {
         ? this.teamPlayerIds(tournament, standings[i].participantId)
         : [standings[i].participantId];
       for (const id of playerIds) {
-        const snap = await get(ref(this.db, `players/${id}/rating`));
+        const snap = await get(ref(this.#db, `players/${id}/rating`));
         const current = (snap.val() as number | null) ?? 1000;
         const newRating = Math.max(0, current + delta);
         updates[`players/${id}/rating`] = newRating;
         updates[`players/${id}/ratingHistory/${now}_${id}`] = newRating;
       }
     }
-    await withTimeout(update(ref(this.db), updates));
+    await withTimeout(update(ref(this.#db), updates));
   }
 
-  private teamPlayerIds(tournament: Tournament, teamId: string): string[] {
+  private teamPlayerIds(tournament: Tournament, teamId: string): Array<string> {
     const t = Object.values(tournament.teams ?? {}).find(
       (x) => x.id === teamId,
     );
@@ -777,7 +777,7 @@ export class PadelService {
   }
 
   /** Accumulate per-player match counters (wins/losses/points). No rating change. */
-  private async applyMatchStats(matches: TournamentMatch[]): Promise<void> {
+  private async applyMatchStats(matches: Array<TournamentMatch>): Promise<void> {
     const involved = new Set<string>();
     for (const m of matches) {
       [m.a1, m.a2, m.b1, m.b2].forEach((id) => involved.add(id));
@@ -814,7 +814,7 @@ export class PadelService {
           .filter((m) => m.b1 === id || m.b2 === id)
           .reduce((s, m) => s + (m.score1 ?? 0), 0);
 
-      const baseSnap = await get(ref(this.db, `players/${id}`));
+      const baseSnap = await get(ref(this.#db, `players/${id}`));
       const base = (baseSnap.val() as Player | null) ?? ({} as Player);
       updates[`players/${id}/matchesPlayed`] =
         (base.matchesPlayed ?? 0) + played;
@@ -824,6 +824,6 @@ export class PadelService {
       updates[`players/${id}/pointsAgainst`] = (base.pointsAgainst ?? 0) + pa;
     }
 
-    await withTimeout(update(ref(this.db), updates));
+    await withTimeout(update(ref(this.#db), updates));
   }
 }

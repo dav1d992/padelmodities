@@ -8,11 +8,11 @@ import { Directive, ElementRef, HostListener, inject } from "@angular/core";
 export class ImgFallbackDirective {
   private static readonly FALLBACK = "/assets/anonimous-padel.png";
 
-  private readonly element = inject<ElementRef<HTMLImageElement>>(ElementRef);
+  readonly #element = inject<ElementRef<HTMLImageElement>>(ElementRef);
 
   @HostListener("error")
   onError(): void {
-    const image = this.element.nativeElement;
+    const image = this.#element.nativeElement;
     if (image.src.endsWith("anonimous-padel.png")) return;
     if (image.src.includes("-xmas") || image.src.includes("-halloween")) {
       image.src = image.src.replace("-xmas", "").replace("-halloween", "");

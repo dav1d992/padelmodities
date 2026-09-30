@@ -42,11 +42,11 @@ const IMPACT_MS = 560;
 export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly playerId = input.required<string>();
 
-  private service = inject(PadelService);
-  private router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly document = inject(DOCUMENT);
-  private confirm = inject(ConfirmService);
+  readonly #service = inject(PadelService);
+  readonly #router = inject(Router);
+  readonly #destroyRef = inject(DestroyRef);
+  readonly #document = inject(DOCUMENT);
+  readonly #confirm = inject(ConfirmService);
   readonly audioService = inject(AudioService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
@@ -77,24 +77,24 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly editPointsFor = signal(0);
   readonly editPointsAgainst = signal(0);
 
-  private animationStarted = false;
-  private timers: ReturnType<typeof setTimeout>[] = [];
+  #animationStarted = false;
+  #timers: Array<ReturnType<typeof setTimeout>> = [];
 
   ngOnInit(): void {
     this.audioService.startBackground();
-    this.service
+    this.#service
       .watchPlayer(this.playerId())
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe({
         next: (p) => {
           this.player.set(p);
           this.loading.set(false);
           if (!p) {
-            this.router.navigate(["/"]);
+            this.#router.navigate(["/"]);
             return;
           }
-          if (!this.animationStarted) {
-            this.animationStarted = true;
+          if (!this.#animationStarted) {
+            this.#animationStarted = true;
             this.prepareHero(p.shortname);
           }
         },
@@ -110,7 +110,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.timers.forEach(clearTimeout);
+    this.#timers.forEach(clearTimeout);
   }
 
   /**
@@ -130,15 +130,15 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
       if (this.heroReady()) return;
       this.heroReady.set(true);
       const slam = setTimeout(() => {
-        const alreadyDisplaced = this.document.documentElement.classList.contains("hero-impact");
-        this.document.documentElement.classList.add("hero-impact");
+        const alreadyDisplaced = this.#document.documentElement.classList.contains("hero-impact");
+        this.#document.documentElement.classList.add("hero-impact");
         if (alreadyDisplaced) this.pushSnowflakesFurther();
         this.audioService.playOneShot(
           "/assets/sounds-effects/gate-slam.mp3",
           0.9,
         );
       }, IMPACT_MS);
-      this.timers.push(slam);
+      this.#timers.push(slam);
       this.startSkillBarSequence();
     };
 
@@ -159,13 +159,13 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
       this.theme.normalPlayerImage(shortname);
 
     // Safety net: a stalled download must never hide the portrait indefinitely.
-    this.timers.push(setTimeout(begin, 8000));
+    this.#timers.push(setTimeout(begin, 8000));
   }
 
 
   private pushSnowflakesFurther(): void {
     const leftFlakes = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19, 22, 23, 28, 29, 30, 31, 37, 38, 39, 44, 46]);
-    const flakes = this.document.querySelectorAll<HTMLElement>(
+    const flakes = this.#document.querySelectorAll<HTMLElement>(
       ".snowflake > span, .santa-mort-slide",
     );
     const pushStep = Math.max(32, Math.min(140, window.innerWidth * 0.12));
@@ -198,7 +198,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
         },
         startAfterMs + index * staggerMs,
       );
-      this.timers.push(timer);
+      this.#timers.push(timer);
     });
   }
 
@@ -291,7 +291,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     this.saving.set(true);
     this.editError.set("");
     try {
-      await this.service.updatePlayer(p.id, {
+      await this.#service.updatePlayer(p.id, {
         name: this.editName(),
         shortname: this.editShortname() || undefined,
         rating: this.editRating(),
@@ -318,7 +318,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     const p = this.player();
     if (!p) return;
     if (
-      !(await this.confirm.ask({
+      !(await this.#confirm.ask({
         message: this.i18n.t("detail.deleteConfirm", { name: p.name }),
         danger: true,
       }))
@@ -326,8 +326,8 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
       return;
     this.saving.set(true);
     try {
-      await this.service.deletePlayer(p.id);
-      this.router.navigate(["/"]);
+      await this.#service.deletePlayer(p.id);
+      this.#router.navigate(["/"]);
     } catch (error) {
       this.editError.set(
         error instanceof Error

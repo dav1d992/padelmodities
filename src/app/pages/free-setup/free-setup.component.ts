@@ -28,20 +28,20 @@ import {
   styleUrl: "./free-setup.component.scss",
 })
 export class FreeSetupComponent implements OnInit {
-  private service = inject(FreePadelService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  private readonly destroyRef = inject(DestroyRef);
+  readonly #service = inject(FreePadelService);
+  readonly #router = inject(Router);
+  readonly #route = inject(ActivatedRoute);
+  readonly #destroyRef = inject(DestroyRef);
   readonly i18n = inject(I18nService);
   readonly admin = inject(AdminService);
-  private confirm = inject(ConfirmService);
+  readonly #confirm = inject(ConfirmService);
 
   /** Admin-only browse list of every free tournament. */
   readonly showList = signal(false);
-  readonly allTournaments = signal<FreeTournament[]>([]);
-  private listLoaded = false;
+  readonly allTournaments = signal<Array<FreeTournament>>([]);
+  #listLoaded = false;
 
-  readonly formatOptions: TournamentFormat[] = [
+  readonly formatOptions: Array<TournamentFormat> = [
     "americano",
     "team-americano",
     "mexicano",
@@ -52,7 +52,7 @@ export class FreeSetupComponent implements OnInit {
     "beat-the-box",
   ];
 
-  readonly scoringMethods: ScoringMethod[] = [
+  readonly scoringMethods: Array<ScoringMethod> = [
     "fixed-points",
     "first-to",
     "games-sets",
@@ -70,7 +70,7 @@ export class FreeSetupComponent implements OnInit {
   readonly seatingFormat = signal<TournamentFormat>("beat-the-box");
   readonly seatingRounds = signal(3);
   readonly finalRounds = signal(4);
-  readonly courtNames = signal<string[]>([
+  readonly courtNames = signal<Array<string>>([
     this.i18n.t("court.default", { n: 1 }),
     this.i18n.t("court.default", { n: 2 }),
   ]);
@@ -84,10 +84,10 @@ export class FreeSetupComponent implements OnInit {
   readonly submitting = signal(false);
   readonly error = signal("");
 
-  private editId: string | null = null;
-  private draftLoaded = false;
+  #editId: string | null = null;
+  #draftLoaded = false;
   get isEditing(): boolean {
-    return this.editId !== null;
+    return this.#editId !== null;
   }
 
   readonly isKoth = computed(() => this.format() === "king-of-the-hill");
@@ -114,8 +114,8 @@ export class FreeSetupComponent implements OnInit {
       : this.totalRounds(),
   );
 
-  readonly validation = computed<{ ok: boolean; messages: string[] }>(() => {
-    const messages: string[] = [];
+  readonly validation = computed<{ ok: boolean; messages: Array<string> }>(() => {
+    const messages: Array<string> = [];
     if (this.tournamentName().trim().length === 0) {
       messages.push(this.i18n.t("val.name"));
     }
@@ -243,19 +243,19 @@ export class FreeSetupComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.editId = this.route.snapshot.queryParamMap.get("edit");
-    if (!this.editId) return;
-    this.service
-      .watchFreeTournament(this.editId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.#editId = this.#route.snapshot.queryParamMap.get("edit");
+    if (!this.#editId) return;
+    this.#service
+      .watchFreeTournament(this.#editId)
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((t) => {
-        if (this.draftLoaded) return;
+        if (this.#draftLoaded) return;
         if (!t || t.status !== "draft") {
           // Nothing to edit (missing or already started) — fall back to view/create.
-          this.router.navigate(this.editId ? ["/free", this.editId] : ["/free"]);
+          this.#router.navigate(this.#editId ? ["/free", this.#editId] : ["/free"]);
           return;
         }
-        this.draftLoaded = true;
+        this.#draftLoaded = true;
         this.populateFromDraft(t);
       });
   }
@@ -264,30 +264,30 @@ export class FreeSetupComponent implements OnInit {
   toggleList(): void {
     if (!this.admin.isAdmin()) return;
     this.showList.set(!this.showList());
-    if (this.showList() && !this.listLoaded) {
-      this.listLoaded = true;
-      this.service
+    if (this.showList() && !this.#listLoaded) {
+      this.#listLoaded = true;
+      this.#service
         .watchAllFreeTournaments()
-        .pipe(takeUntilDestroyed(this.destroyRef))
+        .pipe(takeUntilDestroyed(this.#destroyRef))
         .subscribe((list) => this.allTournaments.set(list));
     }
   }
 
   openTournament(id: string): void {
-    this.router.navigate(["/free", id]);
+    this.#router.navigate(["/free", id]);
   }
 
   async deleteFromList(t: FreeTournament, event: Event): Promise<void> {
     event.stopPropagation();
     if (!this.admin.isAdmin()) return;
-    const ok = await this.confirm.ask({
+    const ok = await this.#confirm.ask({
       message: this.i18n.t("free.confirmDeleteNamed", { name: t.name }),
       confirmLabel: this.i18n.t("common.deleteLabel"),
       danger: true,
     });
     if (!ok) return;
     try {
-      await this.service.deleteFreeTournament(t.id);
+      await this.#service.deleteFreeTournament(t.id);
     } catch {
       this.error.set(this.i18n.t("common.error"));
     }
@@ -302,15 +302,17 @@ export class FreeSetupComponent implements OnInit {
     if (t.seatingFormat && (t.seatingRounds ?? 0) >= 1) {
       this.twoPhase.set(true);
       this.seatingFormat.set(t.seatingFormat);
-      this.seatingRounds.set(t.seatingRounds!);
-      this.finalRounds.set(Math.max(1, t.totalRounds - t.seatingRounds!));
+      const seatingRounds = t.seatingRounds ?? 0;
+      this.seatingRounds.set(seatingRounds);
+      this.finalRounds.set(Math.max(1, t.totalRounds - seatingRounds));
     } else {
       this.twoPhase.set(false);
     }
-    const courts = t.courtNames
-      ? Object.keys(t.courtNames)
+    const courtNames = t.courtNames;
+    const courts = courtNames
+      ? Object.keys(courtNames)
           .sort((a, b) => Number(a) - Number(b))
-          .map((k) => t.courtNames![k])
+          .map((k) => courtNames[k])
       : [];
     if (courts.length) this.courtNames.set(courts);
     this.totalRounds.set(t.totalRounds);
@@ -341,12 +343,12 @@ export class FreeSetupComponent implements OnInit {
     };
     if (this.showBonus()) input.bonus = this.bonus();
     try {
-      if (this.editId) {
-        await this.service.updateConfig(this.editId, input);
-        this.router.navigate(["/free", this.editId]);
+      if (this.#editId) {
+        await this.#service.updateConfig(this.#editId, input);
+        this.#router.navigate(["/free", this.#editId]);
       } else {
-        const id = await this.service.createFreeTournament(input);
-        this.router.navigate(["/free", id]);
+        const id = await this.#service.createFreeTournament(input);
+        this.#router.navigate(["/free", id]);
       }
     } catch (error) {
       this.error.set(

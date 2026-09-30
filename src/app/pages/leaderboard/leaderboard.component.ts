@@ -33,23 +33,23 @@ let savedScrollY = 0;
   styleUrl: "./leaderboard.component.scss",
 })
 export class LeaderboardComponent implements OnInit, OnDestroy {
-  private service = inject(PadelService);
+  readonly #service = inject(PadelService);
   readonly audioService = inject(AudioService);
   readonly admin = inject(AdminService);
-  private router = inject(Router);
+  readonly #router = inject(Router);
   readonly i18n = inject(I18nService);
   readonly theme = inject(ThemeService);
 
   readonly FORMAT_LABELS = FORMAT_LABELS;
 
-  readonly players = signal<Player[]>([]);
-  readonly tournaments = signal<Tournament[]>([]);
+  readonly players = signal<Array<Player>>([]);
+  readonly tournaments = signal<Array<Tournament>>([]);
   readonly loading = signal(true);
   readonly error = signal("");
 
-  private readonly destroyRef = inject(DestroyRef);
-  private scrollRestored = false;
-  private readonly rememberScroll = () => {
+  readonly #destroyRef = inject(DestroyRef);
+  #scrollRestored = false;
+  readonly #rememberScroll = () => {
     savedScrollY = window.scrollY;
   };
 
@@ -69,20 +69,20 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   }
 
   /** Shuffled once so the two rails never share an image. */
-  private readonly shuffledNames = computed(() =>
+  readonly #shuffledNames = computed(() =>
     this.shuffle([...RAIL_PHOTOS]),
   );
 
   readonly leftNames = computed(() => {
-    const all = this.shuffledNames();
+    const all = this.#shuffledNames();
     return all.slice(0, Math.ceil(all.length / 2));
   });
   readonly rightNames = computed(() => {
-    const all = this.shuffledNames();
+    const all = this.#shuffledNames();
     return all.slice(Math.ceil(all.length / 2));
   });
 
-  private shuffle(list: string[]): string[] {
+  private shuffle(list: Array<string>): Array<string> {
     const shuffled = [...list];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -92,10 +92,10 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    window.addEventListener("scroll", this.rememberScroll, { passive: true });
-    this.service
+    window.addEventListener("scroll", this.#rememberScroll, { passive: true });
+    this.#service
       .watchPlayers()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe({
         next: (list) => {
           this.players.set(list);
@@ -111,14 +111,14 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
           this.loading.set(false);
         },
       });
-    this.service
+    this.#service
       .watchTournaments()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((list) => this.tournaments.set(list));
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener("scroll", this.rememberScroll);
+    window.removeEventListener("scroll", this.#rememberScroll);
   }
 
   /**
@@ -127,8 +127,8 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
    * until the list is tall enough to actually reach it.
    */
   private restoreScroll(): void {
-    if (this.scrollRestored) return;
-    this.scrollRestored = true;
+    if (this.#scrollRestored) return;
+    this.#scrollRestored = true;
     const target = savedScrollY;
     if (target <= 0) return;
 
@@ -161,6 +161,6 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   );
 
   goToTournament(id: string): void {
-    this.router.navigate(["/tournament", id]);
+    this.#router.navigate(["/tournament", id]);
   }
 }

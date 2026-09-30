@@ -39,13 +39,13 @@ export interface PreviousMatchup {
   styleUrl: "./simulation.component.scss",
 })
 export class SimulationComponent implements OnInit {
-  private service = inject(PadelService);
-  private readonly destroyRef = inject(DestroyRef);
+  readonly #service = inject(PadelService);
+  readonly #destroyRef = inject(DestroyRef);
   readonly i18n = inject(I18nService);
   readonly theme = inject(ThemeService);
 
-  readonly players = signal<Player[]>([]);
-  readonly tournaments = signal<Tournament[]>([]);
+  readonly players = signal<Array<Player>>([]);
+  readonly tournaments = signal<Array<Tournament>>([]);
   readonly loading = signal(true);
 
   readonly a1 = signal<string>("");
@@ -58,20 +58,20 @@ export class SimulationComponent implements OnInit {
   );
 
   /** Shuffled once so the two rails never share an image. */
-  private readonly shuffledNames = computed(() =>
+  readonly #shuffledNames = computed(() =>
     this.shuffle([...RAIL_PHOTOS]),
   );
 
   readonly leftNames = computed(() => {
-    const all = this.shuffledNames();
+    const all = this.#shuffledNames();
     return all.slice(0, Math.ceil(all.length / 2));
   });
   readonly rightNames = computed(() => {
-    const all = this.shuffledNames();
+    const all = this.#shuffledNames();
     return all.slice(Math.ceil(all.length / 2));
   });
 
-  private shuffle(list: string[]): string[] {
+  private shuffle(list: Array<string>): Array<string> {
     const shuffled = [...list];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -81,9 +81,9 @@ export class SimulationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.service
+    this.#service
       .watchPlayers()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe({
         next: (list) => {
           this.players.set(list);
@@ -92,9 +92,9 @@ export class SimulationComponent implements OnInit {
         error: () => this.loading.set(false),
       });
 
-    this.service
+    this.#service
       .watchTournaments()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe({
         next: (list) => this.tournaments.set(list),
       });
@@ -154,12 +154,12 @@ export class SimulationComponent implements OnInit {
    * Completed matches from past tournaments where the two currently selected
    * teams faced each other, most recent tournament first.
    */
-  readonly previousMatchups = computed<PreviousMatchup[]>(() => {
+  readonly previousMatchups = computed<Array<PreviousMatchup>>(() => {
     if (!this.ready()) return [];
 
     const selA: [string, string] = [this.a1(), this.a2()];
     const selB: [string, string] = [this.b1(), this.b2()];
-    const found: PreviousMatchup[] = [];
+    const found: Array<PreviousMatchup> = [];
 
     for (const t of this.tournaments()) {
       for (const round of Object.values(t.rounds ?? {})) {

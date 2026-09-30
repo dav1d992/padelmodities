@@ -25,7 +25,7 @@ import {
 // ── Small utilities ──────────────────────────────────────────────────────────
 
 /** Fisher–Yates shuffle returning a new array. */
-export function shuffle<T>(input: readonly T[]): T[] {
+export function shuffle<T>(input: ReadonlyArray<T>): Array<T> {
   const shuffled = [...input];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -50,8 +50,8 @@ export interface ScheduleHistory {
 
 /** Build partner/opponent/sit-out history from all rounds up to (not incl.) upTo. */
 export function buildHistory(
-  rounds: TournamentRound[],
-  participantIds: string[],
+  rounds: Array<TournamentRound>,
+  participantIds: Array<string>,
   upTo = Number.MAX_SAFE_INTEGER,
 ): ScheduleHistory {
   const partner: Record<string, number> = {};
@@ -101,12 +101,12 @@ function opponentRepeat(h: ScheduleHistory, a: string, b: string): number {
  * and avoiding back-to-back sit-outs where possible.
  */
 function pickSitters(
-  candidates: string[],
+  candidates: Array<string>,
   count: number,
   h: ScheduleHistory,
   roundIndex: number,
-  standingsOrder?: string[],
-): string[] {
+  standingsOrder?: Array<string>,
+): Array<string> {
   if (count <= 0) return [];
   const rank = new Map<string, number>();
   standingsOrder?.forEach((id, i) => rank.set(id, i));
@@ -134,7 +134,7 @@ function pickSitters(
 
 // ── Court/match building for four players ────────────────────────────────────
 
-const PAIRINGS: [[number, number], [number, number]][] = [
+const PAIRINGS: Array<[[number, number], [number, number]]> = [
   [
     [0, 1],
     [2, 3],
@@ -151,7 +151,7 @@ const PAIRINGS: [[number, number], [number, number]][] = [
 
 /** Choose the split of four players that best avoids repeat partners/opponents. */
 function bestFourSplit(
-  four: string[],
+  four: Array<string>,
   h: ScheduleHistory,
   preferIndex = 2, // default Mexicano rule: 1&4 vs 2&3
 ): { a1: string; a2: string; b1: string; b2: string } {
@@ -183,17 +183,17 @@ function bestFourSplit(
  * maximise variety, spread sit-outs fairly. Uses randomised best-of-K search.
  */
 export function generateAmericanoRounds(
-  playerIds: string[],
+  playerIds: Array<string>,
   courtCount: number,
   totalRounds: number,
-): TournamentRound[] {
+): Array<TournamentRound> {
   const n = playerIds.length;
   const perRound = 4 * Math.min(courtCount, Math.floor(n / 4));
   if (perRound < 4) throw new Error("err.americano4");
   const sitCount = n - perRound;
 
-  const rounds: TournamentRound[] = [];
-  const running: TournamentRound[] = [];
+  const rounds: Array<TournamentRound> = [];
+  const running: Array<TournamentRound> = [];
 
   for (let r = 0; r < totalRounds; r++) {
     const h = buildHistory(running, playerIds);
@@ -215,18 +215,18 @@ export function generateAmericanoRounds(
 
 /** Build one Americano round's matches from active players (best of K tries). */
 function buildAmericanoRoundMatches(
-  active: string[],
+  active: Array<string>,
   courtCount: number,
   h: ScheduleHistory,
   roundIndex: number,
-): TournamentMatch[] {
+): Array<TournamentMatch> {
   const courts = Math.min(courtCount, Math.floor(active.length / 4));
-  let best: TournamentMatch[] = [];
+  let best: Array<TournamentMatch> = [];
   let bestCost = Number.POSITIVE_INFINITY;
 
   for (let attempt = 0; attempt < 40; attempt++) {
     const order = shuffle(active);
-    const matches: TournamentMatch[] = [];
+    const matches: Array<TournamentMatch> = [];
     let cost = 0;
     for (let c = 0; c < courts; c++) {
       const four = order.slice(c * 4, c * 4 + 4);
@@ -261,18 +261,18 @@ function buildAmericanoRoundMatches(
  * split within each court that avoids repeat partners/opponents.
  */
 export function generateMexicanoRound(
-  playerIds: string[],
+  playerIds: Array<string>,
   courtCount: number,
   roundIndex: number,
-  priorRounds: TournamentRound[],
-  standingsOrder: string[],
+  priorRounds: Array<TournamentRound>,
+  standingsOrder: Array<string>,
 ): TournamentRound {
   const n = playerIds.length;
   const perRound = 4 * Math.min(courtCount, Math.floor(n / 4));
   const sitCount = n - perRound;
   const h = buildHistory(priorRounds, playerIds);
 
-  let ordered: string[];
+  let ordered: Array<string>;
   if (roundIndex === 0) {
     ordered = shuffle(playerIds);
   } else {
@@ -289,7 +289,7 @@ export function generateMexicanoRound(
   const active = ordered.filter((id) => !sitters.includes(id));
 
   const courts = Math.min(courtCount, Math.floor(active.length / 4));
-  const matches: TournamentMatch[] = [];
+  const matches: Array<TournamentMatch> = [];
   for (let c = 0; c < courts; c++) {
     const four = active.slice(c * 4, c * 4 + 4);
     const split = bestFourSplit(four, h, 2);
@@ -372,13 +372,13 @@ interface MexHistory extends ScheduleHistory {
   foursomes: Set<string>;
 }
 
-function foursomeKey(ids: readonly string[]): string {
+function foursomeKey(ids: ReadonlyArray<string>): string {
   return [...ids].sort().join("|");
 }
 
 function buildMexHistory(
-  rounds: TournamentRound[],
-  playerIds: string[],
+  rounds: Array<TournamentRound>,
+  playerIds: Array<string>,
 ): MexHistory {
   const base = buildHistory(rounds, playerIds);
   const lastPartner: Record<string, string> = {};
@@ -400,7 +400,7 @@ function buildMexHistory(
 }
 
 /** Permutation keeping every element within ~`window` positions of its rank. */
-function windowedShuffle(order: readonly string[], window: number): string[] {
+function windowedShuffle(order: ReadonlyArray<string>, window: number): Array<string> {
   if (window <= 0) return [...order];
   return order
     .map((id, i) => ({ id, k: i + (Math.random() - 0.5) * 2 * window }))
@@ -458,7 +458,7 @@ function splitCost(
 
 /** Pick the lowest-cost split of four players into two teams. */
 function bestMexSplit(
-  four: string[],
+  four: Array<string>,
   h: MexHistory,
   w: MexericanoWeights,
   rankOf: (id: string) => number,
@@ -479,7 +479,7 @@ function bestMexSplit(
 }
 
 function buildBestMexRound(
-  active: string[],
+  active: Array<string>,
   courts: number,
   roundIndex: number,
   h: MexHistory,
@@ -489,13 +489,13 @@ function buildBestMexRound(
   ratingOf: (id: string) => number,
   attempts: number,
   maxPartnerGap: number,
-): TournamentMatch[] {
-  let best: TournamentMatch[] = [];
+): Array<TournamentMatch> {
+  let best: Array<TournamentMatch> = [];
   let bestCost = Number.POSITIVE_INFINITY;
 
   for (let attempt = 0; attempt < attempts; attempt++) {
     const order = windowedShuffle(active, window);
-    const matches: TournamentMatch[] = [];
+    const matches: Array<TournamentMatch> = [];
     let cost = 0;
     for (let c = 0; c < courts; c++) {
       const four = order.slice(c * 4, c * 4 + 4);
@@ -520,8 +520,8 @@ function buildBestMexRound(
 }
 
 function rankLookup(
-  standingsOrder: string[],
-  playerIds: string[],
+  standingsOrder: Array<string>,
+  playerIds: Array<string>,
 ): (id: string) => number {
   const rank = new Map<string, number>();
   standingsOrder.forEach((id, i) => rank.set(id, i));
@@ -537,11 +537,11 @@ function rankLookup(
  * so impossible-to-avoid repeats degrade gracefully instead of failing.
  */
 export function generateMexericanoRound(
-  playerIds: string[],
+  playerIds: Array<string>,
   courtCount: number,
   roundIndex: number,
-  priorRounds: TournamentRound[],
-  standingsOrder: string[],
+  priorRounds: Array<TournamentRound>,
+  standingsOrder: Array<string>,
   options: MexericanoOptions = {},
 ): TournamentRound {
   const n = playerIds.length;
@@ -597,11 +597,11 @@ export function generateMexericanoRound(
  * keeps teams balanced. The round is flagged {@link TournamentRound.isFinal}.
  */
 export function generateMexericanoFinalRound(
-  playerIds: string[],
+  playerIds: Array<string>,
   courtCount: number,
   roundIndex: number,
-  priorRounds: TournamentRound[],
-  standingsOrder: string[],
+  priorRounds: Array<TournamentRound>,
+  standingsOrder: Array<string>,
   options: MexericanoOptions = {},
 ): TournamentRound {
   const round = generateMexericanoRound(
@@ -619,14 +619,14 @@ export function generateMexericanoFinalRound(
 // ── Team Americano (static round-robin) ──────────────────────────────────────
 
 /** Circle-method round-robin producing conflict-free logical rounds of pairs. */
-function roundRobinPairs(teamIds: string[]): [string, string][][] {
+function roundRobinPairs(teamIds: Array<string>): Array<Array<[string, string]>> {
   const ids = [...teamIds];
   if (ids.length % 2 !== 0) ids.push("__BYE__");
   const n = ids.length;
-  const rounds: [string, string][][] = [];
+  const rounds: Array<Array<[string, string]>> = [];
   const arr = [...ids];
   for (let r = 0; r < n - 1; r++) {
-    const pairs: [string, string][] = [];
+    const pairs: Array<[string, string]> = [];
     for (let i = 0; i < n / 2; i++) {
       const a = arr[i];
       const b = arr[n - 1 - i];
@@ -634,7 +634,8 @@ function roundRobinPairs(teamIds: string[]): [string, string][][] {
     }
     rounds.push(pairs);
     // rotate keeping first fixed
-    arr.splice(1, 0, arr.pop()!);
+    const last = arr.pop();
+    if (last !== undefined) arr.splice(1, 0, last);
   }
   return rounds;
 }
@@ -645,19 +646,19 @@ function roundRobinPairs(teamIds: string[]): [string, string][][] {
  * because a logical round never repeats a team). Returns generated rounds.
  */
 export function generateTeamAmericanoRounds(
-  teamIds: string[],
+  teamIds: Array<string>,
   teams: Record<string, TournamentTeam>,
   courtCount: number,
-): TournamentRound[] {
+): Array<TournamentRound> {
   const logical = roundRobinPairs(shuffle(teamIds));
-  const rounds: TournamentRound[] = [];
+  const rounds: Array<TournamentRound> = [];
   let roundIndex = 0;
 
   for (const logicalRound of logical) {
     for (let start = 0; start < logicalRound.length; start += courtCount) {
       const chunk = logicalRound.slice(start, start + courtCount);
       const playing = new Set<string>();
-      const matches: TournamentMatch[] = chunk.map(([tA, tB], c) => {
+      const matches: Array<TournamentMatch> = chunk.map(([tA, tB], c) => {
         playing.add(tA);
         playing.add(tB);
         const teamA = teams[tA];
@@ -693,12 +694,12 @@ export function generateTeamAmericanoRounds(
  * (court 0 = top two) while avoiding repeat matchups where possible.
  */
 export function generateTeamMexicanoRound(
-  teamIds: string[],
+  teamIds: Array<string>,
   teams: Record<string, TournamentTeam>,
   courtCount: number,
   roundIndex: number,
-  priorRounds: TournamentRound[],
-  standingsOrder: string[],
+  priorRounds: Array<TournamentRound>,
+  standingsOrder: Array<string>,
 ): TournamentRound {
   const order = roundIndex === 0 ? shuffle(teamIds) : [...standingsOrder];
   const h = buildHistory(priorRounds, teamIds);
@@ -718,10 +719,11 @@ export function generateTeamMexicanoRound(
   // Greedy: take the top remaining team, pair with the best next opponent
   // (fewest prior meetings), preferring adjacency in the standings.
   const remaining = [...pool];
-  const matches: TournamentMatch[] = [];
+  const matches: Array<TournamentMatch> = [];
   let c = 0;
   while (remaining.length >= 2) {
-    const tA = remaining.shift()!;
+    const tA = remaining.shift();
+    if (tA === undefined) break;
     let bestIdx = 0;
     let bestCost = Number.POSITIVE_INFINITY;
     for (let i = 0; i < remaining.length; i++) {
@@ -755,25 +757,25 @@ export function generateTeamMexicanoRound(
   };
 }
 
-const BEAT_THE_BOX_PAIRINGS: [number, number, number, number][] = [
+const BEAT_THE_BOX_PAIRINGS: Array<[number, number, number, number]> = [
   [0, 1, 2, 3],
   [0, 2, 1, 3],
   [0, 3, 1, 2],
 ];
 
-function beatTheBoxBoxes(round: TournamentRound): string[][] {
+function beatTheBoxBoxes(round: TournamentRound): Array<Array<string>> {
   return Object.values(round.matches ?? {})
     .sort((a, b) => a.courtIndex - b.courtIndex)
     .map((match) => [match.a1, match.a2, match.b1, match.b2]);
 }
 
 function buildBeatTheBoxRound(
-  boxes: string[][],
+  boxes: Array<Array<string>>,
   roundIndex: number,
-  sitters: string[],
+  sitters: Array<string>,
 ): TournamentRound {
   const pairing = BEAT_THE_BOX_PAIRINGS[roundIndex % 3];
-  const matches: TournamentMatch[] = boxes.map((players, courtIndex) => ({
+  const matches: Array<TournamentMatch> = boxes.map((players, courtIndex) => ({
     id: `r${roundIndex}_c${courtIndex}`,
     courtIndex,
     a1: players[pairing[0]],
@@ -791,7 +793,7 @@ function buildBeatTheBoxRound(
 
 /** Place individuals into four-player boxes, optionally preserving ELO order. */
 export function generateBeatTheBoxInitialRound(
-  playerIds: string[],
+  playerIds: Array<string>,
   courtCount: number,
   seeded: boolean,
 ): TournamentRound {
@@ -799,7 +801,7 @@ export function generateBeatTheBoxInitialRound(
   const order = seeded ? [...playerIds] : shuffle(playerIds);
   const courtTotal = Math.min(courtCount, Math.floor(order.length / 4));
   const activePlayers = order.slice(0, courtTotal * 4);
-  const boxes = Array.from({ length: courtTotal }, () => [] as string[]);
+  const boxes = Array.from({ length: courtTotal }, () => [] as Array<string>);
   if (seeded) {
     activePlayers.forEach((id, seedIndex) => {
       const wave = Math.floor(seedIndex / courtTotal);
@@ -816,9 +818,9 @@ export function generateBeatTheBoxInitialRound(
 /** Keep each box for three partner rotations, then move its top/bottom two. */
 export function generateBeatTheBoxNextRound(
   completed: TournamentRound,
-  priorRounds: TournamentRound[],
+  priorRounds: Array<TournamentRound>,
   roundIndex: number,
-  playerIds: string[],
+  playerIds: Array<string>,
   courtCount: number,
 ): TournamentRound {
   const previousBoxes = beatTheBoxBoxes(completed);
@@ -914,7 +916,7 @@ interface CourtState {
 }
 
 /** Read the court states of a completed KotH round (index by courtIndex). */
-function readCourts(round: TournamentRound): CourtState[] {
+function readCourts(round: TournamentRound): Array<CourtState> {
   const matches = Object.values(round.matches ?? {}).sort(
     (m1, m2) => m1.courtIndex - m2.courtIndex,
   );
@@ -931,7 +933,7 @@ function kothWinnerSide(m: TournamentMatch): "a" | "b" {
 
 /** Generate the initial KotH round: courtCount courts of 4, random or seeded. */
 export function generateKothInitialRound(
-  playerIds: string[],
+  playerIds: Array<string>,
   courtCount: number,
   seeded: boolean,
 ): TournamentRound {
@@ -941,7 +943,7 @@ export function generateKothInitialRound(
   }
   const order = seeded ? [...playerIds] : shuffle(playerIds);
   const sitters = order.slice(active);
-  const matches: TournamentMatch[] = [];
+  const matches: Array<TournamentMatch> = [];
   for (let c = 0; c < courtCount; c++) {
     const four = order.slice(c * 4, c * 4 + 4);
     matches.push({
@@ -969,9 +971,9 @@ export function generateKothInitialRound(
  */
 export function generateKothNextRound(
   completed: TournamentRound,
-  priorRounds: TournamentRound[],
+  priorRounds: Array<TournamentRound>,
   roundIndex: number,
-  allPlayerIds: string[],
+  allPlayerIds: Array<string>,
 ): TournamentRound {
   const courts = readCourts(completed);
   const matches = Object.values(completed.matches ?? {}).sort(
@@ -980,8 +982,8 @@ export function generateKothNextRound(
   const numCourts = matches.length;
 
   // Winner/loser pair per court.
-  const winners: [string, string][] = [];
-  const losers: [string, string][] = [];
+  const winners: Array<[string, string]> = [];
+  const losers: Array<[string, string]> = [];
   matches.forEach((m) => {
     const side = kothWinnerSide(m);
     winners.push(side === "a" ? [m.a1, m.a2] : [m.b1, m.b2]);
@@ -989,7 +991,7 @@ export function generateKothNextRound(
   });
 
   // Determine the two incoming pairs for each destination court.
-  const incoming: [[string, string], [string, string]][] = [];
+  const incoming: Array<[[string, string], [string, string]]> = [];
   for (let c = 0; c < numCourts; c++) {
     let first: [string, string];
     let second: [string, string];
@@ -1008,7 +1010,7 @@ export function generateKothNextRound(
 
   const h = buildHistory([...priorRounds, completed], allPlayerIds);
 
-  const newMatches: TournamentMatch[] = incoming.map(([pairX, pairY], c) => {
+  const newMatches: Array<TournamentMatch> = incoming.map(([pairX, pairY], c) => {
     // Both combinations make previous partners opponents; pick the better one.
     // Option 1: X0+Y0 vs X1+Y1 ; Option 2: X0+Y1 vs X1+Y0
     const cost1 =
@@ -1183,7 +1185,7 @@ export function validateScore(
 
 // ── Standings ────────────────────────────────────────────────────────────────
 
-function sortedRounds(t: Tournament): TournamentRound[] {
+function sortedRounds(t: Tournament): Array<TournamentRound> {
   return Object.values(t.rounds ?? {}).sort((a, b) => a.index - b.index);
 }
 
@@ -1210,10 +1212,10 @@ function courtBonus(
 export function computeStandings(
   tournament: Tournament,
   nameOf: (participantId: string) => string,
-): StandingRow[] {
+): Array<StandingRow> {
   const team = isTeamFormat(tournament.format);
   const participantIds = team
-    ? Object.keys(tournament.teams ?? {}).map((k) => tournament.teams![k].id)
+    ? Object.values(tournament.teams ?? {}).map((x) => x.id)
     : Object.values(tournament.playerIds ?? {});
 
   // First nCourts-1 rounds award no bonus (field still settling onto courts).
@@ -1265,10 +1267,10 @@ export function computeStandings(
       const s2 = m.score2;
       if (s1 === undefined || s2 === undefined) continue;
 
-      const idA = team ? m.teamAId! : null;
-      const idB = team ? m.teamBId! : null;
-      const sideA = team ? [idA!] : [m.a1, m.a2];
-      const sideB = team ? [idB!] : [m.b1, m.b2];
+      const idA = team ? (m.teamAId ?? null) : null;
+      const idB = team ? (m.teamBId ?? null) : null;
+      const sideA = team ? (idA ? [idA] : []) : [m.a1, m.a2];
+      const sideB = team ? (idB ? [idB] : []) : [m.b1, m.b2];
       const winner = matchWinner(m);
 
       for (const id of sideA) {
@@ -1307,8 +1309,10 @@ export function computeStandings(
       }
 
       if (team) {
-        if (winner === "a") addH2h(idA!, idB!);
-        else if (winner === "b") addH2h(idB!, idA!);
+        if (idA && idB) {
+          if (winner === "a") addH2h(idA, idB);
+          else if (winner === "b") addH2h(idB, idA);
+        }
       }
     }
   }
@@ -1336,7 +1340,7 @@ export function computeStandings(
 export function standingsOrder(
   tournament: Tournament,
   nameOf: (id: string) => string,
-): string[] {
+): Array<string> {
   return computeStandings(tournament, nameOf).map((r) => r.participantId);
 }
 
@@ -1354,7 +1358,7 @@ export function participantNameOf(t: Tournament, id: string): string {
   return team?.name ?? id;
 }
 
-function sortedRoundsOf(t: Tournament): TournamentRound[] {
+function sortedRoundsOf(t: Tournament): Array<TournamentRound> {
   return Object.values(t.rounds ?? {}).sort((a, b) => a.index - b.index);
 }
 
@@ -1362,7 +1366,7 @@ function sortedRoundsOf(t: Tournament): TournamentRound[] {
 export function buildDynamicRound(
   t: Tournament,
   roundIndex: number,
-  priorRounds: TournamentRound[],
+  priorRounds: Array<TournamentRound>,
 ): TournamentRound {
   const order = standingsOrder(t, (id) => participantNameOf(t, id));
   const fmt = phaseFormatFor(t, roundIndex);
@@ -1480,8 +1484,8 @@ function phaseOpeningRounds(
 
 /** Opening rounds for a two-phase tournament (seating phase then final phase). */
 function generateTwoPhaseInitialRounds(t: Tournament): InitialRoundsResult {
-  const seatFmt = t.seatingFormat!;
-  const seatRounds = t.seatingRounds!;
+  const seatFmt = t.seatingFormat ?? t.format;
+  const seatRounds = t.seatingRounds ?? 0;
   const finalFmt = t.format;
   const rounds: Record<string, TournamentRound> = {};
 
@@ -1704,14 +1708,14 @@ export function completeCurrentRound(t: Tournament): Tournament {
 // ── Record helpers (RTDB-safe) ───────────────────────────────────────────────
 
 export function toMatchRecord(
-  matches: TournamentMatch[],
+  matches: Array<TournamentMatch>,
 ): Record<string, TournamentMatch> {
   const rec: Record<string, TournamentMatch> = {};
   matches.forEach((m) => (rec[m.id] = stripUndefined(m)));
   return rec;
 }
 
-export function toIdRecord(ids: string[]): Record<string, string> {
+export function toIdRecord(ids: Array<string>): Record<string, string> {
   const rec: Record<string, string> = {};
   ids.forEach((id, i) => (rec[String(i)] = id));
   return rec;

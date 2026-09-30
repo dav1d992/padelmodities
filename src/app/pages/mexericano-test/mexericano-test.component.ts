@@ -39,7 +39,7 @@ interface LocalScore {
 
 interface CourtStandingGroup {
   courtIndex: number;
-  rows: StandingRow[];
+  rows: Array<StandingRow>;
 }
 
 /**
@@ -56,9 +56,9 @@ interface CourtStandingGroup {
 export class MexericanoTestComponent {
   readonly i18n = inject(I18nService);
 
-  readonly formats: TournamentFormat[] = Object.keys(
+  readonly formats: Array<TournamentFormat> = Object.keys(
     FORMAT_LABELS,
-  ) as TournamentFormat[];
+  ) as Array<TournamentFormat>;
 
   // Config
   readonly format = signal<TournamentFormat>("mexericano");
@@ -70,10 +70,10 @@ export class MexericanoTestComponent {
   // State
   readonly started = signal(false);
   readonly finished = signal(false);
-  readonly playerIds = signal<string[]>([]);
+  readonly playerIds = signal<Array<string>>([]);
   readonly names = signal<Record<string, string>>({});
-  readonly teams = signal<TournamentTeam[]>([]);
-  readonly rounds = signal<TournamentRound[]>([]);
+  readonly teams = signal<Array<TournamentTeam>>([]);
+  readonly rounds = signal<Array<TournamentRound>>([]);
   readonly currentIndex = signal(0);
   readonly scores = signal<Record<string, LocalScore>>({});
   readonly error = signal("");
@@ -140,7 +140,7 @@ export class MexericanoTestComponent {
     return map;
   }
 
-  private buildTournament(rounds: TournamentRound[]): Tournament {
+  private buildTournament(rounds: Array<TournamentRound>): Tournament {
     const roundRec: Record<string, TournamentRound> = {};
     rounds.forEach((r) => (roundRec[String(r.index)] = r));
     const base: Tournament = {
@@ -198,7 +198,7 @@ export class MexericanoTestComponent {
     this.names.set(names);
 
     // Build fixed teams for team formats (consecutive pairs).
-    const teams: TournamentTeam[] = [];
+    const teams: Array<TournamentTeam> = [];
     if (this.isTeam()) {
       for (let i = 0; i + 1 < ids.length; i += 2) {
         teams.push({
@@ -243,7 +243,7 @@ export class MexericanoTestComponent {
     this.currentIndex.set(0);
   }
 
-  private generateInitialRounds(): TournamentRound[] {
+  private generateInitialRounds(): Array<TournamentRound> {
     const courts = this.numCourts();
     const ids = this.playerIds();
     switch (this.format()) {
@@ -268,7 +268,7 @@ export class MexericanoTestComponent {
 
   private buildDynamicRound(
     index: number,
-    prior: TournamentRound[],
+    prior: Array<TournamentRound>,
   ): TournamentRound {
     const order = standingsOrder(this.buildTournament(prior), (id) =>
       this.participantName(id),
@@ -313,7 +313,7 @@ export class MexericanoTestComponent {
     () => this.rounds().find((r) => r.index === this.currentIndex()) ?? null,
   );
 
-  readonly currentMatches = computed<TournamentMatch[]>(() => {
+  readonly currentMatches = computed<Array<TournamentMatch>>(() => {
     const round = this.currentRound();
     if (!round?.matches) return [];
     return Object.values(round.matches).sort(
@@ -321,7 +321,7 @@ export class MexericanoTestComponent {
     );
   });
 
-  readonly sitOuts = computed<string[]>(() =>
+  readonly sitOuts = computed<Array<string>>(() =>
     Object.values(this.currentRound()?.sitOutIds ?? {}),
   );
 
@@ -497,14 +497,14 @@ export class MexericanoTestComponent {
 
   // ── Standings ──────────────────────────────────────────────────────────────
 
-  readonly standings = computed<StandingRow[]>(() => {
+  readonly standings = computed<Array<StandingRow>>(() => {
     if (!this.started()) return [];
     return computeStandings(this.buildTournament(this.rounds()), (id) =>
       this.participantName(id),
     );
   });
 
-  readonly courtStandings = computed<CourtStandingGroup[]>(() => {
+  readonly courtStandings = computed<Array<CourtStandingGroup>>(() => {
     if (!this.isBeatTheBox()) return [];
     const round = this.currentRound();
     if (!round) return [];

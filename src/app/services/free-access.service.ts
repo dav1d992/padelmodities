@@ -9,28 +9,28 @@ const STORAGE_KEY = 'padel_free_unlocked';
  */
 @Injectable({ providedIn: 'root' })
 export class FreeAccessService {
-  private readonly unlocked = signal<ReadonlySet<string>>(this.readStored());
+  readonly #unlocked = signal<ReadonlySet<string>>(this.readStored());
 
   /** Reactive check: is this tournament unlocked in the current session? */
   isUnlocked(tournamentId: string): boolean {
-    return this.unlocked().has(tournamentId);
+    return this.#unlocked().has(tournamentId);
   }
 
   /** Unlock a tournament if the entered code matches. Returns success. */
   unlock(tournamentId: string, code: string, actualCode: string): boolean {
     if (code.trim() !== actualCode) return false;
-    const next = new Set(this.unlocked());
+    const next = new Set(this.#unlocked());
     next.add(tournamentId);
-    this.unlocked.set(next);
+    this.#unlocked.set(next);
     this.persist(next);
     return true;
   }
 
   /** Re-lock a tournament (drop edit rights) in the current session. */
   lock(tournamentId: string): void {
-    const next = new Set(this.unlocked());
+    const next = new Set(this.#unlocked());
     next.delete(tournamentId);
-    this.unlocked.set(next);
+    this.#unlocked.set(next);
     this.persist(next);
   }
 

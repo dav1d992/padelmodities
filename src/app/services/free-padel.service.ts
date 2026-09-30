@@ -37,7 +37,7 @@ export interface CreateFreeTournamentInput {
   seatingFormat?: TournamentFormat;
   /** Number of rounds in the seating phase (when seatingFormat is set). */
   seatingRounds?: number;
-  courtNames: string[];
+  courtNames: Array<string>;
   totalRounds: number;
   scoring: ScoringConfig;
   bonus?: CourtBonusConfig;
@@ -67,7 +67,7 @@ function withTimeout<T>(promise: Promise<T>, ms = 10_000): Promise<T> {
  */
 @Injectable({ providedIn: 'root' })
 export class FreePadelService {
-  private db = inject(FIREBASE_DB);
+  readonly #db = inject(FIREBASE_DB);
 
   private path(id: string): string {
     return `freeTournaments/${id}`;
@@ -84,7 +84,7 @@ export class FreePadelService {
 
   watchFreeTournament(id: string): Observable<FreeTournament | null> {
     return new Observable<FreeTournament | null>((subscriber) => {
-      const tourRef = ref(this.db, this.path(id));
+      const tourRef = ref(this.#db, this.path(id));
       const unsubscribe = onValue(
         tourRef,
         (snapshot) => subscriber.next(snapshot.val() as FreeTournament | null),
@@ -97,7 +97,7 @@ export class FreePadelService {
   /** Live list of all free tournaments, newest first. */
   watchAllFreeTournaments(): Observable<FreeTournament[]> {
     return new Observable<FreeTournament[]>((subscriber) => {
-      const listRef = ref(this.db, 'freeTournaments');
+      const listRef = ref(this.#db, 'freeTournaments');
       const unsubscribe = onValue(
         listRef,
         (snapshot) => {
@@ -115,7 +115,7 @@ export class FreePadelService {
   }
 
   private async getFree(id: string): Promise<FreeTournament> {
-    const snap = await withTimeout(get(ref(this.db, this.path(id))));
+    const snap = await withTimeout(get(ref(this.#db, this.path(id))));
     const t = snap.val() as FreeTournament | null;
     if (!t) throw new Error('err.tournamentNotFound');
     return t;
@@ -124,8 +124,8 @@ export class FreePadelService {
   // ── Create / edit draft ──────────────────────────────────────────────────
 
   async createFreeTournament(input: CreateFreeTournamentInput): Promise<string> {
-    const tourRef = push(ref(this.db, 'freeTournaments'));
-    const id = tourRef.key!;
+    const tourRef = push(ref(this.#db, 'freeTournaments'));
+    const id = tourRef.key ?? '';
 
     const courtNames: Record<string, string> = {};
     input.courtNames.forEach((n, i) => {
@@ -202,7 +202,7 @@ export class FreePadelService {
       updates['courtNames'] = courtNames;
       updates['courtCount'] = patch.courtNames.length;
     }
-    await withTimeout(update(ref(this.db, this.path(id)), updates));
+    await withTimeout(update(ref(this.#db, this.path(id)), updates));
   }
 
   // ── Participants (individual formats) ────────────────────────────────────
@@ -214,7 +214,7 @@ export class FreePadelService {
     if (t.status !== 'draft') throw new Error('err.notDraft');
 
     const participants = { ...(t.participants ?? {}) };
-    const pid = push(ref(this.db, `${this.path(id)}/participants`)).key!;
+    const pid = push(ref(this.#db, `${this.path(id)}/participants`)).key ?? '';
     const nextIndex = Object.keys(participants).length;
     const participant: FreeParticipant = { id: pid, name: trimmed };
 
@@ -222,7 +222,7 @@ export class FreePadelService {
     const nextPlayerIndex = Object.keys(playerIds).length;
 
     await withTimeout(
-      update(ref(this.db, this.path(id)), {
+      update(ref(this.#db, this.path(id)), {
         [`participants/${nextIndex}`]: participant,
         [`playerIds/${nextPlayerIndex}`]: pid,
         updatedAt: Date.now(),
@@ -241,7 +241,7 @@ export class FreePadelService {
     );
     if (!entry) return;
     await withTimeout(
-      update(ref(this.db, `${this.path(id)}/participants/${entry[0]}`), {
+      update(ref(this.#db, `${this.path(id)}/participants/${entry[0]}`), {
         name: trimmed,
       }),
     );
@@ -262,7 +262,7 @@ export class FreePadelService {
     );
 
     await withTimeout(
-      update(ref(this.db, this.path(id)), {
+      update(ref(this.#db, this.path(id)), {
         participants: this.indexRecord(participants),
         playerIds: this.indexRecord(playerIds.map((x) => x)),
         teams: teams.length ? this.indexRecord(teams) : null,
@@ -273,18 +273,18 @@ export class FreePadelService {
 
   // ── Teams (team formats) ─────────────────────────────────────────────────
 
-  async setTeams(id: string, teams: TournamentTeam[]): Promise<void> {
+  async setTeams(id: string, teams: Array<TournamentTeam>): Promise<void> {
     const t = await this.getFree(id);
     if (t.status !== 'draft') throw new Error('err.notDraft');
     await withTimeout(
-      update(ref(this.db, this.path(id)), {
+      update(ref(this.#db, this.path(id)), {
         teams: teams.length ? this.indexRecord(teams) : null,
         updatedAt: Date.now(),
       }),
     );
   }
 
-  private indexRecord<T>(items: T[]): Record<string, T> {
+  private indexRecord<T>(items: Array<T>): Record<string, T> {
     const rec: Record<string, T> = {};
     items.forEach((item, i) => (rec[String(i)] = item));
     return rec;
@@ -300,7 +300,7 @@ export class FreePadelService {
     const { rounds, totalRounds } = generateInitialRounds(active);
 
     await withTimeout(
-      update(ref(this.db, this.path(id)), {
+      update(ref(this.#db, this.path(id)), {
         status: 'active',
         currentRound: 0,
         totalRounds,
@@ -320,7 +320,7 @@ export class FreePadelService {
   ): Promise<void> {
     await withTimeout(
       update(
-        ref(this.db, `${this.path(id)}/rounds/${roundIndex}/matches/${matchId}`),
+        ref(this.#db, `${this.path(id)}/rounds/${roundIndex}/matches/${matchId}`),
         { score1, score2 },
       ),
     );
@@ -334,7 +334,7 @@ export class FreePadelService {
   ): Promise<void> {
     await withTimeout(
       update(
-        ref(this.db, `${this.path(id)}/rounds/${roundIndex}/matches/${matchId}`),
+        ref(this.#db, `${this.path(id)}/rounds/${roundIndex}/matches/${matchId}`),
         { score1: null, score2: null, setScores: null },
       ),
     );
@@ -345,7 +345,7 @@ export class FreePadelService {
     const t = await this.getFree(id);
     const result = completeCurrentRound(t) as FreeTournament;
     await withTimeout(
-      update(ref(this.db, this.path(id)), {
+      update(ref(this.#db, this.path(id)), {
         rounds: result.rounds,
         status: result.status,
         currentRound: result.currentRound,
@@ -359,11 +359,10 @@ export class FreePadelService {
     const t = await this.getFree(id);
     const result = regenerateCurrentRound(t) as FreeTournament;
     const roundIndex = result.currentRound;
+    const round = result.rounds?.[roundIndex];
+    if (!round) throw new Error('err.roundNotFound');
     await withTimeout(
-      set(
-        ref(this.db, `${this.path(id)}/rounds/${roundIndex}`),
-        result.rounds![roundIndex],
-      ),
+      set(ref(this.#db, `${this.path(id)}/rounds/${roundIndex}`), round),
     );
   }
 
@@ -371,17 +370,16 @@ export class FreePadelService {
     const t = await this.getFree(id);
     const result = runFinalRound(t) as FreeTournament;
     const roundIndex = result.currentRound;
+    const round = result.rounds?.[roundIndex];
+    if (!round) throw new Error('err.roundNotFound');
     await withTimeout(
-      set(
-        ref(this.db, `${this.path(id)}/rounds/${roundIndex}`),
-        result.rounds![roundIndex],
-      ),
+      set(ref(this.#db, `${this.path(id)}/rounds/${roundIndex}`), round),
     );
   }
 
   async finishTournament(id: string): Promise<void> {
     await withTimeout(
-      update(ref(this.db, this.path(id)), {
+      update(ref(this.#db, this.path(id)), {
         status: 'finished',
         updatedAt: Date.now(),
       }),
@@ -390,7 +388,7 @@ export class FreePadelService {
   }
 
   async deleteFreeTournament(id: string): Promise<void> {
-    await withTimeout(remove(ref(this.db, this.path(id))));
+    await withTimeout(remove(ref(this.#db, this.path(id))));
   }
 
   private async refreshPointsTable(id: string): Promise<void> {
@@ -399,7 +397,7 @@ export class FreePadelService {
     const pointsTable: Record<string, number> = {};
     standings.forEach((row) => (pointsTable[row.participantId] = row.total));
     await withTimeout(
-      update(ref(this.db, this.path(id)), { pointsTable }),
+      update(ref(this.#db, this.path(id)), { pointsTable }),
     );
   }
 }

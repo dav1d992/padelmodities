@@ -63,26 +63,26 @@ interface LadderCourt {
 export class TournamentViewComponent implements OnInit {
   readonly tournamentId = input.required<string>();
 
-  private service = inject(PadelService);
-  private router = inject(Router);
-  private confirm = inject(ConfirmService);
+  readonly #service = inject(PadelService);
+  readonly #router = inject(Router);
+  readonly #confirm = inject(ConfirmService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
   readonly theme = inject(ThemeService);
 
   /** Live tournament from Firebase. */
-  private readonly liveTournament = signal<Tournament | null>(null);
+  readonly #liveTournament = signal<Tournament | null>(null);
   /** In-memory sandbox copy used while test mode is on (never persisted). */
-  private readonly sandbox = signal<Tournament | null>(null);
+  readonly #sandbox = signal<Tournament | null>(null);
   /** When true, all play happens on the sandbox copy with no writes. */
   readonly testMode = signal(false);
 
   /** Effective tournament shown and played (sandbox copy in test mode). */
   readonly tournament = computed<Tournament | null>(() =>
-    this.testMode() ? this.sandbox() : this.liveTournament(),
+    this.testMode() ? this.#sandbox() : this.#liveTournament(),
   );
 
-  readonly players = signal<Player[]>([]);
+  readonly players = signal<Array<Player>>([]);
   readonly loading = signal(true);
   readonly error = signal("");
   readonly completing = signal(false);
@@ -131,18 +131,18 @@ export class TournamentViewComponent implements OnInit {
   /** Local score state: matchId → { score1, score2 } */
   readonly scores = signal<Record<string, MatchScore>>({});
 
-  private readonly destroyRef = inject(DestroyRef);
+  readonly #destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
-    this.service
+    this.#service
       .watchTournament(this.tournamentId())
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe({
         next: (tournament) => {
-          this.liveTournament.set(tournament);
+          this.#liveTournament.set(tournament);
           this.loading.set(false);
           if (!tournament) {
-            this.router.navigate(["/"]);
+            this.#router.navigate(["/"]);
             return;
           }
           // While testing, the sandbox drives the view — ignore live updates.
@@ -158,9 +158,9 @@ export class TournamentViewComponent implements OnInit {
           this.loading.set(false);
         },
       });
-    this.service
+    this.#service
       .watchPlayers()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((list) => this.players.set(list));
   }
 
@@ -185,12 +185,14 @@ export class TournamentViewComponent implements OnInit {
 
   // ── Format flags ──────────────────────────────────────────────────────────
 
-  readonly isTeam = computed(() =>
-    this.tournament() ? isTeamFormat(this.tournament()!.format) : false,
-  );
-  readonly isDynamic = computed(() =>
-    this.tournament() ? isDynamicFormat(this.tournament()!.format) : false,
-  );
+  readonly isTeam = computed(() => {
+    const t = this.tournament();
+    return t ? isTeamFormat(t.format) : false;
+  });
+  readonly isDynamic = computed(() => {
+    const t = this.tournament();
+    return t ? isDynamicFormat(t.format) : false;
+  });
   readonly isKoth = computed(
     () => this.tournament()?.format === "king-of-the-hill",
   );
@@ -280,7 +282,7 @@ export class TournamentViewComponent implements OnInit {
     return tournament.rounds?.[this.displayRound()] ?? null;
   });
 
-  readonly currentMatches = computed<TournamentMatch[]>(() => {
+  readonly currentMatches = computed<Array<TournamentMatch>>(() => {
     const round = this.currentRound();
     if (!round?.matches) return [];
     return Object.values(round.matches).sort(
@@ -288,7 +290,7 @@ export class TournamentViewComponent implements OnInit {
     );
   });
 
-  readonly sitOuts = computed<string[]>(() => {
+  readonly sitOuts = computed<Array<string>>(() => {
     const round = this.currentRound();
     if (!round?.sitOutIds) return [];
     return Object.values(round.sitOutIds);
@@ -319,7 +321,7 @@ export class TournamentViewComponent implements OnInit {
 
   // ── Standings ─────────────────────────────────────────────────────────────
 
-  readonly standings = computed<StandingRow[]>(() => {
+  readonly standings = computed<Array<StandingRow>>(() => {
     const tournament = this.tournament();
     if (!tournament) return [];
     return computeStandings(tournament, (id) => this.participantName(id));
@@ -352,7 +354,7 @@ export class TournamentViewComponent implements OnInit {
       );
   });
 
-  readonly ladder = computed<LadderCourt[]>(() => {
+  readonly ladder = computed<Array<LadderCourt>>(() => {
     if (!this.isKoth()) return [];
     return this.currentMatches().map((m) => ({
       courtIndex: m.courtIndex,
@@ -437,13 +439,13 @@ export class TournamentViewComponent implements OnInit {
 
   /** True when the current tournament can be tried without starting/affecting it. */
   readonly canTest = computed(() => {
-    const t = this.liveTournament();
+    const t = this.#liveTournament();
     return !!t && (t.status === "active" || t.status === "draft");
   });
 
   /** Enter a sandbox dry run: clone the tournament and play it in memory only. */
   enterTestMode(): void {
-    const src = this.liveTournament();
+    const src = this.#liveTournament();
     if (!src) return;
     let sandbox = structuredClone(src) as Tournament;
     // A draft has no rounds yet — generate the opening schedule so it's playable.
@@ -457,7 +459,7 @@ export class TournamentViewComponent implements OnInit {
         currentRound: 0,
       };
     }
-    this.sandbox.set(sandbox);
+    this.#sandbox.set(sandbox);
     this.testMode.set(true);
     this.viewRound.set(null);
     this.scores.set({});
@@ -468,7 +470,7 @@ export class TournamentViewComponent implements OnInit {
   /** Leave the sandbox and return to the live tournament. */
   exitTestMode(): void {
     this.testMode.set(false);
-    this.sandbox.set(null);
+    this.#sandbox.set(null);
     this.viewRound.set(null);
     this.scores.set({});
     this.error.set("");
@@ -476,8 +478,8 @@ export class TournamentViewComponent implements OnInit {
   }
 
   private updateSandbox(fn: (t: Tournament) => Tournament): void {
-    const s = this.sandbox();
-    if (s) this.sandbox.set(fn(s));
+    const s = this.#sandbox();
+    if (s) this.#sandbox.set(fn(s));
   }
 
   /** Write the currently entered score for a match into the sandbox round. */
@@ -599,7 +601,7 @@ export class TournamentViewComponent implements OnInit {
       return;
     }
     try {
-      await this.service.saveMatchScore(
+      await this.#service.saveMatchScore(
         this.tournamentId(),
         this.displayRound(),
         matchId,
@@ -626,7 +628,7 @@ export class TournamentViewComponent implements OnInit {
       return;
     }
     try {
-      await this.service.resetMatchScore(
+      await this.#service.resetMatchScore(
         this.tournamentId(),
         this.displayRound(),
         matchId,
@@ -670,7 +672,7 @@ export class TournamentViewComponent implements OnInit {
       await this.saveScore(match.id);
     }
     try {
-      await this.service.completeRound(this.tournamentId());
+      await this.#service.completeRound(this.tournamentId());
       this.scores.set({});
       this.viewRound.set(null);
     } catch (error) {
@@ -719,7 +721,7 @@ export class TournamentViewComponent implements OnInit {
       return;
     }
     try {
-      await this.service.regenerateCurrentRound(this.tournamentId());
+      await this.#service.regenerateCurrentRound(this.tournamentId());
       this.scores.set({});
     } catch (error) {
       this.error.set(
@@ -761,7 +763,7 @@ export class TournamentViewComponent implements OnInit {
     if ((!this.admin.isAdmin() && !this.testMode()) || !this.canRunFinal())
       return;
     if (
-      !(await this.confirm.ask({
+      !(await this.#confirm.ask({
         message: this.i18n.t(
           this.testMode() ? "view.finalConfirmTest" : "view.finalConfirm",
         ),
@@ -788,7 +790,7 @@ export class TournamentViewComponent implements OnInit {
       return;
     }
     try {
-      await this.service.runFinalRound(this.tournamentId());
+      await this.#service.runFinalRound(this.tournamentId());
       this.scores.set({});
       this.viewRound.set(null);
     } catch (error) {
@@ -805,7 +807,7 @@ export class TournamentViewComponent implements OnInit {
   async finishEarly(): Promise<void> {
     if (!this.admin.isAdmin() && !this.testMode()) return;
     if (
-      !(await this.confirm.ask({
+      !(await this.#confirm.ask({
         message: this.i18n.t(
           this.testMode() ? "view.finishConfirmTest" : "view.finishConfirm",
         ),
@@ -823,7 +825,7 @@ export class TournamentViewComponent implements OnInit {
       return;
     }
     try {
-      await this.service.finishTournament(this.tournamentId());
+      await this.#service.finishTournament(this.tournamentId());
     } catch (error) {
       this.error.set(
         error instanceof Error
@@ -840,7 +842,7 @@ export class TournamentViewComponent implements OnInit {
     this.completing.set(true);
     this.error.set("");
     try {
-      await this.service.startTournament(this.tournamentId());
+      await this.#service.startTournament(this.tournamentId());
     } catch (error) {
       this.error.set(
         error instanceof Error
@@ -854,7 +856,7 @@ export class TournamentViewComponent implements OnInit {
 
   editDraft(): void {
     if (!this.admin.isAdmin()) return;
-    this.router.navigate(["/tournament/new"], {
+    this.#router.navigate(["/tournament/new"], {
       queryParams: { draft: this.tournamentId() },
     });
   }
@@ -863,7 +865,7 @@ export class TournamentViewComponent implements OnInit {
     const tournament = this.tournament();
     if (!this.admin.isAdmin() || !tournament) return;
     if (
-      !(await this.confirm.ask({
+      !(await this.#confirm.ask({
         message: this.i18n.t("view.deleteConfirm", { name: tournament.name }),
         danger: true,
       }))
@@ -871,8 +873,8 @@ export class TournamentViewComponent implements OnInit {
       return;
     this.deleting.set(true);
     try {
-      await this.service.deleteTournament(tournament.id);
-      this.router.navigate(["/"]);
+      await this.#service.deleteTournament(tournament.id);
+      this.#router.navigate(["/"]);
     } catch (error) {
       this.error.set(
         error instanceof Error

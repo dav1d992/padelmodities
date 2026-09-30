@@ -75,13 +75,13 @@ export type TournamentFormat =
 export type TournamentStatus = "draft" | "active" | "finished";
 
 /** Formats where participants are fixed teams of two rather than individuals. */
-export const TEAM_FORMATS: readonly TournamentFormat[] = [
+export const TEAM_FORMATS: ReadonlyArray<TournamentFormat> = [
   "team-americano",
   "team-mexicano",
 ];
 
 /** Formats whose rounds are generated from live standings (regeneration allowed). */
-export const DYNAMIC_FORMATS: readonly TournamentFormat[] = [
+export const DYNAMIC_FORMATS: ReadonlyArray<TournamentFormat> = [
   "mexicano",
   "team-mexicano",
   "super-mexicano",
@@ -115,7 +115,7 @@ export function isTwoPhase(t: {
   seatingFormat?: TournamentFormat;
   seatingRounds?: number;
 }): boolean {
-  return !!t.seatingFormat && (t.seatingRounds ?? 0) >= 1;
+  return t.seatingFormat != null && (t.seatingRounds ?? 0) >= 1;
 }
 
 /** True when the given round index falls inside the seating phase. */
@@ -135,7 +135,7 @@ export function phaseFormatFor(
   },
   roundIndex: number,
 ): TournamentFormat {
-  return isSeatingRound(t, roundIndex) ? t.seatingFormat! : t.format;
+  return isSeatingRound(t, roundIndex) ? (t.seatingFormat ?? t.format) : t.format;
 }
 
 /** The first round index of the phase that `roundIndex` belongs to. */

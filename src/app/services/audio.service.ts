@@ -22,35 +22,35 @@ function writeMuted(key: string, value: boolean): void {
 
 @Injectable({ providedIn: "root" })
 export class AudioService {
-  private readonly theme = inject(ThemeService);
+  readonly #theme = inject(ThemeService);
   readonly musicMuted = signal(readMuted(KEY_MUSIC));
   readonly sfxMuted = signal(readMuted(KEY_SFX));
 
-  private backgroundMusic: HTMLAudioElement | null = null;
-  private musicTheme: "normal" | "christmas" | "halloween" = "normal";
+  #backgroundMusic: HTMLAudioElement | null = null;
+  #musicTheme: "normal" | "christmas" | "halloween" = "normal";
 
   constructor() {
     effect(() => {
-      const theme = this.theme.mode();
-      if (theme !== "normal" && this.musicTheme !== theme) {
-        this.musicTheme = theme;
-        if (this.backgroundMusic) this.switchBackgroundTrack();
+      const theme = this.#theme.mode();
+      if (theme !== "normal" && this.#musicTheme !== theme) {
+        this.#musicTheme = theme;
+        if (this.#backgroundMusic) this.switchBackgroundTrack();
       }
     });
   }
 
   startBackground(): void {
-    if (!this.backgroundMusic) {
-      this.backgroundMusic = new Audio(this.backgroundTrackUrl());
-      this.backgroundMusic.loop = true;
-      this.backgroundMusic.volume = 0.3;
-      this.backgroundMusic.muted = this.musicMuted();
+    if (!this.#backgroundMusic) {
+      this.#backgroundMusic = new Audio(this.backgroundTrackUrl());
+      this.#backgroundMusic.loop = true;
+      this.#backgroundMusic.volume = 0.3;
+      this.#backgroundMusic.muted = this.musicMuted();
     }
-    if (!this.musicMuted()) this.backgroundMusic.play().catch(() => {});
+    if (!this.musicMuted()) this.#backgroundMusic.play().catch(() => {});
   }
 
   private switchBackgroundTrack(): void {
-    const audio = this.backgroundMusic;
+    const audio = this.#backgroundMusic;
     if (!audio) return;
 
     const wasPlaying = !audio.paused;
@@ -60,30 +60,30 @@ export class AudioService {
   }
 
   private backgroundTrackUrl(): string {
-    if (this.musicTheme === "christmas")
+    if (this.#musicTheme === "christmas")
       return "/assets/sounds-effects/background-xmas.mp3";
-    if (this.musicTheme === "halloween")
+    if (this.#musicTheme === "halloween")
       return "/assets/sounds-effects/background-halloween.mp3";
     return "/assets/sounds-effects/background";
   }
 
   activateHalloweenMusic(): void {
-    if (this.musicTheme === "halloween") return;
-    this.musicTheme = "halloween";
-    if (this.backgroundMusic) this.switchBackgroundTrack();
+    if (this.#musicTheme === "halloween") return;
+    this.#musicTheme = "halloween";
+    if (this.#backgroundMusic) this.switchBackgroundTrack();
   }
 
   isPlaying(): boolean {
-    return !!this.backgroundMusic && !this.backgroundMusic.paused;
+    return !!this.#backgroundMusic && !this.#backgroundMusic.paused;
   }
 
   toggleMusic(): void {
     const next = !this.musicMuted();
     this.musicMuted.set(next);
     writeMuted(KEY_MUSIC, next);
-    if (this.backgroundMusic) {
-      this.backgroundMusic.muted = next;
-      if (!next) this.backgroundMusic.play().catch(() => {});
+    if (this.#backgroundMusic) {
+      this.#backgroundMusic.muted = next;
+      if (!next) this.#backgroundMusic.play().catch(() => {});
     } else if (!next) {
       this.startBackground();
     }

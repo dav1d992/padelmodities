@@ -778,14 +778,14 @@ const DICTS: Record<Lang, Dict> = { da: DA, en: EN };
 
 @Injectable({ providedIn: "root" })
 export class I18nService {
-  private readonly _lang = signal<Lang>(this.readInitialLang());
+  readonly #lang = signal<Lang>(this.readInitialLang());
 
   /** Reactive current language. */
-  readonly lang = this._lang.asReadonly();
+  readonly lang = this.#lang.asReadonly();
 
   constructor() {
     effect(() => {
-      const lang = this._lang();
+      const lang = this.#lang();
       try {
         localStorage.setItem(STORAGE_KEY, lang);
       } catch {
@@ -798,11 +798,11 @@ export class I18nService {
   }
 
   setLang(lang: Lang): void {
-    this._lang.set(lang);
+    this.#lang.set(lang);
   }
 
   toggle(): void {
-    this._lang.set(this._lang() === "da" ? "en" : "da");
+    this.#lang.set(this.#lang() === "da" ? "en" : "da");
   }
 
   /**
@@ -815,7 +815,7 @@ export class I18nService {
     params?: Record<string, string | number>,
   ): string {
     if (!key) return "";
-    const lang = this._lang();
+    const lang = this.#lang();
     const text = DICTS[lang][key] ?? DICTS.en[key] ?? key;
     if (!params) return text;
     return text.replace(/\{(\w+)\}/g, (_, p) =>
