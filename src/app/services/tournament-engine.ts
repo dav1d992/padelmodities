@@ -312,9 +312,9 @@ export function generateMexicanoRound(
  * cost) candidate round is kept.
  */
 export interface MexericanoWeights {
-  /** Repeating the immediately-previous round's partner (very strong). */
+  /** Repeating the immediately-previous round's partner (strong). */
   samePartnerLastRound: number;
-  /** Repeating any earlier partner, scaled by how often (strong). */
+  /** Repeating any earlier partner, scaled by how often (mild). */
   samePartnerRecent: number;
   /** Facing the same opponent again, scaled by how often (medium). */
   repeatedOpponent: number;
@@ -324,27 +324,40 @@ export interface MexericanoWeights {
   scoreSpread: number;
   /** Penalty per rank-unit of imbalance between the two teams on a court. */
   teamImbalance: number;
+  /** Penalty when partners are {@link MexericanoOptions.maxPartnerGap}+ rank spots apart (near-hard rule). */
+  partnerRankGap: number;
   /** Magnitude of the random tie-breaker so equal states vary. */
   random: number;
 }
 
 export const DEFAULT_MEXERICANO_WEIGHTS: MexericanoWeights = {
-  samePartnerLastRound: 1000,
-  samePartnerRecent: 60,
+  samePartnerLastRound: 500,
+  samePartnerRecent: 20,
   repeatedOpponent: 25,
   repeatedFoursome: 800,
   scoreSpread: 2,
   teamImbalance: 1.5,
+  partnerRankGap: 5000,
   random: 5,
 };
 
 /** Default ranking window: how far players may drift from their rank slot. */
 export const DEFAULT_RANKING_WINDOW = 6;
 
+/**
+ * Default partner rank-gap threshold, scaled to the field size: a gap this big
+ * or bigger is penalised. Yields ±4 allowed at 12 players and ±6 at 16 players.
+ */
+export function defaultMaxPartnerGap(playerCount: number): number {
+  return Math.max(2, Math.floor(playerCount / 2) - 1);
+}
+
 export interface MexericanoOptions {
   weights?: Partial<MexericanoWeights>;
   /** How far (in rank positions) players may move when forming courts. */
   rankingWindow?: number;
+  /** Largest rank gap allowed between partners; a gap >= this is penalised. */
+  maxPartnerGap?: number;
   /** Optional real strength per player for team balance; falls back to rank. */
   ratingByPlayer?: Record<string, number>;
   /** Randomised search attempts per round. */
@@ -413,6 +426,7 @@ function splitCost(
   w: MexericanoWeights,
   rankOf: (id: string) => number,
   ratingOf: (id: string) => number,
+  maxPartnerGap: number,
 ): number {
   const { a1, a2, b1, b2 } = split;
   let cost =
@@ -431,6 +445,10 @@ function splitCost(
   const ranks = [rankOf(a1), rankOf(a2), rankOf(b1), rankOf(b2)];
   cost += w.scoreSpread * (Math.max(...ranks) - Math.min(...ranks));
 
+  // Forbid partnering someone many rank spots below/above (near-hard rule).
+  if (Math.abs(rankOf(a1) - rankOf(a2)) >= maxPartnerGap) cost += w.partnerRankGap;
+  if (Math.abs(rankOf(b1) - rankOf(b2)) >= maxPartnerGap) cost += w.partnerRankGap;
+
   const teamA = ratingOf(a1) + ratingOf(a2);
   const teamB = ratingOf(b1) + ratingOf(b2);
   cost += w.teamImbalance * Math.abs(teamA - teamB);
@@ -445,12 +463,13 @@ function bestMexSplit(
   w: MexericanoWeights,
   rankOf: (id: string) => number,
   ratingOf: (id: string) => number,
+  maxPartnerGap: number,
 ): { a1: string; a2: string; b1: string; b2: string; cost: number } {
   let best = { a1: four[0], a2: four[1], b1: four[2], b2: four[3] };
   let bestCost = Number.POSITIVE_INFINITY;
   for (const [[i, j], [k, l]] of PAIRINGS) {
     const split = { a1: four[i], a2: four[j], b1: four[k], b2: four[l] };
-    const cost = splitCost(split, h, w, rankOf, ratingOf);
+    const cost = splitCost(split, h, w, rankOf, ratingOf, maxPartnerGap);
     if (cost < bestCost) {
       bestCost = cost;
       best = split;
@@ -469,6 +488,7 @@ function buildBestMexRound(
   rankOf: (id: string) => number,
   ratingOf: (id: string) => number,
   attempts: number,
+  maxPartnerGap: number,
 ): TournamentMatch[] {
   let best: TournamentMatch[] = [];
   let bestCost = Number.POSITIVE_INFINITY;
@@ -479,7 +499,7 @@ function buildBestMexRound(
     let cost = 0;
     for (let c = 0; c < courts; c++) {
       const four = order.slice(c * 4, c * 4 + 4);
-      const split = bestMexSplit(four, h, w, rankOf, ratingOf);
+      const split = bestMexSplit(four, h, w, rankOf, ratingOf, maxPartnerGap);
       cost += split.cost + Math.random() * w.random;
       matches.push({
         id: `r${roundIndex}_c${c}`,
@@ -532,6 +552,7 @@ export function generateMexericanoRound(
   const h = buildMexHistory(priorRounds, playerIds);
   const w = { ...DEFAULT_MEXERICANO_WEIGHTS, ...(options.weights ?? {}) };
   const window = options.rankingWindow ?? DEFAULT_RANKING_WINDOW;
+  const maxPartnerGap = options.maxPartnerGap ?? defaultMaxPartnerGap(n);
   const attempts = options.attempts ?? 60;
 
   const baseOrder = roundIndex === 0 ? shuffle(playerIds) : [...standingsOrder];
@@ -558,6 +579,7 @@ export function generateMexericanoRound(
     rankOf,
     ratingOf,
     attempts,
+    maxPartnerGap,
   );
 
   return {
