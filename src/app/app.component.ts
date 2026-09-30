@@ -12,6 +12,7 @@ import { AudioService } from "./services/audio.service";
 import { AdminService } from "./services/admin.service";
 import { I18nService } from "./services/i18n.service";
 import { ThemeService } from "./services/theme.service";
+import { AnalyticsService } from "./services/analytics.service";
 import { ConfirmDialogComponent } from "./components/confirm-dialog/confirm-dialog.component";
 
 @Component({
@@ -25,6 +26,7 @@ export class AppComponent implements OnInit, OnDestroy {
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
   readonly theme = inject(ThemeService);
+  readonly #analytics = inject(AnalyticsService);
 
   readonly adminInputOpen = signal(false);
   readonly adminCode = signal("");
@@ -105,6 +107,7 @@ export class AppComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
+    this.#analytics.load();
     this.audio.startBackground();
     for (const event of this.#unlockEvents) {
       window.addEventListener(event, this.#unlockMusic, { passive: true });

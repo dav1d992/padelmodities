@@ -1,5 +1,7 @@
 export const environment = {
   production: false,
+  // Microsoft Clarity project id (heatmaps + session recording). Empty disables it.
+  clarityProjectId: 'yqkqh7ydr3',
   firebase: {
     apiKey: 'AIzaSyB7SZ13SfuXO6dbnHvNiiOCDIKDgViXCcg',
     authDomain: 'padelmodities.firebaseapp.com',
