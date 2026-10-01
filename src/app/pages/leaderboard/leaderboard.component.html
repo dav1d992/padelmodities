@@ -59,6 +59,11 @@
       <div class="tournament-chips">
         @for (t of activeTournaments(); track t.id) {
           <button class="chip glass" (click)="goToTournament(t.id)">
+            @if (isTwoPhase(t)) {
+              <span class="chip-format badge badge-blue">{{
+                FORMAT_LABELS[t.seatingFormat ?? t.format]
+              }}</span>
+            }
             <span class="chip-format badge badge-blue">{{
               FORMAT_LABELS[t.format]
             }}</span>
@@ -218,6 +223,11 @@
       <div class="tournament-chips">
         @for (t of draftTournaments(); track t.id) {
           <button class="chip glass" (click)="goToTournament(t.id)">
+            @if (isTwoPhase(t)) {
+              <span class="chip-format badge badge-gold">{{
+                FORMAT_LABELS[t.seatingFormat ?? t.format]
+              }}</span>
+            }
             <span class="chip-format badge badge-gold">{{
               FORMAT_LABELS[t.format]
             }}</span>
@@ -238,6 +248,11 @@
             class="chip chip-finished glass"
             (click)="goToTournament(t.id)"
           >
+            @if (isTwoPhase(t)) {
+              <span class="chip-format badge badge-muted">{{
+                FORMAT_LABELS[t.seatingFormat ?? t.format]
+              }}</span>
+            }
             <span class="chip-format badge badge-muted">{{
               FORMAT_LABELS[t.format]
             }}</span>

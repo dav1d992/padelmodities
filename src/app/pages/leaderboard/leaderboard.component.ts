@@ -15,6 +15,7 @@ import { AdminService } from "../../services/admin.service";
 import { I18nService } from "../../services/i18n.service";
 import {
   FORMAT_LABELS,
+  isTwoPhase,
   type Player,
   type Tournament,
 } from "../../models/padel.model";
@@ -41,6 +42,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   readonly theme = inject(ThemeService);
 
   readonly FORMAT_LABELS = FORMAT_LABELS;
+  readonly isTwoPhase = isTwoPhase;
 
   readonly players = signal<Array<Player>>([]);
   readonly tournaments = signal<Array<Tournament>>([]);
