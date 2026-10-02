@@ -46,5 +46,13 @@ export class AnalyticsService {
     script.src = `https://www.clarity.ms/tag/${environment.clarityProjectId}`;
     const first = this.#document.getElementsByTagName('script')[0];
     first?.parentNode?.insertBefore(script, first);
+
+    // Grant cookie consent so the session cookie persists across in-app (SPA)
+    // navigations; without it Clarity runs cookie-less and splits every route
+    // change into a separate short recording.
+    win.clarity('consentv2', {
+      ad_Storage: 'granted',
+      analytics_Storage: 'granted',
+    });
   }
 }
