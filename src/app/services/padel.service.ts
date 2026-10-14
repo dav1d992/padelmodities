@@ -39,6 +39,7 @@ import {
   generateMexericanoRound,
   generateMexicanoRound,
   generateTeamMexicanoRound,
+  mexericanoOptionsFor,
   standingsOrder,
   validateScore,
 } from "./tournament-engine";
@@ -414,6 +415,7 @@ export class PadelService {
         roundIndex,
         priorRounds,
         order,
+        mexericanoOptionsFor(tournament, roundIndex),
       );
     }
     return generateMexicanoRound(

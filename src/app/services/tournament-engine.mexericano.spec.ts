@@ -5,6 +5,7 @@ import {
   type TournamentRound,
 } from '../models/padel.model';
 import {
+  buildDynamicRound,
   computeStandings,
   generateMexericanoFinalRound,
   generateMexericanoRound,
@@ -332,5 +333,29 @@ describe('Mexericano', () => {
     expect(by('p1').total).toBe(6);
     expect(by('p3').total).toBe(6);
     expect(standings[0].total).toBe(14);
+  });
+
+  // 14. First round of a Mexericano final phase is seated purely by points.
+  it('seats the first final-phase round by points, ignoring seating-phase history', () => {
+    const ids = players(8);
+    const seat = mkRound(
+      0,
+      [
+        mkMatch('r0m0', 0, ['p0', 'p1', 'p2', 'p3'], 10, 9),
+        mkMatch('r0m1', 1, ['p4', 'p5', 'p6', 'p7'], 8, 7),
+      ],
+      { completed: true },
+    );
+    const t: Tournament = {
+      ...mkTournament(ids, [seat]),
+      seatingFormat: 'americano',
+      seatingRounds: 1,
+      currentRound: 1,
+    };
+    const round = buildDynamicRound(t, 1, [seat]);
+    const [c0, c1] = matchesOf(round);
+    // Same foursomes as the seating round: history would normally forbid this.
+    expect(foursomeKey(c0)).toBe(['p0', 'p1', 'p2', 'p3'].join('|'));
+    expect(foursomeKey(c1)).toBe(['p4', 'p5', 'p6', 'p7'].join('|'));
   });
 });

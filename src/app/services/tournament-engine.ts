@@ -1362,6 +1362,29 @@ function sortedRoundsOf(t: Tournament): Array<TournamentRound> {
   return Object.values(t.rounds ?? {}).sort((a, b) => a.index - b.index);
 }
 
+/**
+ * Options for a Mexericano round in a tournament. The first round of a
+ * Mexericano final phase is seated strictly by points from the seating phase,
+ * ignoring partner/opponent/foursome history.
+ */
+export function mexericanoOptionsFor(
+  t: Tournament,
+  roundIndex: number,
+): MexericanoOptions {
+  const finalPhaseStart =
+    isTwoPhase(t) && roundIndex > 0 && phaseStartIndex(t, roundIndex) === roundIndex;
+  if (!finalPhaseStart) return {};
+  return {
+    rankingWindow: 0,
+    weights: {
+      samePartnerLastRound: 0,
+      samePartnerRecent: 0,
+      repeatedOpponent: 0,
+      repeatedFoursome: 0,
+    },
+  };
+}
+
 /** Build one standings-based round (mexicano / super / team / mexericano). */
 export function buildDynamicRound(
   t: Tournament,
@@ -1413,6 +1436,7 @@ export function buildDynamicRound(
       roundIndex,
       priorRounds,
       order,
+      mexericanoOptionsFor(t, roundIndex),
     );
   }
   return generateMexicanoRound(
