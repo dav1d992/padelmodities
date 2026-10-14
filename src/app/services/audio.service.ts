@@ -28,6 +28,7 @@ export class AudioService {
 
   #backgroundMusic: HTMLAudioElement | null = null;
   #musicTheme: "normal" | "christmas" | "halloween" = "normal";
+  #videoPlaybackActive = false;
 
   constructor() {
     effect(() => {
@@ -46,7 +47,8 @@ export class AudioService {
       this.#backgroundMusic.volume = 0.3;
       this.#backgroundMusic.muted = this.musicMuted();
     }
-    if (!this.musicMuted()) this.#backgroundMusic.play().catch(() => {});
+    if (!this.musicMuted() && !this.#videoPlaybackActive)
+      this.#backgroundMusic.play().catch(() => {});
   }
 
   private switchBackgroundTrack(): void {
@@ -77,13 +79,24 @@ export class AudioService {
     return !!this.#backgroundMusic && !this.#backgroundMusic.paused;
   }
 
+  pauseBackgroundForVideo(): void {
+    this.#videoPlaybackActive = true;
+    this.#backgroundMusic?.pause();
+  }
+
+  resumeBackgroundAfterVideo(): void {
+    this.#videoPlaybackActive = false;
+    if (!this.musicMuted()) this.#backgroundMusic?.play().catch(() => {});
+  }
+
   toggleMusic(): void {
     const next = !this.musicMuted();
     this.musicMuted.set(next);
     writeMuted(KEY_MUSIC, next);
     if (this.#backgroundMusic) {
       this.#backgroundMusic.muted = next;
-      if (!next) this.#backgroundMusic.play().catch(() => {});
+      if (!next && !this.#videoPlaybackActive)
+        this.#backgroundMusic.play().catch(() => {});
     } else if (!next) {
       this.startBackground();
     }

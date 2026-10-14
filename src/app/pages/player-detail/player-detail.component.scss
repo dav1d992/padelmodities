@@ -20,17 +20,20 @@
   top: 0.75rem;
   left: 0.75rem;
   z-index: 200;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0, 0, 0, 0.35);
   border: none;
   box-shadow: none;
   padding: 0.35em 0.75em;
   border-radius: 20px;
   backdrop-filter: blur(6px);
-  &:hover { color: #fff; background: rgba(0,0,0,0.55); }
+  &:hover {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.55);
+  }
 }
 
 /* ── Two-column layout ───────────────────────────────────────────────────── */
@@ -61,6 +64,10 @@
   height: 100%;
   min-height: 0;
   background: transparent;
+
+  &.video-playing .image-overlay {
+    display: none;
+  }
 }
 
 /* The player portrait image */
@@ -89,23 +96,62 @@
   animation: heroSlideIn 1.05s linear 60ms both;
 }
 
+.promo-video {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 220ms ease, visibility 0s linear 220ms;
+}
+
+.image-wrapper.video-playing .promo-video {
+  visibility: visible;
+  pointer-events: auto;
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+.video-play-button {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 3;
+  animation: promoButtonFadeIn 220ms ease both;
+}
+
+.image-wrapper.video-playing .video-play-button {
+  animation: promoButtonFadeOut 220ms ease both;
+}
+
 /* Name overlay (sits at bottom of image, mainly for mobile) */
 .image-overlay {
   position: absolute;
   inset: auto 0 0 0;
   padding: 2rem 1rem 1rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, transparent 100%);
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.image-wrapper.video-playing .image-overlay {
+  opacity: 0;
 }
 
 .overlay-name {
   font-size: clamp(1.2rem, 5vw, 1.8rem);
   font-weight: 800;
   color: #fff;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
   line-height: 1.1;
 }
 
@@ -115,7 +161,7 @@
   color: var(--primary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* ── Info panel (right half) ─────────────────────────────────────────────── */
@@ -123,7 +169,8 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: clamp(3.5rem, 6vw, 4.5rem) clamp(1rem, 4vw, 1.75rem) clamp(1.5rem, 4vw, 2rem);
+  padding: clamp(3.5rem, 6vw, 4.5rem) clamp(1rem, 4vw, 1.75rem)
+    clamp(1.5rem, 4vw, 2rem);
   min-height: 0;
   overflow-y: auto;
   /* fade in after the image slide+shake completes (~1.16 s) */
@@ -137,9 +184,13 @@
   gap: 0.6rem;
   flex-wrap: wrap;
 
-  h1 { font-size: clamp(1.3rem, 4vw, 2rem); }
+  h1 {
+    font-size: clamp(1.3rem, 4vw, 2rem);
+  }
 
-  @media (max-width: 640px) { display: none; }
+  @media (max-width: 640px) {
+    display: none;
+  }
 }
 
 .rating-row {
@@ -203,7 +254,12 @@
   height: 100%;
   width: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--primary-dim), var(--primary), var(--accent));
+  background: linear-gradient(
+    90deg,
+    var(--primary-dim),
+    var(--primary),
+    var(--accent)
+  );
   transform-origin: left center;
   transform: scaleX(0);
 
@@ -231,22 +287,41 @@
 .stat-value {
   font-size: 1.3rem;
   font-weight: 800;
-  &.green  { color: var(--primary); }
-  &.red    { color: var(--danger); }
-  &.accent { color: var(--accent); }
+  &.green {
+    color: var(--primary);
+  }
+  &.red {
+    color: var(--danger);
+  }
+  &.accent {
+    color: var(--accent);
+  }
 }
 
-.stat-label { font-size: 0.72rem; }
+.stat-label {
+  font-size: 0.72rem;
+}
 
 /* Sparkline */
-.sparkline-panel { gap: 0.6rem; }
+.sparkline-panel {
+  gap: 0.6rem;
+}
 
-.sparkline-wrap { width: 100%; height: 48px; }
+.sparkline-wrap {
+  width: 100%;
+  height: 48px;
+}
 
-.sparkline { width: 100%; height: 100%; overflow: visible; }
+.sparkline {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
 
-.spark-labels { display: flex; justify-content: space-between; }
-
+.spark-labels {
+  display: flex;
+  justify-content: space-between;
+}
 
 /* Loader */
 .loader-center {
@@ -276,30 +351,76 @@
     transform: translate3d(0, 0, 0);
     animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
   }
-  58% { transform: translate3d(-8px, 0, 0) rotate(-1.3deg); }
-  70% { transform: translate3d(5px, 0, 0) rotate(1deg); }
-  80% { transform: translate3d(-4px, 0, 0) rotate(-0.6deg); }
-  90% { transform: translate3d(2px, 0, 0) rotate(0.3deg); }
-  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  58% {
+    transform: translate3d(-8px, 0, 0) rotate(-1.3deg);
+  }
+  70% {
+    transform: translate3d(5px, 0, 0) rotate(1deg);
+  }
+  80% {
+    transform: translate3d(-4px, 0, 0) rotate(-0.6deg);
+  }
+  90% {
+    transform: translate3d(2px, 0, 0) rotate(0.3deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes promoButtonFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes promoButtonFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 @keyframes skillGrow {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(var(--skill-scale)); }
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(var(--skill-scale));
+  }
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 @keyframes mobileFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Mobile adjustments ──────────────────────────────────────────────────── */
 /* Cancel the app shell's top padding so the portrait is a full-bleed hero that
    reaches the very top of the viewport, with the app controls floating over it. */
 @media (max-width: 640px) {
-  :host { margin-top: -3.25rem; }
+  :host {
+    margin-top: -3.25rem;
+  }
 }
 
 @media (max-width: 640px) {
@@ -334,7 +455,10 @@
     padding: 0.35em 0.75em;
     border-radius: 20px;
     backdrop-filter: blur(6px);
-    &:hover { color: #fff; background: rgba(0, 0, 0, 0.6); }
+    &:hover {
+      color: #fff;
+      background: rgba(0, 0, 0, 0.6);
+    }
   }
 
   .info-panel {
@@ -344,12 +468,13 @@
   }
 }
 
-
 .back-link {
   color: var(--text-muted);
   text-decoration: none;
   font-size: 0.9rem;
-  &:hover { color: var(--primary); }
+  &:hover {
+    color: var(--primary);
+  }
 }
 
 /* Hero */
@@ -390,7 +515,10 @@
   gap: 0.4rem;
 }
 
-.player-name { font-size: clamp(1.4rem, 5vw, 2rem); font-weight: 800; }
+.player-name {
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-weight: 800;
+}
 
 .rating-display {
   display: flex;
@@ -424,12 +552,20 @@
 .stat-value {
   font-size: 1.5rem;
   font-weight: 800;
-  &.green  { color: var(--primary); }
-  &.red    { color: var(--danger); }
-  &.accent { color: var(--accent); }
+  &.green {
+    color: var(--primary);
+  }
+  &.red {
+    color: var(--danger);
+  }
+  &.accent {
+    color: var(--accent);
+  }
 }
 
-.stat-label { font-size: 0.75rem; }
+.stat-label {
+  font-size: 0.75rem;
+}
 
 /* Sparkline */
 .sparkline-wrap {
@@ -464,7 +600,11 @@
   animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ── Admin edit ────────────────────────────────────────────────────────── */
 .admin-actions {
@@ -486,8 +626,8 @@
     color: var(--text);
   }
 
-  input[type='text'],
-  input[type='number'] {
+  input[type="text"],
+  input[type="number"] {
     width: 100%;
     padding: 0.55em 0.7em;
     border: 1px solid var(--border);
@@ -495,7 +635,10 @@
     background: rgba(255, 255, 255, 0.04);
     color: var(--text);
     font-size: 0.95rem;
-    &:focus { outline: none; border-color: var(--primary); }
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
   }
 }
 
@@ -534,10 +677,12 @@
   justify-content: space-between;
   gap: 0.75rem;
 
-  strong { color: var(--primary); }
+  strong {
+    color: var(--primary);
+  }
 }
 
-.edit-panel input[type='range'] {
+.edit-panel input[type="range"] {
   width: 100%;
   accent-color: var(--primary);
 }

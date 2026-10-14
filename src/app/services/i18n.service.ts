@@ -72,6 +72,8 @@ const DA: Dict = {
   // Player detail
   "detail.editPlayer": "Rediger spiller",
   "detail.shortnamePic": "(profilbillede)",
+  "detail.video": "Video",
+  "detail.playVideo": "Promo video",
   "field.rating": "Rating",
   "field.matches": "Kampe",
   "field.wins": "Vundne",
@@ -375,7 +377,7 @@ const DA: Dict = {
   "free.teamNamePlaceholder": "Holdnavn (valgfrit)",
   "free.confirmRemoveParticipant": "Fjern {name}?",
   "free.confirmDelete": "Slet denne turnering permanent?",
-  "free.confirmDeleteNamed": "Slet \"{name}\" permanent?",
+  "free.confirmDeleteNamed": 'Slet "{name}" permanent?',
   "free.startHint": "Tilføj nok deltagere for at starte turneringen.",
 
   // Route titles (always English, even in Danish UI)
@@ -454,6 +456,8 @@ const EN: Dict = {
   // Player detail
   "detail.editPlayer": "Edit player",
   "detail.shortnamePic": "(profile picture)",
+  "detail.video": "Video",
+  "detail.playVideo": "Promo video",
   "field.rating": "Rating",
   "field.matches": "Matches",
   "field.wins": "Wins",
@@ -761,7 +765,7 @@ const EN: Dict = {
   "free.teamNamePlaceholder": "Team name (optional)",
   "free.confirmRemoveParticipant": "Remove {name}?",
   "free.confirmDelete": "Permanently delete this tournament?",
-  "free.confirmDeleteNamed": "Permanently delete \"{name}\"?",
+  "free.confirmDeleteNamed": 'Permanently delete "{name}"?',
   "free.startHint": "Add enough participants to start the tournament.",
 
   // Route titles

@@ -56,6 +56,8 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly loading = signal(true);
   readonly error = signal("");
   readonly visibleSkillIndex = signal(-1);
+  readonly videoPlaying = signal(false);
+  readonly portraitAnimationDone = signal(false);
   /** True once the portrait bitmap is downloaded and decoded, so it can animate in with pixels ready. */
   readonly heroReady = signal(false);
   /** True when the player's portrait failed to load, so the anonymous fallback is shown. */
@@ -111,6 +113,23 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.#timers.forEach(clearTimeout);
+    this.finishPromoVideo();
+  }
+
+  portraitAnimationFinished(): void {
+    this.portraitAnimationDone.set(true);
+  }
+
+  playPromoVideo(video: HTMLVideoElement): void {
+    this.videoPlaying.set(true);
+    this.audioService.pauseBackgroundForVideo();
+    void video.play().catch(() => this.finishPromoVideo());
+  }
+
+  finishPromoVideo(): void {
+    if (!this.videoPlaying()) return;
+    this.videoPlaying.set(false);
+    this.audioService.resumeBackgroundAfterVideo();
   }
 
   /**
@@ -130,7 +149,8 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
       if (this.heroReady()) return;
       this.heroReady.set(true);
       const slam = setTimeout(() => {
-        const alreadyDisplaced = this.#document.documentElement.classList.contains("hero-impact");
+        const alreadyDisplaced =
+          this.#document.documentElement.classList.contains("hero-impact");
         this.#document.documentElement.classList.add("hero-impact");
         if (alreadyDisplaced) this.pushSnowflakesFurther();
         this.audioService.playOneShot(
@@ -162,9 +182,11 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     this.#timers.push(setTimeout(begin, 8000));
   }
 
-
   private pushSnowflakesFurther(): void {
-    const leftFlakes = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19, 22, 23, 28, 29, 30, 31, 37, 38, 39, 44, 46]);
+    const leftFlakes = new Set([
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19, 22, 23, 28, 29, 30, 31, 37, 38, 39,
+      44, 46,
+    ]);
     const flakes = this.#document.querySelectorAll<HTMLElement>(
       ".snowflake > span, .santa-mort-slide",
     );
