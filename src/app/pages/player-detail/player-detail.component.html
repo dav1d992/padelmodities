@@ -35,35 +35,34 @@
             </div>
           }
 
-          <video
-            #promoVideo
-            class="promo-video"
-            controls
-            playsinline
-            preload="metadata"
-            [attr.aria-label]="i18n.t('detail.video')"
-            [attr.aria-hidden]="videoPlaying() ? null : 'true'"
-            [attr.tabindex]="videoPlaying() ? 0 : -1"
-            (ended)="finishPromoVideo()"
-            (error)="finishPromoVideo()"
-          >
-            <source
-              src="/assets/promo-videos/men-recording-edit.mp4"
-              type="video/mp4"
-            />
-          </video>
-          @if (portraitAnimationDone()) {
-            <button
-              type="button"
-              class="btn btn-primary video-play-button"
-              [attr.aria-label]="i18n.t('detail.playVideo')"
-              [attr.aria-hidden]="videoPlaying() ? 'true' : null"
-              [title]="i18n.t('detail.playVideo')"
-              [disabled]="videoPlaying()"
-              (click)="playPromoVideo(promoVideo)"
+          @if (promoVideoSrc(); as videoSrc) {
+            <video
+              #promoVideo
+              class="promo-video"
+              controls
+              playsinline
+              preload="metadata"
+              [attr.aria-label]="i18n.t('detail.video')"
+              [attr.aria-hidden]="videoPlaying() ? null : 'true'"
+              [attr.tabindex]="videoPlaying() ? 0 : -1"
+              (ended)="finishPromoVideo()"
+              (error)="finishPromoVideo()"
             >
-              {{ i18n.t("detail.playVideo") }}
-            </button>
+              <source [src]="videoSrc" type="video/mp4" />
+            </video>
+            @if (portraitAnimationDone()) {
+              <button
+                type="button"
+                class="btn btn-primary video-play-button"
+                [attr.aria-label]="i18n.t('detail.playVideo')"
+                [attr.aria-hidden]="videoPlaying() ? 'true' : null"
+                [title]="i18n.t('detail.playVideo')"
+                [disabled]="videoPlaying()"
+                (click)="playPromoVideo(promoVideo)"
+              >
+                {{ i18n.t("detail.playVideo") }}
+              </button>
+            }
           }
 
           <div class="image-overlay">

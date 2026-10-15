@@ -32,6 +32,8 @@ import { FormsModule } from "@angular/forms";
 const HERO_DURATION_MS = 1050;
 /** Moment (ms after the portrait renders) it "lands" and the slam sound fires. */
 const IMPACT_MS = 560;
+/** Files in `assets/promo-videos`; the prefix before the first `-` is the owning player's shortname. */
+const PROMO_VIDEOS: ReadonlyArray<string> = ["men-recording-edit.mp4"];
 
 @Component({
   selector: "app-player-detail",
@@ -228,6 +230,15 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     if (this.heroFailed()) return "/assets/anonimous-padel.png";
     const sn = this.player()?.shortname;
     return this.theme.playerImage(sn);
+  });
+
+  readonly promoVideoSrc = computed(() => {
+    const shortname = this.player()?.shortname;
+    if (!shortname) return null;
+    const file = PROMO_VIDEOS.find((name) =>
+      name.startsWith(`${shortname}-`),
+    );
+    return file ? `/assets/promo-videos/${file}` : null;
   });
 
   readonly winRate = computed(() => {
