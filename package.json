@@ -9,9 +9,10 @@
     "prestart": "node scripts/optimize-images.mjs",
     "images": "node scripts/optimize-images.mjs",
     "build": "ng build",
+    "postbuild": "node scripts/seo-postbuild.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "deploy": "ng build && firebase deploy"
+    "deploy": "pnpm run build && firebase deploy"
   },
   "private": true,
   "dependencies": {

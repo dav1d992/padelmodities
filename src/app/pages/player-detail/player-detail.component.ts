@@ -17,6 +17,7 @@ import { AdminService } from "../../services/admin.service";
 import { I18nService } from "../../services/i18n.service";
 import { ConfirmService } from "../../services/confirm.service";
 import { ThemeService } from "../../services/theme.service";
+import { SeoService, SITE_URL } from "../../services/seo.service";
 import {
   DEFAULT_SKILLSET,
   SKILL_LABELS,
@@ -49,6 +50,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly #destroyRef = inject(DestroyRef);
   readonly #document = inject(DOCUMENT);
   readonly #confirm = inject(ConfirmService);
+  readonly #seo = inject(SeoService);
   readonly audioService = inject(AudioService);
   readonly admin = inject(AdminService);
   readonly i18n = inject(I18nService);
@@ -97,6 +99,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
             this.#router.navigate(["/"]);
             return;
           }
+          this.updateSeo(p);
           if (!this.#animationStarted) {
             this.#animationStarted = true;
             this.prepareHero(p.shortname);
@@ -132,6 +135,30 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     if (!this.videoPlaying()) return;
     this.videoPlaying.set(false);
     this.audioService.resumeBackgroundAfterVideo();
+  }
+
+  private updateSeo(p: Player): void {
+    this.#seo.patchPage({
+      title: "title.playerNamed",
+      description: "meta.player",
+      params: {
+        name: p.name,
+        rating: Math.round(p.rating),
+        matches: p.matchesPlayed,
+        wins: p.wins,
+      },
+      jsonLd: {
+        "@type": "ProfilePage",
+        mainEntity: {
+          "@type": "Person",
+          name: p.name,
+          ...(p.shortname && {
+            image: SITE_URL + this.theme.normalPlayerImage(p.shortname),
+          }),
+          memberOf: { "@type": "SportsOrganization", name: "Danske Padelmodities", url: SITE_URL },
+        },
+      },
+    });
   }
 
   /**

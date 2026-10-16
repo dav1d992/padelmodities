@@ -9,6 +9,13 @@
   position: relative;
 }
 
+.app-footer {
+  padding: 1.5rem 1rem 2rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 /* On phones the fixed sound/admin bar would overlap page content, so push it down. */
 @media (max-width: 640px) {
   .app-shell { padding-top: 3.25rem; }

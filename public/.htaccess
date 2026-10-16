@@ -4,4 +4,8 @@ RewriteCond %{REQUEST_FILENAME} -l [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^.*$ - [NC,L]
 
+# Serve pre-generated player pages (player/<id>.html) at their clean URL.
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+)$ $1.html [L]
+
 RewriteRule ^(.*) /index.html [NC,L]

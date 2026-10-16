@@ -10,7 +10,12 @@ import { FreeSetupComponent } from './pages/free-setup/free-setup.component';
 import { FreeViewComponent } from './pages/free-view/free-view.component';
 
 export const routes: Routes = [
-  { path: '', component: LeaderboardComponent, title: 'title.rank' },
+  {
+    path: '',
+    component: LeaderboardComponent,
+    title: 'title.rank',
+    data: { description: 'meta.rank' },
+  },
   {
     path: 'player/:playerId',
     component: PlayerDetailComponent,
@@ -20,33 +25,44 @@ export const routes: Routes = [
     path: 'create-player',
     component: CreatePlayerComponent,
     title: 'title.create',
+    data: { noindex: true },
   },
   {
     path: 'tournament/new',
     component: TournamentSetupComponent,
     title: 'title.setup',
+    data: { noindex: true },
   },
   {
     path: 'tournament/:tournamentId',
     component: TournamentViewComponent,
     title: 'title.view',
+    data: { noindex: true },
   },
   {
     path: 'simulate',
     component: SimulationComponent,
     title: 'title.simulate',
+    data: { noindex: true },
   },
   {
     path: 'free',
     component: FreeSetupComponent,
     title: 'title.free',
+    data: { noindex: true },
   },
   {
     path: 'free/:tournamentId',
     component: FreeViewComponent,
     title: 'title.free',
+    data: { noindex: true },
   },
   // Hidden: in-memory Mexericano sandbox. Not linked anywhere.
-  { path: 'test', component: MexericanoTestComponent, title: 'Mexericano Test' },
+  {
+    path: 'test',
+    component: MexericanoTestComponent,
+    title: 'Mexericano Test',
+    data: { noindex: true },
+  },
   { path: '**', redirectTo: '' },
 ];

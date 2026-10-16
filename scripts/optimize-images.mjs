@@ -9,6 +9,8 @@ const SOURCE_DIR = path.join("src", "app", "assets", "player-photos");
 const OUTPUT_DIR = path.join("src", "app", "assets", "optimized");
 const SANTA_SOURCE = path.join("src", "app", "assets", "santa-mort.png");
 const SANTA_OUTPUT = path.join(OUTPUT_DIR, "santa-mort.webp");
+const LOGO_SOURCE = path.join("src", "app", "assets", "dp-logo.png");
+const OG_OUTPUT = path.join(OUTPUT_DIR, "og-image.png");
 const MANIFEST_FILE = path.join("src", "app", "generated", "rail-photos.ts");
 const QUALITY = 78;
 
@@ -79,6 +81,23 @@ if (
     .toFile(SANTA_OUTPUT);
   const santaOutput = await stat(SANTA_OUTPUT);
   savedBytes += santaSource.size - santaOutput.size;
+  converted++;
+} else {
+  skipped++;
+}
+
+// 1200×630 social-share card (Open Graph / Twitter) built from the logo.
+const logoSource = await stat(LOGO_SOURCE);
+if (!existsSync(OG_OUTPUT) || (await stat(OG_OUTPUT)).mtimeMs < logoSource.mtimeMs) {
+  const logo = await sharp(LOGO_SOURCE)
+    .resize({ width: 520, height: 520, fit: "inside" })
+    .toBuffer();
+  await sharp({
+    create: { width: 1200, height: 630, channels: 4, background: "#0a1728" },
+  })
+    .composite([{ input: logo, gravity: "center" }])
+    .png()
+    .toFile(OG_OUTPUT);
   converted++;
 } else {
   skipped++;

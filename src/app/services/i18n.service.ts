@@ -13,6 +13,8 @@ const DA: Dict = {
   "app.music": "Musik",
   "app.sfx": "Lydeffekter",
   "app.language": "Sprog",
+  "app.disclaimer":
+    "Danske Padelmodities er et uofficielt padel-fællesskab og er ikke tilknyttet Danske Commodities.",
   "app.xmasOn": "Aktivér juletema",
   "app.xmasOff": "Deaktivér juletema",
   "app.halloweenOn": "Aktivér halloween-tema",
@@ -388,6 +390,15 @@ const DA: Dict = {
   "title.view": "Tournament · Danske Padelmodities",
   "title.simulate": "Simulator · Danske Padelmodities",
   "title.free": "Free tournament · Danske Padelmodities",
+  "title.playerNamed": "{name} · Danske Padelmodities",
+
+  // Search engine descriptions
+  "meta.default":
+    "Ranking og turneringer for Danske Padelmodities. Følg din padel-rating live og spil Americano eller Mexicano.",
+  "meta.rank":
+    "Live padel-ranking for Danske Padelmodities — uofficielt padel-fællesskab, ikke tilknyttet Danske Commodities. Se rating og statistik.",
+  "meta.player":
+    "{name} har en padel-rating på {rating} efter {matches} kampe og {wins} sejre. Se statistik og ratinghistorik hos Danske Padelmodities.",
 };
 
 /** English translations. */
@@ -397,6 +408,8 @@ const EN: Dict = {
   "app.music": "Music",
   "app.sfx": "Sound effects",
   "app.language": "Language",
+  "app.disclaimer":
+    "Danske Padelmodities is an unofficial padel community and is not affiliated with Danske Commodities.",
   "app.xmasOn": "Enable Christmas theme",
   "app.xmasOff": "Disable Christmas theme",
   "app.halloweenOn": "Enable Halloween theme",
@@ -776,6 +789,15 @@ const EN: Dict = {
   "title.view": "Tournament · Danske Padelmodities",
   "title.simulate": "Simulator · Danske Padelmodities",
   "title.free": "Free tournament · Danske Padelmodities",
+  "title.playerNamed": "{name} · Danske Padelmodities",
+
+  // Search engine descriptions
+  "meta.default":
+    "Rankings and tournaments for Danske Padelmodities. Track your padel rating live and play Americano or Mexicano.",
+  "meta.rank":
+    "Live padel rankings for Danske Padelmodities — an unofficial padel community, not affiliated with Danske Commodities.",
+  "meta.player":
+    "{name} has a padel rating of {rating} after {matches} matches and {wins} wins. See stats and rating history at Danske Padelmodities.",
 };
 
 const DICTS: Record<Lang, Dict> = { da: DA, en: EN };

@@ -1,30 +1,26 @@
-import { effect, inject, Injectable } from '@angular/core';
-import { Title } from '@angular/platform-browser';
+import { inject, Injectable } from '@angular/core';
 import { TitleStrategy, type RouterStateSnapshot } from '@angular/router';
-import { I18nService } from './i18n.service';
+import { SeoService } from './seo.service';
 
 /**
- * Treats each route's `title` as an i18n key and keeps the document title in
- * sync with the active language.
+ * Treats each route's `title` (and `data.description`) as i18n keys and hands
+ * them to `SeoService`, which keeps them in sync with the active language.
+ * Routes with `data: { noindex: true }` are hidden from search engines.
  */
 @Injectable({ providedIn: 'root' })
 export class I18nTitleStrategy extends TitleStrategy {
-  readonly #title = inject(Title);
-  readonly #i18n = inject(I18nService);
-  #currentKey = '';
-
-  constructor() {
-    super();
-    // Re-translate the current title whenever the language changes.
-    effect(() => {
-      this.#i18n.lang();
-      if (this.#currentKey) this.#title.setTitle(this.#i18n.t(this.#currentKey));
-    });
-  }
+  readonly #seo = inject(SeoService);
 
   override updateTitle(snapshot: RouterStateSnapshot): void {
-    const key = this.buildTitle(snapshot);
-    this.#currentKey = key ?? '';
-    this.#title.setTitle(key ? this.#i18n.t(key) : 'Danske Padelmodities');
+    let route = snapshot.root;
+    while (route.firstChild) route = route.firstChild;
+    const description = route.data['description'];
+
+    this.#seo.setPage({
+      title: this.buildTitle(snapshot) ?? '',
+      description: typeof description === 'string' ? description : 'meta.default',
+      path: snapshot.url.split(/[?#]/)[0] ?? '/',
+      noindex: route.data['noindex'] === true,
+    });
   }
 }
