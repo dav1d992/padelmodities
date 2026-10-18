@@ -16,15 +16,17 @@
       {{ i18n.lang() === "da" ? "EN" : "DA" }}
     </button>
   }
-  <button
-    class="audio-btn theme-btn"
-    [class.off]="!theme.halloween()"
-    (click)="toggleHalloweenTheme()"
-    [title]="i18n.t(theme.halloween() ? 'app.halloweenOff' : 'app.halloweenOn')"
-  >
-    🎃
-  </button>
-  @if (admin.isAdmin()) {
+  @if (admin.isAdmin() || theme.halloweenSeason) {
+    <button
+      class="audio-btn theme-btn"
+      [class.off]="!theme.halloween()"
+      (click)="toggleHalloweenTheme()"
+      [title]="i18n.t(theme.halloween() ? 'app.halloweenOff' : 'app.halloweenOn')"
+    >
+      🎃
+    </button>
+  }
+  @if (admin.isAdmin() || theme.christmasSeason) {
     <button
       class="audio-btn theme-btn"
       [class.off]="!theme.christmas()"
@@ -33,6 +35,8 @@
     >
       🎄
     </button>
+  }
+  @if (admin.isAdmin()) {
     <button
       class="admin-btn"
       (click)="logoutAdmin()"

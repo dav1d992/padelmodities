@@ -17,6 +17,9 @@ export class ThemeService {
   readonly snowfallActive = signal(false);
   readonly snowfallLeaving = signal(false);
   readonly lightningActive = signal(false);
+  // getMonth() is 0-based: 9 = October, 10 = November, 11 = December.
+  readonly halloweenSeason = new Date().getMonth() === 9;
+  readonly christmasSeason = new Date().getMonth() >= 10;
 
   constructor() {
     effect(() => {
