@@ -48,6 +48,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   readonly tournaments = signal<Array<Tournament>>([]);
   readonly loading = signal(true);
   readonly error = signal("");
+  readonly searchQuery = signal("");
 
   readonly #destroyRef = inject(DestroyRef);
   #scrollRestored = false;
@@ -64,6 +65,39 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   readonly inactivePlayers = computed(() =>
     this.players().filter((p) => p.matchesPlayed === 0),
   );
+
+  /** Rank is taken before filtering so a search hit keeps its real position. */
+  readonly filteredActivePlayers = computed<
+    Array<{ readonly player: Player; readonly rank: number }>
+  >(() =>
+    this.activePlayers()
+      .map((player, index) => ({ player, rank: index + 1 }))
+      .filter(({ player }) => this.matchesSearch(player)),
+  );
+
+  readonly filteredInactivePlayers = computed<Array<Player>>(() =>
+    this.inactivePlayers().filter((p) => this.matchesSearch(p)),
+  );
+
+  readonly noSearchResults = computed(
+    () =>
+      this.searchQuery().trim() !== "" &&
+      this.filteredActivePlayers().length === 0 &&
+      this.filteredInactivePlayers().length === 0,
+  );
+
+  private matchesSearch(player: Player): boolean {
+    const query = this.searchQuery().trim().toLocaleLowerCase();
+    if (!query) return true;
+    return (
+      player.name.toLocaleLowerCase().includes(query) ||
+      (player.shortname?.toLocaleLowerCase().includes(query) ?? false)
+    );
+  }
+
+  onSearch(event: Event): void {
+    this.searchQuery.set((event.target as HTMLInputElement).value);
+  }
 
   /** Draws aren't stored: a tie counts toward matchesPlayed but not wins/losses. */
   draws(player: Player): number {

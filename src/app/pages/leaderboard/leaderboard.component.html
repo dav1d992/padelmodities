@@ -94,15 +94,34 @@
         }
       </div>
     } @else {
+      <input
+        type="search"
+        class="player-search"
+        [value]="searchQuery()"
+        (input)="onSearch($event)"
+        [placeholder]="i18n.t('rank.searchPlaceholder')"
+        [attr.aria-label]="i18n.t('rank.searchPlaceholder')"
+        enterkeyhint="search"
+        autocomplete="off"
+      />
+
+      @if (noSearchResults()) {
+        <p class="muted search-empty">
+          {{ i18n.t("rank.searchEmpty", { q: searchQuery().trim() }) }}
+        </p>
+      }
+
+      @if (filteredActivePlayers().length > 0) {
       <div class="leaderboard glass">
-        @for (player of activePlayers(); track player.id; let rank = $index) {
+        @for (entry of filteredActivePlayers(); track entry.player.id) {
+          @let player = entry.player;
           <a
             class="leaderboard-row"
             [routerLink]="['/player', player.id]"
             (mouseenter)="audioService.playHover()"
           >
             <div class="rank-cell">
-              <span class="rank-num">#{{ rank + 1 }}</span>
+              <span class="rank-num">#{{ entry.rank }}</span>
             </div>
 
             <div class="avatar-cell">
@@ -150,15 +169,16 @@
           </a>
         }
       </div>
+      }
     }
   </section>
 
   <!-- Inactive players (no matches played yet) -->
-  @if (!loading() && inactivePlayers().length > 0) {
+  @if (!loading() && filteredInactivePlayers().length > 0) {
     <section class="section">
       <h2 class="section-title">{{ i18n.t("rank.inactive") }}</h2>
       <div class="leaderboard glass">
-        @for (player of inactivePlayers(); track player.id) {
+        @for (player of filteredInactivePlayers(); track player.id) {
           <a
             class="leaderboard-row"
             [routerLink]="['/player', player.id]"

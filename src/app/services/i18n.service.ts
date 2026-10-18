@@ -68,6 +68,8 @@ const DA: Dict = {
   "rank.addFirst": "Tilføj første spiller",
   "rank.recent": "Seneste turneringer",
   "rank.record": "{w}V · {l}T · {d}U",
+  "rank.searchPlaceholder": "Søg efter spiller…",
+  "rank.searchEmpty": "Ingen spillere matcher \"{q}\".",
   "badge.draft": "Kommende",
   "badge.finished": "Afsluttet",
 
@@ -463,6 +465,8 @@ const EN: Dict = {
   "rank.addFirst": "Add first player",
   "rank.recent": "Recent tournaments",
   "rank.record": "{w}W · {l}L · {d}D",
+  "rank.searchPlaceholder": "Search for a player…",
+  "rank.searchEmpty": "No players match \"{q}\".",
   "badge.draft": "Upcoming",
   "badge.finished": "Finished",
 
