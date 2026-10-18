@@ -56,12 +56,10 @@
             <button
               class="format-card glass"
               [class.selected]="seatingFormat() === opt.value"
+              [title]="i18n.t('format.' + opt.value + '.desc')"
               (click)="selectSeatingFormat(opt.value)"
             >
               <strong>{{ i18n.t("format." + opt.value) }}</strong>
-              <span class="muted small">{{
-                i18n.t("format." + opt.value + ".desc")
-              }}</span>
             </button>
           }
         </div>
@@ -78,12 +76,10 @@
           <button
             class="format-card glass"
             [class.selected]="format() === opt.value"
+            [title]="i18n.t('format.' + opt.value + '.desc')"
             (click)="selectFormat(opt.value)"
           >
             <strong>{{ i18n.t("format." + opt.value) }}</strong>
-            <span class="muted small">{{
-              i18n.t("format." + opt.value + ".desc")
-            }}</span>
           </button>
         }
       </div>
@@ -392,8 +388,23 @@
             {{ i18n.t("setup.first") }}
           </p>
         } @else {
+          <input
+            type="search"
+            class="player-search"
+            [ngModel]="playerSearch()"
+            (ngModelChange)="playerSearch.set($event)"
+            [placeholder]="i18n.t('rank.searchPlaceholder')"
+            [attr.aria-label]="i18n.t('rank.searchPlaceholder')"
+            enterkeyhint="search"
+            autocomplete="off"
+          />
+          @if (filteredPlayers().length === 0) {
+            <p class="muted small">
+              {{ i18n.t("rank.searchEmpty", { q: playerSearch().trim() }) }}
+            </p>
+          }
           <div class="player-grid">
-            @for (p of players(); track p.id) {
+            @for (p of filteredPlayers(); track p.id) {
               <button
                 class="player-chip"
                 [class.selected]="isSelected(p.id)"

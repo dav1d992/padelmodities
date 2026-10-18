@@ -63,6 +63,10 @@
   &.ok { color: var(--primary); }
 }
 
+.player-search {
+  margin-bottom: 0.5rem;
+}
+
 .player-grid {
   display: flex;
   flex-direction: column;

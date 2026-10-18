@@ -196,6 +196,18 @@ export class TournamentSetupComponent implements OnInit {
   readonly selectedCount = computed(() => this.selectedIds().size);
   readonly teamCount = computed(() => this.teams().length);
 
+  readonly playerSearch = signal("");
+
+  readonly filteredPlayers = computed<Array<Player>>(() => {
+    const query = this.playerSearch().trim().toLocaleLowerCase();
+    if (!query) return this.players();
+    return this.players().filter(
+      (p) =>
+        p.name.toLocaleLowerCase().includes(query) ||
+        (p.shortname?.toLocaleLowerCase().includes(query) ?? false),
+    );
+  });
+
   /** Players not already assigned to a team. */
   readonly availableForTeams = computed(() => {
     const used = new Set(this.teams().flatMap((t) => [t.p1, t.p2]));
