@@ -2,7 +2,6 @@ import { effect, inject, Injectable, signal } from "@angular/core";
 import { ThemeService } from "./theme.service";
 
 const KEY_MUSIC = "padel:music-muted";
-const KEY_SFX = "padel:sfx-muted";
 
 function readMuted(key: string): boolean {
   try {
@@ -24,7 +23,6 @@ function writeMuted(key: string, value: boolean): void {
 export class AudioService {
   readonly #theme = inject(ThemeService);
   readonly musicMuted = signal(readMuted(KEY_MUSIC));
-  readonly sfxMuted = signal(readMuted(KEY_SFX));
 
   #backgroundMusic: HTMLAudioElement | null = null;
   #musicTheme: "normal" | "christmas" | "halloween" = "normal";
@@ -102,14 +100,7 @@ export class AudioService {
     }
   }
 
-  toggleSfx(): void {
-    const next = !this.sfxMuted();
-    this.sfxMuted.set(next);
-    writeMuted(KEY_SFX, next);
-  }
-
   playOneShot(src: string, volume = 0.8, stopAfterMs?: number): void {
-    if (this.sfxMuted()) return;
     const audio = new Audio(src);
     audio.volume = volume;
     if (stopAfterMs && stopAfterMs > 0) {

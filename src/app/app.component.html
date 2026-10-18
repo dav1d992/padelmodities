@@ -9,14 +9,6 @@
       🎵
     </button>
     <button
-      class="audio-btn"
-      [class.off]="audio.sfxMuted()"
-      (click)="audio.toggleSfx()"
-      [title]="i18n.t('app.sfx')"
-    >
-      🔊
-    </button>
-    <button
       class="admin-btn lang-btn"
       (click)="i18n.toggle()"
       [title]="i18n.t('app.language')"

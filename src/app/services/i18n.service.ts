@@ -11,7 +11,6 @@ const DA: Dict = {
   // App / common
   "app.logout": "Log ud",
   "app.music": "Musik",
-  "app.sfx": "Lydeffekter",
   "app.language": "Sprog",
   "app.disclaimer":
     "Danske Padelmodities er et uofficielt padel-fællesskab og er ikke tilknyttet Danske Commodities.",
@@ -140,7 +139,7 @@ const DA: Dict = {
   "setup.finalRounds": "Runder i finalefasen",
   "setup.totalRoundsInfo": "I alt {n} runder",
   "setup.phases": "Faser",
-  "setup.saveDraft": "💾 Gem som kommende",
+  "setup.saveDraft": "Gem som kommende",
   "setup.start": "Start turnering",
   "setup.starting": "Starter…",
 
@@ -413,7 +412,6 @@ const EN: Dict = {
   // App / common
   "app.logout": "Log out",
   "app.music": "Music",
-  "app.sfx": "Sound effects",
   "app.language": "Language",
   "app.disclaimer":
     "Danske Padelmodities is an unofficial padel community and is not affiliated with Danske Commodities.",
@@ -542,7 +540,7 @@ const EN: Dict = {
   "setup.finalRounds": "Final-phase rounds",
   "setup.totalRoundsInfo": "{n} rounds total",
   "setup.phases": "Phases",
-  "setup.saveDraft": "💾 Save as upcoming",
+  "setup.saveDraft": "Save as upcoming",
   "setup.start": "Start tournament",
   "setup.starting": "Starting…",
 
