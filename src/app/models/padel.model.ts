@@ -301,6 +301,10 @@ export interface Tournament {
   pointsTable?: Record<string, number>;
   /** True once final-placement rating changes have been applied (prevents double-award). */
   ratingsAwarded?: boolean;
+  /** Participant → Elo change applied at finish (teams map to each player's delta). */
+  ratingDeltas?: Record<string, number>;
+  /** Participant → rating going into the award (team = players' average). */
+  ratingsBefore?: Record<string, number>;
   rounds?: Record<string, TournamentRound>;
   createdAt: number;
   updatedAt?: number;
@@ -352,12 +356,12 @@ export const ADMIN_CODE = INJECTED_ADMIN_CODE.startsWith("__")
   ? LOCAL_ADMIN_CODE
   : INJECTED_ADMIN_CODE;
 
-/** ELO K-factor used when updating global ratings after a match. */
-export const ELO_K = 32;
+/** Elo K-factor for the pairwise final-placement rating update. */
+export const ELO_K = 64;
 
 /**
- * Rating points per player used to scale the final-placement award. 1st place
- * gains this × field size, last place loses the same, spread evenly in between.
+ * Legacy linear placement step, only used to display the deltas of tournaments
+ * awarded before pairwise Elo (those have no stored `ratingDeltas`).
  */
 export const PLACEMENT_RATING_PER_PLAYER = 3;
 

@@ -1344,6 +1344,73 @@ export function standingsOrder(
   return computeStandings(tournament, nameOf).map((r) => r.participantId);
 }
 
+// ── Final-placement Elo ─────────────────────────────────────────────────────────────
+
+/** Rating per standings row; a team rates as the average of its two players. */
+export function standingRatings(
+  tournament: Tournament,
+  standings: ReadonlyArray<StandingRow>,
+  ratingOf: (playerId: string) => number,
+): Array<number> {
+  const teams = isTeamFormat(tournament.format) ? teamMapOf(tournament) : null;
+  return standings.map(({ participantId }) => {
+    const team = teams?.[participantId];
+    return team
+      ? (ratingOf(team.p1) + ratingOf(team.p2)) / 2
+      : ratingOf(participantId);
+  });
+}
+
+/** Elo win probability of a rating `ri` against `rj`. */
+function eloExpected(ri: number, rj: number): number {
+  return 1 / (1 + 10 ** ((rj - ri) / 400));
+}
+
+/**
+ * Pairwise Elo on final standings: every participant counts as having beaten
+ * everyone placed below them. `ratings` must be in final-place order (best
+ * first). The K/(n−1) scaling caps one tournament at roughly ±K.
+ */
+export function placementEloDeltas(
+  ratings: ReadonlyArray<number>,
+  k: number,
+): Array<number> {
+  const n = ratings.length;
+  if (n < 2) return ratings.map(() => 0);
+  return ratings.map((ri, i) => {
+    let surplus = 0;
+    ratings.forEach((rj, j) => {
+      if (i === j) return;
+      surplus += (i < j ? 1 : 0) - eloExpected(ri, rj);
+    });
+    return Math.round((k / (n - 1)) * surplus);
+  });
+}
+
+/** Expected place range by rating rank (1 = highest); tied ratings share one range. */
+export function expectedPlacements(
+  ratings: ReadonlyArray<number>,
+): Array<{ from: number; to: number }> {
+  return ratings.map((ri) => {
+    const above = ratings.filter((rj) => rj > ri).length;
+    const tied = ratings.filter((rj) => rj === ri).length;
+    return { from: above + 1, to: above + tied };
+  });
+}
+
+/** Worst final place (1 = best) that still avoids losing Elo under {@link placementEloDeltas}. */
+export function breakEvenPlacements(ratings: ReadonlyArray<number>): Array<number> {
+  const n = ratings.length;
+  return ratings.map((ri, i) => {
+    const expectedWins = ratings.reduce(
+      (sum, rj, j) => (i === j ? sum : sum + eloExpected(ri, rj)),
+      0,
+    );
+    // Epsilon guards float error when the break-even lands exactly on a place.
+    return Math.max(1, Math.floor(n - expectedWins + 1e-9));
+  });
+}
+
 // ── Pure state transitions (shared by service persistence + sandbox play) ─────
 
 function teamMapOf(t: Tournament): Record<string, TournamentTeam> {

@@ -315,6 +315,10 @@
   .standings th, .standings td { padding: 0.4rem 0.25rem; }
 }
 
+.expected {
+  white-space: nowrap;
+}
+
 .elo-delta {
   font-weight: 700;
   color: var(--success, #22c55e);

@@ -525,7 +525,15 @@
                   <th>{{ i18n.t("th.draws") }}</th>
                 }
                 <th>{{ i18n.t("th.total") }}</th>
-                @if (isFinished()) {
+                @if (showExpected()) {
+                  <th [attr.title]="i18n.t('th.expectedHint')">
+                    {{ i18n.t("th.expected") }}
+                  </th>
+                  <th [attr.title]="i18n.t('th.breakEvenHint')">
+                    {{ i18n.t("th.breakEven") }}
+                  </th>
+                }
+                @if (showElo()) {
                   <th>{{ i18n.t("th.elo") }}</th>
                 }
               </tr>
@@ -548,7 +556,11 @@
                     <td>{{ row.draws }}</td>
                   }
                   <td class="total">{{ row.total }}</td>
-                  @if (isFinished()) {
+                  @if (showExpected()) {
+                    <td class="expected muted">{{ expectedPlace(i) }}</td>
+                    <td class="expected muted">{{ breakEvenPlace(i) }}</td>
+                  }
+                  @if (showElo()) {
                     <td class="elo-delta" [class.neg]="placementDelta(i) < 0">
                       {{ placementDelta(i) > 0 ? "+" : ""
                       }}{{ placementDelta(i) }}

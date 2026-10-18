@@ -22,6 +22,7 @@ import {
   isTeamFormat,
   isTwoPhase,
   isSeatingRound,
+  ELO_K,
   PLACEMENT_RATING_PER_PLAYER,
   type KothStats,
   type Player,
@@ -34,9 +35,13 @@ import {
   completeCurrentRound,
   computeKothStats,
   computeStandings,
+  breakEvenPlacements,
+  expectedPlacements,
   generateInitialRounds,
+  placementEloDeltas,
   regenerateCurrentRound,
   runFinalRound,
+  standingRatings,
   validateScore,
 } from "../../services/tournament-engine";
 import { CommonModule } from "@angular/common";
@@ -327,12 +332,71 @@ export class TournamentViewComponent implements OnInit {
     return computeStandings(tournament, (id) => this.participantName(id));
   });
 
-  /** Final-placement ELO delta for a standings row (matches applyPlacementRatings). */
-  placementDelta(index: number): number {
-    const n = this.standings().length;
-    if (n < 2) return 0;
+  /**
+   * Rating each row entered the tournament with: stored at award time, unknown
+   * for legacy awards (null), otherwise the players' current ratings.
+   */
+  readonly #entryRatings = computed<Array<number> | null>(() => {
+    const tournament = this.tournament();
+    if (!tournament) return null;
+    const standings = this.standings();
+    const stored = tournament.ratingsBefore;
+    if (stored) return standings.map((row) => stored[row.participantId] ?? 1000);
+    if (tournament.ratingsAwarded) return null;
+    const ratingById = new Map(this.players().map((p) => [p.id, p.rating]));
+    return standingRatings(tournament, standings, (id) => ratingById.get(id) ?? 1000);
+  });
+
+  /**
+   * Elo change per standings row: the stored deltas once awarded, the legacy
+   * linear step for tournaments awarded before pairwise Elo, otherwise a
+   * projection from current ratings (test mode: "if it ended now").
+   */
+  readonly #eloDeltas = computed<Array<number>>(() => {
+    const tournament = this.tournament();
+    const standings = this.standings();
+    if (!tournament || standings.length < 2) return standings.map(() => 0);
+
+    const stored = tournament.ratingDeltas;
+    if (stored) return standings.map((row) => stored[row.participantId] ?? 0);
+
+    const ratings = this.#entryRatings();
+    if (ratings) return placementEloDeltas(ratings, ELO_K);
+
+    const n = standings.length;
     const step = 2 * PLACEMENT_RATING_PER_PLAYER;
-    return Math.round(((n - 1) / 2 - index) * step);
+    return standings.map((_, i) => Math.round(((n - 1) / 2 - i) * step));
+  });
+
+  placementDelta(index: number): number {
+    return this.#eloDeltas()[index] ?? 0;
+  }
+
+  readonly showElo = computed(() => this.isFinished() || this.testMode());
+
+  readonly #expectedPlaces = computed<Array<string> | null>(() => {
+    const ratings = this.#entryRatings();
+    if (!ratings) return null;
+    return expectedPlacements(ratings).map(({ from, to }) =>
+      from === to ? `${from}` : `${from}–${to}`,
+    );
+  });
+
+  readonly #breakEvenPlaces = computed<Array<number> | null>(() => {
+    const ratings = this.#entryRatings();
+    return ratings ? breakEvenPlacements(ratings) : null;
+  });
+
+  readonly showExpected = computed(
+    () => this.standings().length > 1 && this.#expectedPlaces() !== null,
+  );
+
+  expectedPlace(index: number): string {
+    return this.#expectedPlaces()?.[index] ?? "";
+  }
+
+  breakEvenPlace(index: number): number | null {
+    return this.#breakEvenPlaces()?.[index] ?? null;
   }
 
   readonly kothStats = computed<Record<string, KothStats>>(() => {

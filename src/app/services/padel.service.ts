@@ -12,7 +12,7 @@ import { Observable } from "rxjs";
 import { FIREBASE_DB } from "../core/firebase";
 import {
   DEFAULT_SKILLSET,
-  PLACEMENT_RATING_PER_PLAYER,
+  ELO_K,
   isDynamicFormat,
   isTeamFormat,
   phaseFormatFor,
@@ -40,6 +40,8 @@ import {
   generateMexicanoRound,
   generateTeamMexicanoRound,
   mexericanoOptionsFor,
+  placementEloDeltas,
+  standingRatings,
   standingsOrder,
   validateScore,
 } from "./tournament-engine";
@@ -731,43 +733,58 @@ export class PadelService {
   // ── Private: ratings & stats ───────────────────────────────────────────────
 
   /**
-   * Apply final-placement rating changes once, when a tournament finishes.
-   * Deltas are spread symmetrically around zero with a constant even step of
-   * 2 × PLACEMENT_RATING_PER_PLAYER per rank, so every gap is equal and the
-   * total is zero-sum. Team formats give both players their team's placement
-   * delta. Idempotent via `ratingsAwarded`.
+   * Apply final-placement rating changes once, when a tournament finishes,
+   * using pairwise Elo on the final standings (see `placementEloDeltas`).
+   * Team formats rate a team as its players' average and give both players the
+   * team's delta. Idempotent via `ratingsAwarded`.
    */
   private async applyPlacementRatings(tournament: Tournament): Promise<void> {
     if (tournament.ratingsAwarded) return;
-    const flagRef = `tournaments/${tournament.id}/ratingsAwarded`;
+    const base = `tournaments/${tournament.id}`;
 
     const standings = computeStandings(tournament, (id) =>
       this.participantName(tournament, id),
     );
-    const n = standings.length;
-    if (n < 2) {
-      await withTimeout(update(ref(this.#db), { [flagRef]: true }));
+    if (standings.length < 2) {
+      await withTimeout(
+        update(ref(this.#db), { [`${base}/ratingsAwarded`]: true }),
+      );
       return;
     }
 
-    const step = 2 * PLACEMENT_RATING_PER_PLAYER;
     const team = isTeamFormat(tournament.format);
+    const playersByRow = standings.map((row) =>
+      team
+        ? this.teamPlayerIds(tournament, row.participantId)
+        : [row.participantId],
+    );
+    const ratings: Record<string, number> = {};
+    for (const id of playersByRow.flat()) {
+      const snap = await get(ref(this.#db, `players/${id}/rating`));
+      ratings[id] = (snap.val() as number | null) ?? 1000;
+    }
+    const entryRatings = standingRatings(
+      tournament,
+      standings,
+      (id) => ratings[id] ?? 1000,
+    );
+    const deltas = placementEloDeltas(entryRatings, ELO_K);
 
-    const updates: Record<string, unknown> = { [flagRef]: true };
+    const updates: Record<string, unknown> = {
+      [`${base}/ratingsAwarded`]: true,
+    };
     const now = Date.now();
-    for (let i = 0; i < n; i++) {
-      const delta = Math.round(((n - 1) / 2 - i) * step);
-      const playerIds = team
-        ? this.teamPlayerIds(tournament, standings[i].participantId)
-        : [standings[i].participantId];
-      for (const id of playerIds) {
-        const snap = await get(ref(this.#db, `players/${id}/rating`));
-        const current = (snap.val() as number | null) ?? 1000;
-        const newRating = Math.max(0, current + delta);
+    standings.forEach((row, i) => {
+      const delta = deltas[i] ?? 0;
+      updates[`${base}/ratingDeltas/${row.participantId}`] = delta;
+      updates[`${base}/ratingsBefore/${row.participantId}`] =
+        entryRatings[i] ?? 1000;
+      for (const id of playersByRow[i] ?? []) {
+        const newRating = Math.max(0, (ratings[id] ?? 1000) + delta);
         updates[`players/${id}/rating`] = newRating;
         updates[`players/${id}/ratingHistory/${now}_${id}`] = newRating;
       }
-    }
+    });
     await withTimeout(update(ref(this.#db), updates));
   }
 
