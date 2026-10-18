@@ -103,6 +103,8 @@
   <router-outlet></router-outlet>
 </main>
 
-<footer class="app-footer">{{ i18n.t('app.disclaimer') }}</footer>
+@if (isLanding()) {
+  <footer class="app-footer">{{ i18n.t('app.disclaimer') }}</footer>
+}
 
 <app-confirm-dialog />
