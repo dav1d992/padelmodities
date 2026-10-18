@@ -226,7 +226,7 @@
             <span class="rating-value">{{
               p.matchesPlayed > 0 ? p.rating : "--"
             }}</span>
-            <span class="muted">{{ i18n.t("common.pts") }}</span>
+            <span class="muted">{{ i18n.t("common.elo") }}</span>
             @if (winRate() !== null) {
               <span class="badge badge-green">{{
                 i18n.t("detail.winRate", { n: winRate() ?? 0 })
@@ -338,7 +338,7 @@
                 </svg>
               </div>
               <div class="spark-labels muted small">
-                <span>{{ ratingHistory()[0] }} {{ i18n.t("common.pts") }}</span>
+                <span>{{ ratingHistory()[0] }} {{ i18n.t("common.elo") }}</span>
                 <span>{{
                   i18n.t("detail.now", {
                     n: ratingHistory()[ratingHistory().length - 1],

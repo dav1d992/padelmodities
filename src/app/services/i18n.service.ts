@@ -30,7 +30,7 @@ const DA: Dict = {
   "common.deleteLabel": "Slet",
   "common.error": "Der opstod en fejl.",
   "common.saveError": "Fejl ved gem.",
-  "common.pts": "pts",
+  "common.elo": "Elo",
 
   // Create player
   "create.title": "Ny spiller",
@@ -87,7 +87,7 @@ const DA: Dict = {
   "detail.winRate": "{n}% vundne",
   "stat.diff": "Diff",
   "detail.ratingHistory": "Rating historik",
-  "detail.now": "Nu: {n} pts",
+  "detail.now": "Nu: {n} Elo",
   "detail.deleteConfirm": "Slet {name}? Dette kan ikke fortrydes.",
 
   // Tournament setup
@@ -168,7 +168,7 @@ const DA: Dict = {
     "• Bane-bonus: højere baner giver flere point (fx bane 1 = 3, bane 2 = 2, bane 3 = 1) oveni dine kamppoint. Bonus starter først, når feltet har sat sig (de første baner−1 runder giver ingen), og kan gives til alle på banen eller kun vinderne.\n" +
     "• Går tallene ikke op, sidder den, der har siddet mindst over, over næste gang.\n" +
     "• Dine samlede point er de point du vinder i hver kamp plus eventuel bane-bonus. Finalerunden samler de fire bedste for at afgøre vinderen.\n" +
-    "• Rating (Elo): når en turnering slutter, ændres din rating efter din endelige placering — vinderen får 3 point pr. deltager (fx +48 i et felt på 16 spillere), sidstepladsen taber det samme, og alle derimellem fordeles jævnt (nulsum).",
+    "• Rating (Elo): når en turnering slutter, ændres din rating efter din endelige placering — vinderen får 3 Elo pr. deltager (fx +48 i et felt på 16 spillere), sidstepladsen taber det samme, og alle derimellem fordeles jævnt (nulsum).",
   "format.king-of-the-hill.desc": "Bane-stige. Vindere op, tabere ned.",
   "format.beat-the-box.desc":
     "ELO-seedede eller tilfældige firspillerbokse. Tre Americano-kampe; de to bedste rykker op, de to nederste ned.",
@@ -427,7 +427,7 @@ const EN: Dict = {
   "common.deleteLabel": "Delete",
   "common.error": "Something went wrong.",
   "common.saveError": "Error while saving.",
-  "common.pts": "pts",
+  "common.elo": "Elo",
 
   // Create player
   "create.title": "New player",
@@ -484,7 +484,7 @@ const EN: Dict = {
   "detail.winRate": "{n}% wins",
   "stat.diff": "Diff",
   "detail.ratingHistory": "Rating history",
-  "detail.now": "Now: {n} pts",
+  "detail.now": "Now: {n} Elo",
   "detail.deleteConfirm": "Delete {name}? This cannot be undone.",
 
   // Tournament setup
@@ -566,7 +566,7 @@ const EN: Dict = {
     "• Court bonus: higher courts award more points (e.g. court 1 = 3, court 2 = 2, court 3 = 1), added on top of your match points. Bonuses only start after the field has settled (the first courts−1 rounds give none), and can be set to reward everyone on the court or the winners only.\n" +
     "• When numbers don't divide evenly, whoever has sat out least sits out next.\n" +
     "• Your total is the points you win in each match plus any court bonus. The final round groups the top four to decide the winner.\n" +
-    "• Rating (Elo): when a tournament ends, your rating changes by final placement — the winner gains 3 points per participant (e.g. +48 in a 16-player field), last place loses the same, and everyone in between is spread evenly (zero-sum).",
+    "• Rating (Elo): when a tournament ends, your rating changes by final placement — the winner gains 3 Elo per participant (e.g. +48 in a 16-player field), last place loses the same, and everyone in between is spread evenly (zero-sum).",
   "format.king-of-the-hill.desc": "Court ladder. Winners move up, losers down.",
   "format.beat-the-box.desc":
     "ELO-seeded or random boxes of four. Three Americano matches; the top two move up and the bottom two move down.",
