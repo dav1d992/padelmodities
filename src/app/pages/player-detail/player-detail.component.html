@@ -347,6 +347,53 @@
               </div>
             </div>
           }
+
+          @if (badges().length > 0) {
+            <div class="glass panel achievements-panel">
+              <div class="achievements-head">
+                <h3>{{ i18n.t("achievements.title") }}</h3>
+              </div>
+              <div class="achievement-grid" (mouseleave)="hideBadgeTip()">
+                @for (b of badges(); track b.id) {
+                  <button
+                    #chip
+                    type="button"
+                    class="achievement"
+                    [attr.aria-label]="i18n.t('achievement.' + b.id + '.name')"
+                    [attr.aria-describedby]="
+                      activeBadge()?.id === b.id ? 'achievement-tip' : null
+                    "
+                    (mouseenter)="showBadgeTip(b.id, chip)"
+                    (focus)="showBadgeTip(b.id, chip)"
+                    (click)="showBadgeTip(b.id, chip)"
+                    (blur)="hideBadgeTip()"
+                  >
+                    <span class="achievement-icon" aria-hidden="true">{{
+                      b.icon
+                    }}</span>
+                    <span class="achievement-name">{{
+                      i18n.t("achievement." + b.id + ".name")
+                    }}</span>
+                  </button>
+                }
+                @if (activeBadge(); as tip) {
+                  <div
+                    id="achievement-tip"
+                    role="tooltip"
+                    class="achievement-tip"
+                    [style.left.px]="tip.x"
+                    [style.top.px]="tip.y"
+                    [style.--arrow-x]="tip.arrowX + 'px'"
+                  >
+                    <strong>{{
+                      i18n.t("achievement." + tip.id + ".name")
+                    }}</strong>
+                    <span>{{ i18n.t("achievement." + tip.id + ".desc") }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
         }
       </div>
     </div>

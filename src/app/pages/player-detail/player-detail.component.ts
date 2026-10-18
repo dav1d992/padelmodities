@@ -19,12 +19,20 @@ import { ConfirmService } from "../../services/confirm.service";
 import { ThemeService } from "../../services/theme.service";
 import { SeoService, SITE_URL } from "../../services/seo.service";
 import {
+  BADGES,
+  SKILL_BADGES,
+  computeAllBadges,
+  computeSkillBadges,
+  type BadgeId,
+} from "../../services/badges";
+import {
   DEFAULT_SKILLSET,
   SKILL_LABELS,
   SKILL_NAMES,
   type Player,
   type SkillName,
   type Skillset,
+  type Tournament,
 } from "../../models/padel.model";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -35,6 +43,8 @@ const HERO_DURATION_MS = 1050;
 const IMPACT_MS = 560;
 /** Files in `assets/promo-videos`; the prefix before the first `-` is the owning player's shortname. */
 const PROMO_VIDEOS: ReadonlyArray<string> = ["men-recording-edit.mp4"];
+/** Must match the tooltip `width` in the SCSS. */
+const BADGE_TIP_WIDTH_PX = 220;
 
 @Component({
   selector: "app-player-detail",
@@ -68,6 +78,13 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly heroFailed = signal(false);
   readonly skillLabels = SKILL_LABELS;
   readonly skillNames = SKILL_NAMES;
+  readonly #tournaments = signal<ReadonlyArray<Tournament>>([]);
+  readonly activeBadge = signal<{
+    id: BadgeId;
+    x: number;
+    y: number;
+    arrowX: number;
+  } | null>(null);
 
   // ── Admin edit state ──────────────────────────────────────────────────────
   readonly editing = signal(false);
@@ -114,6 +131,10 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
           this.loading.set(false);
         },
       });
+    this.#service
+      .watchTournaments()
+      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .subscribe((list) => this.#tournaments.set(list));
   }
 
   ngOnDestroy(): void {
@@ -305,6 +326,33 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     );
     return `M ${pts.join(" L ")}`;
   });
+
+  readonly badges = computed(() => {
+    const player = this.player();
+    // Inactive players (no matches) earn no achievements at all.
+    if (!player || player.matchesPlayed === 0) return [];
+    const earned =
+      computeAllBadges(this.#tournaments()).get(this.playerId()) ??
+      new Set<BadgeId>();
+    const skillEarned = computeSkillBadges(player.skillset);
+    return [
+      ...BADGES.filter((def) => earned.has(def.id)),
+      ...SKILL_BADGES.filter((def) => skillEarned.has(def.id)),
+    ];
+  });
+
+  /** Positions the tooltip above the chip, clamped so it stays inside the grid. */
+  showBadgeTip(id: BadgeId, chip: HTMLElement): void {
+    const gridWidth = chip.parentElement?.clientWidth ?? 0;
+    const half = Math.min(BADGE_TIP_WIDTH_PX, gridWidth) / 2;
+    const center = chip.offsetLeft + chip.offsetWidth / 2;
+    const x = Math.min(Math.max(center, half), gridWidth - half);
+    this.activeBadge.set({ id, x, y: chip.offsetTop, arrowX: center - x });
+  }
+
+  hideBadgeTip(): void {
+    this.activeBadge.set(null);
+  }
 
   // ── Admin edit ─────────────────────────────────────────────────────────────
 

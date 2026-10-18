@@ -89,6 +89,171 @@ const DA: Dict = {
   "detail.now": "Nu: {n} Elo",
   "detail.deleteConfirm": "Slet {name}? Dette kan ikke fortrydes.",
 
+  // Achievements
+  "achievements.title": "Præstationer",
+  "achievement.bagel.name": "Bagel",
+  "achievement.bagel.desc": "Vind en kamp uden at modstanderne scorer et point.",
+  "achievement.demolition.name": "Nedrivning",
+  "achievement.demolition.desc": "Vind en kamp med mindst 80% af pointene.",
+  "achievement.wall.name": "Muren",
+  "achievement.wall.desc":
+    "Hold modstanderne under 25% af pointene i 3 kampe i træk.",
+  "achievement.tyrant.name": "Turneringstyran",
+  "achievement.tyrant.desc":
+    "Tag mindst 65% af alle point i en afsluttet turnering.",
+  "achievement.iceCold.name": "Iskold",
+  "achievement.iceCold.desc": "Vind 3 kampe i træk med præcis 1 point.",
+  "achievement.razorsEdge.name": "Knivskarp",
+  "achievement.razorsEdge.desc":
+    "Vind 5 kampe med præcis 1 point i én turnering.",
+  "achievement.soClose.name": "Så tæt på",
+  "achievement.soClose.desc": "Tab 5 kampe med præcis 1 point.",
+  "achievement.bageled.name": "Bagel'et",
+  "achievement.bageled.desc": "Tab en kamp uden at score et point.",
+  "achievement.deadEven.name": "Dødt løb",
+  "achievement.deadEven.desc": "Spil 3 kampe, der ender uafgjort.",
+  "achievement.biggestWin.name": "Største sejr nogensinde",
+  "achievement.biggestWin.desc":
+    "Hold rekorden for den største sejrsmargin i en enkelt kamp.",
+  "achievement.pointRecord.name": "Pointrekord",
+  "achievement.pointRecord.desc":
+    "Hold rekorden for flest point scoret i én turnering.",
+  "achievement.ironDefense.name": "Jernforsvar",
+  "achievement.ironDefense.desc":
+    "Hold rekorden for den laveste andel af point afgivet i en turnering.",
+  "achievement.onFire.name": "Brandvarm",
+  "achievement.onFire.desc": "Vind 5 kampe i træk.",
+  "achievement.unstoppable.name": "Ustoppelig",
+  "achievement.unstoppable.desc": "Vind 10 kampe i træk.",
+  "achievement.legendary.name": "Legendarisk",
+  "achievement.legendary.desc": "Vind 15 kampe i træk.",
+  "achievement.unbeaten.name": "Ubesejret",
+  "achievement.unbeaten.desc":
+    "Gennemfør en turnering uden at tabe en kamp.",
+  "achievement.backToBack.name": "Back-to-Back",
+  "achievement.backToBack.desc": "Vind to turneringer i træk.",
+  "achievement.podiumStreak.name": "Podiestime",
+  "achievement.podiumStreak.desc": "Slut i top 3 i tre turneringer i træk.",
+  "achievement.rising.name": "På vej op",
+  "achievement.rising.desc": "Stig i rating i fem turneringer i træk.",
+  "achievement.coldStreak.name": "Kold stime",
+  "achievement.coldStreak.desc": "Tab 5 kampe i træk.",
+  "achievement.iceAge.name": "Istid",
+  "achievement.iceAge.desc": "Tab 10 kampe i træk.",
+  "achievement.zeroHero.name": "Nul sejre",
+  "achievement.zeroHero.desc":
+    "Gennemfør en turnering uden at vinde en kamp.",
+  "achievement.phoenix.name": "Føniks",
+  "achievement.phoenix.desc":
+    "Vind 5 i træk lige efter at have tabt 5 i træk.",
+  "achievement.streakBreaker.name": "Stimebryder",
+  "achievement.streakBreaker.desc":
+    "Slå en spiller, der havde vundet 5 eller flere kampe i træk.",
+  "achievement.rollercoaster.name": "Rutsjebane",
+  "achievement.rollercoaster.desc":
+    "Skift mellem sejr og nederlag 6 kampe i træk.",
+  "achievement.chemistry.name": "Kemi",
+  "achievement.chemistry.desc":
+    "Vind mindst 75% af 8 eller flere kampe med samme makker.",
+  "achievement.revenge.name": "Hævn",
+  "achievement.revenge.desc": "Slå et par, der slog dig sidste gang I mødtes.",
+  "achievement.kingslayer.name": "Kongedræber",
+  "achievement.kingslayer.desc":
+    "Slå turneringens højest ratede spiller eller hold.",
+  "achievement.davidVsGoliath.name": "David mod Goliat",
+  "achievement.davidVsGoliath.desc":
+    "Vind en kamp, hvor jeres rating var mindst 150 under modstandernes.",
+  "achievement.zeroToHero.name": "Fra nul til helt",
+  "achievement.zeroToHero.desc":
+    "Vær sidst efter runde 1 og slut i top 3.",
+  "achievement.bridesmaid.name": "Evig toer",
+  "achievement.bridesmaid.desc": "Slut på 2.-pladsen i tre turneringer.",
+  "achievement.woodenSpoon.name": "Træskeen",
+  "achievement.woodenSpoon.desc": "Slut sidst i en turnering.",
+
+  // Skill badges
+  "achievement.precisionMachine.name": "Præcisionsmaskinen",
+  "achievement.precisionMachine.desc":
+    "Høj kontrol. Rammer et frimærke fra baglinjen.",
+  "achievement.surgeon.name": "Kirurgen",
+  "achievement.surgeon.desc":
+    "Høj kontrol og høj strategi. Skærer modstanderne op med kirurgisk præcision og en plan.",
+  "achievement.metronome.name": "Metronomen",
+  "achievement.metronome.desc":
+    "Høj kontrol og høj udholdenhed. Samme perfekte slag, igen og igen og igen.",
+  "achievement.vibora.name": "Víboraen",
+  "achievement.vibora.desc":
+    "Høj kontrol og høj styrke. Hård og præcis — bolden hvæser som en slange.",
+  "achievement.ninja.name": "Ninja",
+  "achievement.ninja.desc":
+    "Høj kontrol og høj smidighed. Lydløs, lynhurtig og altid på rette sted.",
+  "achievement.lobMachine.name": "Lobmaskinen",
+  "achievement.lobMachine.desc":
+    "Høj kontrol og lav styrke. Kan ikke smashe, men lobber dig til vanvid.",
+  "achievement.sniper.name": "Snigskytten",
+  "achievement.sniper.desc":
+    "Høj kontrol og lav smidighed. Bevæger sig knap nok, men rammer plet hver gang.",
+  "achievement.sundayPlayer.name": "Søndagsspiller",
+  "achievement.sundayPlayer.desc":
+    "Høj kontrol og lav udholdenhed. Smukke slag — så længe det varer.",
+  "achievement.bulldozer.name": "Bulldozer",
+  "achievement.bulldozer.desc":
+    "Lav kontrol og høj styrke. Slår hårdt. Hvor bolden lander er en overraskelse for alle.",
+  "achievement.pinball.name": "Flipperkugle",
+  "achievement.pinball.desc":
+    "Lav kontrol og høj smidighed. Overalt på banen, og bolden flyver alle vegne.",
+  "achievement.workhorse.name": "Arbejdshesten",
+  "achievement.workhorse.desc":
+    "Lav kontrol og høj udholdenhed. Henter alt, rammer sjældent, giver aldrig op.",
+  "achievement.wildShot.name": "Vildskud",
+  "achievement.wildShot.desc":
+    "Lav kontrol og høj strategi. Kender den perfekte plan. Udførelsen... ikke så meget.",
+  "achievement.looseCannon.name": "Løs kanon",
+  "achievement.looseCannon.desc":
+    "Lav kontrol og lav strategi. Ingen plan, ingen kontrol — rent kaos.",
+  "achievement.pillowFight.name": "Pudekamp",
+  "achievement.pillowFight.desc":
+    "Lav kontrol og lav styrke. Slår bløde bolde ingen steder hen.",
+  "achievement.oldMan.name": "Gammel mand",
+  "achievement.oldMan.desc":
+    "Lav smidighed og lav udholdenhed. Knæene knager, men erfaringen består.",
+  "achievement.glassCannon.name": "Glaskanon",
+  "achievement.glassCannon.desc":
+    "Høj styrke og lav udholdenhed. Knalder hårdt i tre slag, så er tanken tom.",
+  "achievement.professor.name": "Professoren",
+  "achievement.professor.desc":
+    "Høj strategi og lav styrke. Udtænker dit nederlag — men kan ikke selv afslutte det.",
+  "achievement.chessPlayer.name": "Skakspilleren",
+  "achievement.chessPlayer.desc":
+    "Høj strategi og lav smidighed. Tænker fem træk frem, kommer to skridt for sent.",
+  "achievement.headlessChicken.name": "Hovedløs høne",
+  "achievement.headlessChicken.desc":
+    "Høj smidighed og lav strategi. Lynhurtig i alle de forkerte retninger.",
+  "achievement.roadRunner.name": "Road Runner",
+  "achievement.roadRunner.desc":
+    "Høj smidighed og lav styrke. Beep beep! Henter alt, men pufer bolden tilbage.",
+  "achievement.couchPotato.name": "Sofakartoffel",
+  "achievement.couchPotato.desc":
+    "Lav styrke og lav udholdenhed. Foretrækker en god volley fra sofaen.",
+  "achievement.duracell.name": "Duracell",
+  "achievement.duracell.desc":
+    "Høj udholdenhed og høj smidighed. Bliver ved og ved og ved...",
+  "achievement.tank.name": "Tanken",
+  "achievement.tank.desc":
+    "Høj styrke og høj udholdenhed. Kører dig over — og bliver ved hele dagen.",
+  "achievement.rookie.name": "Nybegynder",
+  "achievement.rookie.desc":
+    "Alle færdigheder helt i bunden. Alle starter et sted. Det her er stedet.",
+  "achievement.allRounder.name": "Allrounder",
+  "achievement.allRounder.desc":
+    "Alle færdigheder højt oppe. God til alt, uden svage punkter.",
+  "achievement.average.name": "Den Balancerede",
+  "achievement.average.desc":
+    "Alle færdigheder i midten. Lige god og dårlig all-around.",
+  "achievement.perfectionist.name": "Perfektionist",
+  "achievement.perfectionist.desc":
+    "En færdighed helt i top. Lærebogsperfekt til noget.",
+
   // Tournament setup
   "setup.title": "Ny turnering",
   "setup.subtitle": "Vælg format, deltagere og scoring.",
@@ -489,6 +654,172 @@ const EN: Dict = {
   "detail.ratingHistory": "Rating history",
   "detail.now": "Now: {n} Elo",
   "detail.deleteConfirm": "Delete {name}? This cannot be undone.",
+
+  // Achievements
+  "achievements.title": "Achievements",
+  "achievement.bagel.name": "Bagel",
+  "achievement.bagel.desc":
+    "Win a match without the opponents scoring a point.",
+  "achievement.demolition.name": "Demolition",
+  "achievement.demolition.desc": "Win a match taking at least 80% of the points.",
+  "achievement.wall.name": "The Wall",
+  "achievement.wall.desc":
+    "Hold the opponents under 25% of the points in 3 matches in a row.",
+  "achievement.tyrant.name": "Tournament Tyrant",
+  "achievement.tyrant.desc":
+    "Take at least 65% of all points in a finished tournament.",
+  "achievement.iceCold.name": "Ice Cold",
+  "achievement.iceCold.desc": "Win 3 matches in a row by exactly 1 point.",
+  "achievement.razorsEdge.name": "Razor's Edge",
+  "achievement.razorsEdge.desc":
+    "Win 5 matches by exactly 1 point in a single tournament.",
+  "achievement.soClose.name": "So Close",
+  "achievement.soClose.desc": "Lose 5 matches by exactly 1 point.",
+  "achievement.bageled.name": "Bageled",
+  "achievement.bageled.desc": "Lose a match without scoring a point.",
+  "achievement.deadEven.name": "Dead Even",
+  "achievement.deadEven.desc": "Play 3 matches that end in a draw.",
+  "achievement.biggestWin.name": "Biggest Win Ever",
+  "achievement.biggestWin.desc":
+    "Hold the record for the largest winning margin in a single match.",
+  "achievement.pointRecord.name": "Point Record",
+  "achievement.pointRecord.desc":
+    "Hold the record for most points scored in a single tournament.",
+  "achievement.ironDefense.name": "Iron Defense",
+  "achievement.ironDefense.desc":
+    "Hold the record for the lowest share of points conceded in a tournament.",
+  "achievement.onFire.name": "On Fire",
+  "achievement.onFire.desc": "Win 5 matches in a row.",
+  "achievement.unstoppable.name": "Unstoppable",
+  "achievement.unstoppable.desc": "Win 10 matches in a row.",
+  "achievement.legendary.name": "Legendary",
+  "achievement.legendary.desc": "Win 15 matches in a row.",
+  "achievement.unbeaten.name": "Unbeaten",
+  "achievement.unbeaten.desc":
+    "Finish a tournament without losing a match.",
+  "achievement.backToBack.name": "Back-to-Back",
+  "achievement.backToBack.desc": "Win two tournaments in a row.",
+  "achievement.podiumStreak.name": "Podium Streak",
+  "achievement.podiumStreak.desc": "Finish top 3 in three tournaments in a row.",
+  "achievement.rising.name": "Rising",
+  "achievement.rising.desc": "Gain rating in five tournaments in a row.",
+  "achievement.coldStreak.name": "Cold Streak",
+  "achievement.coldStreak.desc": "Lose 5 matches in a row.",
+  "achievement.iceAge.name": "Ice Age",
+  "achievement.iceAge.desc": "Lose 10 matches in a row.",
+  "achievement.zeroHero.name": "Zero Hero",
+  "achievement.zeroHero.desc":
+    "Finish a tournament without winning a match.",
+  "achievement.phoenix.name": "Phoenix",
+  "achievement.phoenix.desc":
+    "Win 5 in a row straight after losing 5 in a row.",
+  "achievement.streakBreaker.name": "Streak Breaker",
+  "achievement.streakBreaker.desc":
+    "Beat a player who had won 5 or more matches in a row.",
+  "achievement.rollercoaster.name": "Rollercoaster",
+  "achievement.rollercoaster.desc":
+    "Alternate between winning and losing over 6 matches in a row.",
+  "achievement.chemistry.name": "Chemistry",
+  "achievement.chemistry.desc":
+    "Win at least 75% of 8 or more matches with the same partner.",
+  "achievement.revenge.name": "Revenge",
+  "achievement.revenge.desc": "Beat a pair that beat you the last time you met.",
+  "achievement.kingslayer.name": "Kingslayer",
+  "achievement.kingslayer.desc":
+    "Beat the highest-rated player or team in a tournament.",
+  "achievement.davidVsGoliath.name": "David vs Goliath",
+  "achievement.davidVsGoliath.desc":
+    "Win a match where your side's rating was at least 150 below the opponents'.",
+  "achievement.zeroToHero.name": "Zero to Hero",
+  "achievement.zeroToHero.desc":
+    "Be last after round 1 and finish top 3.",
+  "achievement.bridesmaid.name": "Bridesmaid",
+  "achievement.bridesmaid.desc": "Finish 2nd in three tournaments.",
+  "achievement.woodenSpoon.name": "Wooden Spoon",
+  "achievement.woodenSpoon.desc": "Finish last in a tournament.",
+
+  // Skill badges
+  "achievement.precisionMachine.name": "Precision Machine",
+  "achievement.precisionMachine.desc":
+    "High control. Can hit a postage stamp from the baseline.",
+  "achievement.surgeon.name": "The Surgeon",
+  "achievement.surgeon.desc":
+    "High control and high strategy. Carves opponents open with surgical precision and a plan.",
+  "achievement.metronome.name": "The Metronome",
+  "achievement.metronome.desc":
+    "High control and high stamina. The same perfect shot, over and over and over.",
+  "achievement.vibora.name": "The Víbora",
+  "achievement.vibora.desc":
+    "High control and high power. Hard and precise — the ball hisses like a snake.",
+  "achievement.ninja.name": "Ninja",
+  "achievement.ninja.desc":
+    "High control and high agility. Silent, lightning-fast and always in the right spot.",
+  "achievement.lobMachine.name": "Lob Machine",
+  "achievement.lobMachine.desc":
+    "High control and low power. Can't smash, but will lob you into madness.",
+  "achievement.sniper.name": "The Sniper",
+  "achievement.sniper.desc":
+    "High control and low agility. Barely moves, but hits the mark every time.",
+  "achievement.sundayPlayer.name": "Sunday Player",
+  "achievement.sundayPlayer.desc":
+    "High control and low stamina. Beautiful shots — for as long as they last.",
+  "achievement.bulldozer.name": "Bulldozer",
+  "achievement.bulldozer.desc":
+    "Low control and high power. Hits hard. Where it lands surprises everyone.",
+  "achievement.pinball.name": "Pinball",
+  "achievement.pinball.desc":
+    "Low control and high agility. All over the court, ball flying everywhere.",
+  "achievement.workhorse.name": "Workhorse",
+  "achievement.workhorse.desc":
+    "Low control and high stamina. Chases everything, hits little, never gives up.",
+  "achievement.wildShot.name": "Wild Shot",
+  "achievement.wildShot.desc":
+    "Low control and high strategy. Knows the perfect plan. The execution... not so much.",
+  "achievement.looseCannon.name": "Loose Cannon",
+  "achievement.looseCannon.desc":
+    "Low control and low strategy. No plan, no control — pure chaos.",
+  "achievement.pillowFight.name": "Pillow Fight",
+  "achievement.pillowFight.desc":
+    "Low control and low power. Soft shots going nowhere.",
+  "achievement.oldMan.name": "Old Man",
+  "achievement.oldMan.desc":
+    "Low agility and low stamina. The knees creak, but the wisdom remains.",
+  "achievement.glassCannon.name": "Glass Cannon",
+  "achievement.glassCannon.desc":
+    "High power and low stamina. Booms for three shots, then the tank's empty.",
+  "achievement.professor.name": "The Professor",
+  "achievement.professor.desc":
+    "High strategy and low power. Plots your defeat — but can't finish it off.",
+  "achievement.chessPlayer.name": "Chess Player",
+  "achievement.chessPlayer.desc":
+    "High strategy and low agility. Thinks five moves ahead, arrives two steps late.",
+  "achievement.headlessChicken.name": "Headless Chicken",
+  "achievement.headlessChicken.desc":
+    "High agility and low strategy. Lightning-fast in all the wrong directions.",
+  "achievement.roadRunner.name": "Road Runner",
+  "achievement.roadRunner.desc":
+    "High agility and low power. Beep beep! Gets everything, dinks it back.",
+  "achievement.couchPotato.name": "Couch Potato",
+  "achievement.couchPotato.desc":
+    "Low power and low stamina. Prefers a good volley from the couch.",
+  "achievement.duracell.name": "Duracell",
+  "achievement.duracell.desc":
+    "High stamina and high agility. Keeps going and going and going...",
+  "achievement.tank.name": "The Tank",
+  "achievement.tank.desc":
+    "High power and high stamina. Rolls over you — and keeps it up all day.",
+  "achievement.rookie.name": "Rookie",
+  "achievement.rookie.desc":
+    "Every skill at rock bottom. Everyone starts somewhere. This is that somewhere.",
+  "achievement.allRounder.name": "All-Rounder",
+  "achievement.allRounder.desc":
+    "Every skill up high. Good at everything, no weak spots.",
+  "achievement.average.name": "Perfectly Balanced",
+  "achievement.average.desc":
+    "Every skill right in the middle. Equally good and bad all-around.",
+  "achievement.perfectionist.name": "Perfectionist",
+  "achievement.perfectionist.desc":
+    "A skill maxed to the very top. Textbook perfect at something.",
 
   // Tournament setup
   "setup.title": "New tournament",

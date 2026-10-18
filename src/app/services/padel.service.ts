@@ -8,7 +8,7 @@ import {
   remove,
   onValue,
 } from "firebase/database";
-import { Observable } from "rxjs";
+import { Observable, shareReplay } from "rxjs";
 import { FIREBASE_DB } from "../core/firebase";
 import {
   DEFAULT_SKILLSET,
@@ -206,21 +206,24 @@ export class PadelService {
 
   // ── Tournaments ──────────────────────────────────────────────────────────
 
+  // refCount false keeps the listener alive across route changes so pages share one download.
+  readonly #tournaments$ = new Observable<Tournament[]>((subscriber) => {
+    const tourRef = ref(this.#db, "tournaments");
+    const unsubscribe = onValue(
+      tourRef,
+      (snapshot) => {
+        const value = snapshot.val() as Record<string, Tournament> | null;
+        const list = value ? Object.values(value) : [];
+        list.sort((a, b) => b.createdAt - a.createdAt);
+        subscriber.next(list);
+      },
+      (error) => subscriber.error(error),
+    );
+    return () => unsubscribe();
+  }).pipe(shareReplay({ bufferSize: 1, refCount: false }));
+
   watchTournaments(): Observable<Tournament[]> {
-    return new Observable<Tournament[]>((subscriber) => {
-      const tourRef = ref(this.#db, "tournaments");
-      const unsubscribe = onValue(
-        tourRef,
-        (snapshot) => {
-          const value = snapshot.val() as Record<string, Tournament> | null;
-          const list = value ? Object.values(value) : [];
-          list.sort((a, b) => b.createdAt - a.createdAt);
-          subscriber.next(list);
-        },
-        (error) => subscriber.error(error),
-      );
-      return () => unsubscribe();
-    });
+    return this.#tournaments$;
   }
 
   watchTournament(tournamentId: string): Observable<Tournament | null> {
