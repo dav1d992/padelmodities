@@ -248,14 +248,16 @@
             class="chip chip-finished glass"
             (click)="goToTournament(t.id)"
           >
-            @if (isTwoPhase(t)) {
+            <span class="chip-badges">
+              @if (isTwoPhase(t)) {
+                <span class="chip-format badge badge-muted">{{
+                  FORMAT_LABELS[t.seatingFormat ?? t.format]
+                }}</span>
+              }
               <span class="chip-format badge badge-muted">{{
-                FORMAT_LABELS[t.seatingFormat ?? t.format]
+                FORMAT_LABELS[t.format]
               }}</span>
-            }
-            <span class="chip-format badge badge-muted">{{
-              FORMAT_LABELS[t.format]
-            }}</span>
+            </span>
             <span class="chip-name">{{ t.name }}</span>
           </button>
         }

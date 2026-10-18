@@ -66,9 +66,21 @@
   }
 }
 
+.chip-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.chip-format {
+  white-space: nowrap;
+}
+
 .chip-name {
   flex: 1;
+  min-width: 0;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .chip-arrow {
@@ -320,5 +332,10 @@
   .rank-cell {
     min-width: 0;
     text-align: left;
+  }
+
+  .chip-badges {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
