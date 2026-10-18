@@ -383,7 +383,12 @@
             </button>
           }
           @if (canRunFinal()) {
-            <button class="btn btn-gold" [disabled]="runningFinal()" (click)="runFinal()">
+            <button
+              class="btn btn-gold"
+              [disabled]="runningFinal() || currentRoundHasScores()"
+              [attr.title]="currentRoundHasScores() ? i18n.t('view.finalHasScores') : null"
+              (click)="runFinal()"
+            >
               {{ runningFinal() ? i18n.t("common.saving") : i18n.t("view.finalRound") }}
             </button>
           }

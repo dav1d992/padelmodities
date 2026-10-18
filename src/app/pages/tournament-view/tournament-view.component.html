@@ -466,7 +466,10 @@
           @if (canRunFinal()) {
             <button
               class="btn btn-primary"
-              [disabled]="runningFinal()"
+              [disabled]="runningFinal() || currentRoundHasScores()"
+              [attr.title]="
+                currentRoundHasScores() ? i18n.t('view.finalHasScores') : null
+              "
               (click)="runFinalRound()"
             >
               {{

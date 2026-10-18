@@ -750,17 +750,20 @@ export class TournamentViewComponent implements OnInit {
     }
   }
 
+  readonly currentRoundHasScores = computed(() =>
+    this.currentMatches().some((m) => {
+      const s = this.scores()[m.id];
+      return (s?.score1 ?? null) !== null || (s?.score2 ?? null) !== null;
+    }),
+  );
+
   readonly canRegenerate = computed(() => {
     const tournament = this.tournament();
     if (!tournament || !this.isDynamic() || !this.isCurrentRound())
       return false;
     const round = this.currentRound();
     if (round?.completed) return false;
-    const anyScore = this.currentMatches().some((m) => {
-      const s = this.scores()[m.id];
-      return (s?.score1 ?? null) !== null || (s?.score2 ?? null) !== null;
-    });
-    return !anyScore;
+    return !this.currentRoundHasScores();
   });
 
   async regenerate(): Promise<void> {
@@ -826,6 +829,7 @@ export class TournamentViewComponent implements OnInit {
   async runFinalRound(): Promise<void> {
     if ((!this.admin.isAdmin() && !this.testMode()) || !this.canRunFinal())
       return;
+    if (this.currentRoundHasScores()) return;
     if (
       !(await this.#confirm.ask({
         message: this.i18n.t(

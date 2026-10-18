@@ -618,8 +618,15 @@ export class FreeViewComponent implements OnInit {
     );
   });
 
+  readonly currentRoundHasScores = computed(() =>
+    this.currentMatches().some((m) => {
+      const s = this.scores()[m.id];
+      return (s?.score1 ?? null) !== null || (s?.score2 ?? null) !== null;
+    }),
+  );
+
   async runFinal(): Promise<void> {
-    if (!this.canRunFinal()) return;
+    if (!this.canRunFinal() || this.currentRoundHasScores()) return;
     this.runningFinal.set(true);
     this.error.set("");
     try {
