@@ -22,6 +22,7 @@ import {
   isTeamFormat,
   isTwoPhase,
   isSeatingRound,
+  phaseFormatFor,
   ELO_K,
   PLACEMENT_RATING_PER_PLAYER,
   type KothStats,
@@ -32,6 +33,7 @@ import {
   type TournamentRound,
 } from "../../models/padel.model";
 import {
+  beatTheBoxSeatingBlock,
   completeCurrentRound,
   computeKothStats,
   computeStandings,
@@ -52,11 +54,27 @@ interface MatchScore {
   score2: number | null;
 }
 
+function sameScore(a: MatchScore, b: MatchScore): boolean {
+  return a.score1 === b.score1 && a.score2 === b.score2;
+}
+
 interface LadderCourt {
   courtIndex: number;
   courtName: string;
   isKing: boolean;
   match: TournamentMatch;
+}
+
+interface BoxCourtEntry {
+  roundIndex: number;
+  match: TournamentMatch;
+}
+
+/** One beat-the-box court with all its matches across the displayed block. */
+interface BoxCourt {
+  courtIndex: number;
+  playerIds: Array<string>;
+  entries: Array<BoxCourtEntry>;
 }
 
 @Component({
@@ -136,6 +154,12 @@ export class TournamentViewComponent implements OnInit {
   /** Local score state: matchId → { score1, score2 } */
   readonly scores = signal<Record<string, MatchScore>>({});
 
+  /** Last saved scores seen from the database, used to detect unsaved local edits. */
+  #syncedScores: Record<string, MatchScore> = {};
+
+  /** Court index whose results are being saved. */
+  readonly savingCourt = signal<number | null>(null);
+
   readonly #destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
@@ -169,16 +193,29 @@ export class TournamentViewComponent implements OnInit {
       .subscribe((list) => this.players.set(list));
   }
 
-  /** Pre-populate local scores from saved values for the displayed round. */
+  /**
+   * Pre-populate local scores from saved values for the displayed round(s).
+   * Unsaved local edits survive realtime updates unless that match changed remotely.
+   */
   private syncScores(tournament: Tournament): void {
-    const round = tournament.rounds?.[this.displayRoundIndexOf(tournament)];
-    if (!round?.matches) return;
     const next = { ...this.scores() };
-    for (const match of Object.values(round.matches)) {
-      next[match.id] = {
-        score1: match.score1 ?? null,
-        score2: match.score2 ?? null,
-      };
+    for (const index of this.displayedRoundsOf(tournament)) {
+      const round = tournament.rounds?.[index];
+      for (const match of Object.values(round?.matches ?? {})) {
+        const saved: MatchScore = {
+          score1: match.score1 ?? null,
+          score2: match.score2 ?? null,
+        };
+        const previous = this.#syncedScores[match.id];
+        const local = next[match.id];
+        const remoteChanged = !previous || !sameScore(saved, previous);
+        const hasLocalEdit =
+          !!local && !!previous && !sameScore(local, previous);
+        if (remoteChanged || !hasLocalEdit) {
+          next[match.id] = saved;
+        }
+        this.#syncedScores[match.id] = saved;
+      }
     }
     this.scores.set(next);
   }
@@ -186,6 +223,15 @@ export class TournamentViewComponent implements OnInit {
   private displayRoundIndexOf(tournament: Tournament): number {
     const v = this.viewRound();
     return v ?? tournament.currentRound;
+  }
+
+  /** Rounds shown together: a whole beat-the-box seating block, else one round. */
+  private displayedRoundsOf(tournament: Tournament): Array<number> {
+    const index = this.displayRoundIndexOf(tournament);
+    const block = beatTheBoxSeatingBlock(tournament, index).filter(
+      (i) => tournament.rounds?.[i] != null,
+    );
+    return block.length > 0 ? block : [index];
   }
 
   // ── Format flags ──────────────────────────────────────────────────────────
@@ -241,17 +287,49 @@ export class TournamentViewComponent implements OnInit {
     return this.displayRoundIndexOf(tournament);
   });
 
-  readonly isCurrentRound = computed(() => {
+  readonly displayedRounds = computed<Array<number>>(() => {
     const tournament = this.tournament();
-    return !!tournament && this.displayRound() === tournament.currentRound;
+    return tournament ? this.displayedRoundsOf(tournament) : [];
   });
 
-  readonly hasPrevRound = computed(() => this.displayRound() > 0);
+  readonly #firstDisplayed = computed(
+    () => this.displayedRounds()[0] ?? this.displayRound(),
+  );
+  readonly #lastDisplayed = computed(
+    () =>
+      this.displayedRounds()[this.displayedRounds().length - 1] ??
+      this.displayRound(),
+  );
+
+  /** "3" for a single round, "1–3" for a beat-the-box block. */
+  readonly displayedRoundsLabel = computed(() => {
+    const first = this.#firstDisplayed() + 1;
+    const last = this.#lastDisplayed() + 1;
+    return first === last ? `${first}` : `${first}–${last}`;
+  });
+
+  /** True when the displayed rounds form a beat-the-box seating block. */
+  readonly isBoxBlock = computed(() => {
+    const tournament = this.tournament();
+    return (
+      !!tournament &&
+      beatTheBoxSeatingBlock(tournament, this.displayRound()).length > 0
+    );
+  });
+
+  readonly isCurrentRound = computed(() => {
+    const tournament = this.tournament();
+    return (
+      !!tournament && this.displayedRounds().includes(tournament.currentRound)
+    );
+  });
+
+  readonly hasPrevRound = computed(() => this.#firstDisplayed() > 0);
 
   readonly hasNextRound = computed(() => {
     const tournament = this.tournament();
     if (!tournament) return false;
-    return (tournament.rounds?.[this.displayRound() + 1] ?? null) !== null;
+    return (tournament.rounds?.[this.#lastDisplayed() + 1] ?? null) !== null;
   });
 
   readonly totalGeneratedRounds = computed(() => {
@@ -260,12 +338,12 @@ export class TournamentViewComponent implements OnInit {
   });
 
   prevRound(): void {
-    if (this.hasPrevRound()) this.viewRound.set(this.displayRound() - 1);
+    if (this.hasPrevRound()) this.viewRound.set(this.#firstDisplayed() - 1);
     this.reloadScores();
   }
 
   nextRound(): void {
-    if (this.hasNextRound()) this.viewRound.set(this.displayRound() + 1);
+    if (this.hasNextRound()) this.viewRound.set(this.#lastDisplayed() + 1);
     this.reloadScores();
   }
 
@@ -300,6 +378,111 @@ export class TournamentViewComponent implements OnInit {
     if (!round?.sitOutIds) return [];
     return Object.values(round.sitOutIds);
   });
+
+  /** Every match across the displayed round(s). */
+  readonly #displayedMatches = computed<Array<TournamentMatch>>(() => {
+    const tournament = this.tournament();
+    if (!tournament) return [];
+    return this.displayedRounds().flatMap((index) =>
+      Object.values(tournament.rounds?.[index]?.matches ?? {}),
+    );
+  });
+
+  /** Beat-the-box block matches grouped by court (empty outside a block). */
+  readonly boxCourts = computed<Array<BoxCourt>>(() => {
+    const tournament = this.tournament();
+    if (!tournament || !this.isBoxBlock()) return [];
+    const courts = new Map<number, BoxCourt>();
+    for (const roundIndex of this.displayedRounds()) {
+      const matches = Object.values(tournament.rounds?.[roundIndex]?.matches ?? {});
+      for (const match of matches) {
+        let court = courts.get(match.courtIndex);
+        if (!court) {
+          court = {
+            courtIndex: match.courtIndex,
+            playerIds: [match.a1, match.a2, match.b1, match.b2],
+            entries: [],
+          };
+          courts.set(match.courtIndex, court);
+        }
+        court.entries.push({ roundIndex, match });
+      }
+    }
+    return [...courts.values()].sort((a, b) => a.courtIndex - b.courtIndex);
+  });
+
+  boxScoredCount(court: BoxCourt): number {
+    return court.entries.filter((entry) => {
+      const s = this.getScore(entry.match.id);
+      return s.score1 !== null && s.score2 !== null;
+    }).length;
+  }
+
+  /**
+   * Admins (and test mode) may edit any score. In a beat-the-box block anyone
+   * may enter a result that hasn't been saved yet.
+   */
+  canEditMatch(match: TournamentMatch, roundIndex: number): boolean {
+    if (this.isFinished()) return false;
+    if (this.admin.isAdmin() || this.testMode()) return true;
+    if (!this.isBoxBlock()) return false;
+    if (this.tournament()?.rounds?.[roundIndex]?.completed) return false;
+    return match.score1 == null && match.score2 == null;
+  }
+
+  canEditCourt(court: BoxCourt): boolean {
+    return court.entries.some((e) => this.canEditMatch(e.match, e.roundIndex));
+  }
+
+  /** Editable entries with a complete local score that differs from the saved one. */
+  private pendingEntries(court: BoxCourt): Array<BoxCourtEntry> {
+    return court.entries.filter(({ match, roundIndex }) => {
+      if (!this.canEditMatch(match, roundIndex)) return false;
+      const s = this.getScore(match.id);
+      if (s.score1 === null || s.score2 === null) return false;
+      return s.score1 !== (match.score1 ?? null) || s.score2 !== (match.score2 ?? null);
+    });
+  }
+
+  canSaveCourt(court: BoxCourt): boolean {
+    const pending = this.pendingEntries(court);
+    return (
+      pending.length > 0 &&
+      pending.every((e) => !this.scoreError(e.match.id, e.roundIndex))
+    );
+  }
+
+  async saveCourt(court: BoxCourt): Promise<void> {
+    if (!this.canSaveCourt(court)) return;
+    const privileged = this.admin.isAdmin() || this.testMode();
+    this.savingCourt.set(court.courtIndex);
+    this.error.set("");
+    try {
+      for (const { match, roundIndex } of this.pendingEntries(court)) {
+        if (privileged) {
+          await this.saveScore(match.id, roundIndex);
+          continue;
+        }
+        const s = this.getScore(match.id);
+        if (s.score1 === null || s.score2 === null) continue;
+        await this.#service.submitMatchScore(
+          this.tournamentId(),
+          roundIndex,
+          match.id,
+          s.score1,
+          s.score2,
+        );
+      }
+    } catch (error) {
+      this.error.set(
+        error instanceof Error
+          ? this.i18n.t(error.message)
+          : this.i18n.t("common.saveError"),
+      );
+    } finally {
+      this.savingCourt.set(null);
+    }
+  }
 
   courtName(index: number): string {
     return (
@@ -547,9 +730,8 @@ export class TournamentViewComponent implements OnInit {
   }
 
   /** Write the currently entered score for a match into the sandbox round. */
-  private applySandboxScore(matchId: string): void {
+  private applySandboxScore(matchId: string, roundIndex: number): void {
     const s = this.getScore(matchId);
-    const roundIndex = this.displayRound();
     this.updateSandbox((t) => {
       const round = t.rounds?.[roundIndex];
       const match = round?.matches?.[matchId];
@@ -604,27 +786,43 @@ export class TournamentViewComponent implements OnInit {
     });
   }
 
-  readonly allScoresEntered = computed(() => {
-    const matches = this.currentMatches();
-    if (matches.length === 0) return false;
-    return matches.every((m) => {
-      const s = this.scores()[m.id];
-      return s?.score1 !== null && s?.score2 !== null && s !== undefined;
-    });
+  /**
+   * Uncompleted displayed rounds, from the current one onwards, that can be
+   * completed in order because all their scores are entered.
+   */
+  readonly #completableRounds = computed<Array<number>>(() => {
+    const tournament = this.tournament();
+    if (!tournament) return [];
+    const result: Array<number> = [];
+    for (const index of this.displayedRounds()) {
+      if (index < tournament.currentRound) continue;
+      const matches = Object.values(tournament.rounds?.[index]?.matches ?? {});
+      const entered =
+        matches.length > 0 &&
+        matches.every((m) => {
+          const s = this.scores()[m.id];
+          return s !== undefined && s.score1 !== null && s.score2 !== null;
+        });
+      if (!entered) break;
+      result.push(index);
+    }
+    return result;
   });
+
+  readonly canComplete = computed(() => this.#completableRounds().length > 0);
 
   /** Warn if editing a completed round that later rounds were based on. */
   readonly editWarning = computed(() => {
     const tournament = this.tournament();
     if (!tournament || !this.isDynamic()) return "";
     const round = this.currentRound();
-    if (round?.completed && this.displayRound() < tournament.currentRound) {
+    if (round?.completed && this.#lastDisplayed() < tournament.currentRound) {
       return this.i18n.t("view.editWarn");
     }
     return "";
   });
 
-  scoreError(matchId: string): string {
+  scoreError(matchId: string, roundIndex: number = this.displayRound()): string {
     const tournament = this.tournament();
     if (!tournament) return "";
     const s = this.getScore(matchId);
@@ -633,14 +831,17 @@ export class TournamentViewComponent implements OnInit {
       s.score1,
       s.score2,
       tournament.scoring,
-      tournament.format,
+      phaseFormatFor(tournament, roundIndex),
     );
     return v.valid
       ? ""
       : this.i18n.t(v.reason ?? "err.invalidScore", v.reasonParams);
   }
 
-  async saveScore(matchId: string): Promise<void> {
+  async saveScore(
+    matchId: string,
+    roundIndex: number = this.displayRound(),
+  ): Promise<void> {
     if (!this.admin.isAdmin() && !this.testMode()) return;
     const s = this.getScore(matchId);
     if (s.score1 === null || s.score2 === null) return;
@@ -650,7 +851,7 @@ export class TournamentViewComponent implements OnInit {
         s.score1,
         s.score2,
         tournament.scoring,
-        tournament.format,
+        phaseFormatFor(tournament, roundIndex),
       );
       if (!v.valid) {
         this.error.set(
@@ -661,13 +862,13 @@ export class TournamentViewComponent implements OnInit {
     }
     this.error.set("");
     if (this.testMode()) {
-      this.applySandboxScore(matchId);
+      this.applySandboxScore(matchId, roundIndex);
       return;
     }
     try {
       await this.#service.saveMatchScore(
         this.tournamentId(),
-        this.displayRound(),
+        roundIndex,
         matchId,
         s.score1,
         s.score2,
@@ -681,20 +882,23 @@ export class TournamentViewComponent implements OnInit {
     }
   }
 
-  async resetScore(matchId: string): Promise<void> {
+  async resetScore(
+    matchId: string,
+    roundIndex: number = this.displayRound(),
+  ): Promise<void> {
     if (!this.admin.isAdmin() && !this.testMode()) return;
     this.scores.set({
       ...this.scores(),
       [matchId]: { score1: null, score2: null },
     });
     if (this.testMode()) {
-      this.applySandboxScore(matchId);
+      this.applySandboxScore(matchId, roundIndex);
       return;
     }
     try {
       await this.#service.resetMatchScore(
         this.tournamentId(),
-        this.displayRound(),
+        roundIndex,
         matchId,
       );
     } catch (error) {
@@ -710,14 +914,19 @@ export class TournamentViewComponent implements OnInit {
 
   async completeRound(): Promise<void> {
     if (!this.admin.isAdmin() && !this.testMode()) return;
-    if (!this.allScoresEntered()) return;
+    const roundIndices = this.#completableRounds();
+    if (roundIndices.length === 0) return;
+    const matchesOf = (index: number): Array<TournamentMatch> =>
+      Object.values(this.tournament()?.rounds?.[index]?.matches ?? {});
     this.completing.set(true);
     this.error.set("");
     if (this.testMode()) {
       try {
-        for (const match of this.currentMatches())
-          this.applySandboxScore(match.id);
-        this.updateSandbox((t) => completeCurrentRound(t));
+        for (const index of roundIndices) {
+          for (const match of matchesOf(index))
+            this.applySandboxScore(match.id, index);
+          this.updateSandbox((t) => completeCurrentRound(t));
+        }
         this.scores.set({});
         this.viewRound.set(null);
         this.reloadScores();
@@ -732,11 +941,13 @@ export class TournamentViewComponent implements OnInit {
       }
       return;
     }
-    for (const match of this.currentMatches()) {
-      await this.saveScore(match.id);
-    }
     try {
-      await this.#service.completeRound(this.tournamentId());
+      for (const index of roundIndices) {
+        for (const match of matchesOf(index)) {
+          await this.saveScore(match.id, index);
+        }
+        await this.#service.completeRound(this.tournamentId());
+      }
       this.scores.set({});
       this.viewRound.set(null);
     } catch (error) {
@@ -751,7 +962,7 @@ export class TournamentViewComponent implements OnInit {
   }
 
   readonly currentRoundHasScores = computed(() =>
-    this.currentMatches().some((m) => {
+    this.#displayedMatches().some((m) => {
       const s = this.scores()[m.id];
       return (s?.score1 ?? null) !== null || (s?.score2 ?? null) !== null;
     }),

@@ -309,6 +309,54 @@
   font-weight: 500;
 }
 
+/* ─── Beat the Box seating block (collapsible per court) ───────────────────── */
+.box-courts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.box-court {
+  padding: 0.75rem 1rem;
+
+  &[open] > .box-court-head {
+    margin-bottom: 0.75rem;
+
+    &::before { transform: rotate(90deg); }
+  }
+}
+
+.box-court-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  cursor: pointer;
+  list-style: none;
+
+  &::-webkit-details-marker { display: none; }
+
+  &::before {
+    content: "▸";
+    transition: transform 0.2s ease;
+  }
+
+  .badge { margin-left: auto; }
+}
+
+.box-court-name { font-weight: 700; }
+
+.box-court-save {
+  display: block;
+  margin: 0.75rem 0 0 auto;
+}
+
+.box-court-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+}
+
 /* Standings shrink further on small phones (base table is global). */
 @media (max-width: 400px) {
   .standings { font-size: 0.78rem; }

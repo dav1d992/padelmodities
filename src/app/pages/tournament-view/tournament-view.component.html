@@ -124,7 +124,7 @@
             ←
           </button>
           <span class="round-nav-label">
-            {{ i18n.t("view.round") }} {{ displayRound() + 1 }}
+            {{ i18n.t("view.round") }} {{ displayedRoundsLabel() }}
           </span>
           <button
             class="btn-icon"
@@ -227,20 +227,106 @@
         <!-- Standard matches grouped by court -->
         <section class="section">
           <h2 class="section-title">
-            {{ i18n.t("view.roundTitle", { n: displayRound() + 1 }) }}
+            {{ i18n.t("view.roundTitle", { n: displayedRoundsLabel() }) }}
             @if (isFinalRound()) {
               <span class="badge badge-gold">{{
                 i18n.t("view.finalBadge")
               }}</span>
             }
           </h2>
-          <div class="matches">
-            @for (match of currentMatches(); track match.id) {
+          @if (isBoxBlock()) {
+            <!-- Beat the Box seating: every box match of the block, per court -->
+            <div class="box-courts">
+              @for (court of boxCourts(); track court.courtIndex) {
+                <details class="box-court glass" open>
+                  <summary class="box-court-head">
+                    <span class="box-court-name">{{
+                      courtName(court.courtIndex)
+                    }}</span>
+                    <span class="box-court-players muted small">
+                      @for (id of court.playerIds; track id) {
+                        <span>{{ playerName(id) }}</span>
+                      }
+                    </span>
+                    <span
+                      class="badge"
+                      [class.badge-green]="
+                        boxScoredCount(court) === court.entries.length
+                      "
+                      [class.badge-muted]="
+                        boxScoredCount(court) !== court.entries.length
+                      "
+                    >
+                      {{
+                        i18n.t("view.boxScored", {
+                          n: boxScoredCount(court),
+                          total: court.entries.length,
+                        })
+                      }}
+                    </span>
+                  </summary>
+                  <div class="matches">
+                    @for (entry of court.entries; track entry.match.id) {
+                      <ng-container
+                        *ngTemplateOutlet="
+                          matchCard;
+                          context: {
+                            $implicit: entry.match,
+                            roundIndex: entry.roundIndex,
+                            label: i18n.t('view.roundTitle', {
+                              n: entry.roundIndex + 1,
+                            }),
+                          }
+                        "
+                      />
+                    }
+                  </div>
+                  @if (canEditCourt(court)) {
+                    <button
+                      class="btn btn-primary box-court-save"
+                      [disabled]="
+                        !canSaveCourt(court) ||
+                        savingCourt() === court.courtIndex
+                      "
+                      (click)="saveCourt(court)"
+                    >
+                      {{
+                        savingCourt() === court.courtIndex
+                          ? i18n.t("common.saving")
+                          : i18n.t("common.save")
+                      }}
+                    </button>
+                  }
+                </details>
+              }
+            </div>
+          } @else {
+            <div class="matches">
+              @for (match of currentMatches(); track match.id) {
+                <ng-container
+                  *ngTemplateOutlet="
+                    matchCard;
+                    context: {
+                      $implicit: match,
+                      roundIndex: displayRound(),
+                      label: courtName(match.courtIndex),
+                    }
+                  "
+                />
+              }
+            </div>
+          }
+        </section>
+
+        <ng-template
+          #matchCard
+          let-match
+          let-roundIndex="roundIndex"
+          let-label="label"
+        >
               <div class="match-card glass">
                 <div class="court-label-row">
-                  <span class="court-label muted small">{{
-                    courtName(match.courtIndex)
-                  }}</span>
+                  <span class="court-label muted small">{{ label }}</span>
                   @if (isMurder(match)) {
                     <span class="murder-tag"
                       >💀 {{ i18n.t("view.murder") }}</span
@@ -304,9 +390,7 @@
                       <input
                         type="number"
                         class="score-input"
-                        [disabled]="
-                          isFinished() || (!admin.isAdmin() && !testMode())
-                        "
+                        [disabled]="!canEditMatch(match, roundIndex)"
                         [value]="getScore(match.id).score1 ?? ''"
                         (input)="
                           setScore(
@@ -315,7 +399,7 @@
                             $any($event.target).value
                           )
                         "
-                        (change)="saveScore(match.id)"
+                        (change)="saveScore(match.id, roundIndex)"
                       />
                     </span>
                     <span class="vs">VS</span>
@@ -326,9 +410,7 @@
                       <input
                         type="number"
                         class="score-input"
-                        [disabled]="
-                          isFinished() || (!admin.isAdmin() && !testMode())
-                        "
+                        [disabled]="!canEditMatch(match, roundIndex)"
                         [value]="getScore(match.id).score2 ?? ''"
                         (input)="
                           setScore(
@@ -337,7 +419,7 @@
                             $any($event.target).value
                           )
                         "
-                        (change)="saveScore(match.id)"
+                        (change)="saveScore(match.id, roundIndex)"
                       />
                     </span>
                   </div>
@@ -389,8 +471,8 @@
                     </div>
                   </div>
                 </div>
-                @if (scoreError(match.id)) {
-                  <p class="warn small">{{ scoreError(match.id) }}</p>
+                @if (scoreError(match.id, roundIndex)) {
+                  <p class="warn small">{{ scoreError(match.id, roundIndex) }}</p>
                 }
                 @if (
                   (admin.isAdmin() || testMode()) &&
@@ -400,15 +482,13 @@
                 ) {
                   <button
                     class="link-btn reset-btn"
-                    (click)="resetScore(match.id)"
+                    (click)="resetScore(match.id, roundIndex)"
                   >
                     {{ i18n.t("view.resetResult") }}
                   </button>
                 }
               </div>
-            }
-          </div>
-        </section>
+        </ng-template>
       }
 
       <!-- Sit-outs -->
@@ -435,7 +515,7 @@
 
         <button
           class="btn btn-primary big"
-          [disabled]="!allScoresEntered() || completing()"
+          [disabled]="!canComplete() || completing()"
           (click)="completeRound()"
         >
           {{
@@ -444,7 +524,7 @@
               : i18n.t("view.completeRound")
           }}
         </button>
-        @if (!allScoresEntered()) {
+        @if (!canComplete()) {
           <p class="hint muted small">{{ i18n.t("view.enterAll") }}</p>
         }
 

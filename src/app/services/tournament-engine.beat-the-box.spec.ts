@@ -3,6 +3,7 @@ import {
   completeCurrentRound,
   generateBeatTheBoxInitialRound,
   generateBeatTheBoxNextRound,
+  generateInitialRounds,
   validateScore,
 } from "./tournament-engine";
 
@@ -177,6 +178,36 @@ describe("Beat the Box", () => {
     expect(active).toHaveSize(8);
     expect(Object.values(next.sitOutIds ?? {})).toHaveSize(2);
     expect(active).toContain("p8");
+  });
+
+  it("builds all three box rounds up front as a seating phase and keeps their scores", () => {
+    const seating: Tournament = {
+      ...makeTournament(8, 5),
+      format: "mexicano",
+      seatingFormat: "beat-the-box",
+      seatingRounds: 3,
+    };
+    const { rounds } = generateInitialRounds(seating);
+    expect(Object.keys(rounds)).toEqual(["0", "1", "2"]);
+
+    const scored = Object.fromEntries(
+      Object.entries(rounds).map(([key, round]) => [
+        key,
+        { ...scoreRound(round, { 0: [16, 8], 1: [8, 16] }), completed: false },
+      ]),
+    );
+    let t: Tournament = { ...seating, rounds: scored };
+    t = completeCurrentRound(t);
+    t = completeCurrentRound(t);
+
+    expect(t.currentRound).toBe(2);
+    const kept = Object.values(t.rounds?.["2"]?.matches ?? {});
+    expect(kept.every((m) => m.score1 != null && m.score2 != null)).toBe(true);
+
+    t = completeCurrentRound(t);
+    expect(t.currentRound).toBe(3);
+    expect(t.rounds?.["3"]).toBeDefined();
+    expect(t.rounds?.["4"]).toBeUndefined();
   });
 
   it("allows tied scores because placement uses total points", () => {

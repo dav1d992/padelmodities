@@ -7,6 +7,7 @@ import {
   get,
   remove,
   onValue,
+  runTransaction,
 } from "firebase/database";
 import { Observable, shareReplay } from "rxjs";
 import { FIREBASE_DB } from "../core/firebase";
@@ -29,6 +30,8 @@ import {
   type TournamentTeam,
 } from "../models/padel.model";
 import {
+  beatTheBoxSeatingBlock,
+  buildDynamicRounds,
   computeStandings,
   generateBeatTheBoxInitialRound,
   generateBeatTheBoxNextRound,
@@ -457,6 +460,32 @@ export class PadelService {
     await this.refreshPointsTable(tournamentId);
   }
 
+  /** Save a score only if the match has none yet (non-admins can't overwrite). */
+  async submitMatchScore(
+    tournamentId: string,
+    roundIndex: number,
+    matchId: string,
+    score1: number,
+    score2: number,
+  ): Promise<void> {
+    const result = await withTimeout(
+      runTransaction(
+        ref(
+          this.#db,
+          `tournaments/${tournamentId}/rounds/${roundIndex}/matches/${matchId}`,
+        ),
+        (match: TournamentMatch | null) => {
+          // A null first pass is a cold cache; returning it lets the server retry.
+          if (match === null) return match;
+          if (match.score1 != null || match.score2 != null) return undefined;
+          return { ...match, score1, score2 };
+        },
+      ),
+    );
+    if (!result.committed) throw new Error("err.scoreAlreadySaved");
+    await this.refreshPointsTable(tournamentId);
+  }
+
   /** Clear a match score. */
   async resetMatchScore(
     tournamentId: string,
@@ -485,8 +514,12 @@ export class PadelService {
     }
     const round = tournament.rounds?.[roundIndex];
     if (round?.completed) throw new Error("err.roundDone");
-    const anyScore = Object.values(round?.matches ?? {}).some(
-      (m) => m.score1 !== undefined || m.score2 !== undefined,
+    const block = beatTheBoxSeatingBlock(tournament, roundIndex);
+    const isBlockStart = block[0] === roundIndex;
+    const anyScore = (isBlockStart ? block : [roundIndex]).some((index) =>
+      Object.values(tournament.rounds?.[index]?.matches ?? {}).some(
+        (m) => m.score1 !== undefined || m.score2 !== undefined,
+      ),
     );
     if (anyScore) {
       throw new Error("err.regenScores");
@@ -495,6 +528,16 @@ export class PadelService {
     const prior = this.sortedRounds(tournament).filter(
       (r) => r.index < roundIndex,
     );
+
+    if (isBlockStart) {
+      await withTimeout(
+        update(
+          ref(this.#db, `tournaments/${tournamentId}/rounds`),
+          buildDynamicRounds(tournament, roundIndex, prior),
+        ),
+      );
+      return;
+    }
 
     let newRound: TournamentRound;
     if (fmt === "king-of-the-hill") {
@@ -644,12 +687,16 @@ export class PadelService {
       await this.applyPlacementRatings(completedTournament);
     }
 
-    // Generate the next dynamic round if needed.
-    if (!isLast && !nextIsStatic) {
-      let newRound: TournamentRound;
+    // Generate the next dynamic round if needed (a box block may already hold it).
+    const nextPrebuilt =
+      !!precomputedNext &&
+      beatTheBoxSeatingBlock(tournament, roundIndex).includes(nextRound);
+    if (!isLast && !nextIsStatic && !nextPrebuilt) {
+      let newRounds: Record<string, TournamentRound>;
       if (nextFmt === "king-of-the-hill") {
         const phaseStart = phaseStartIndex(completedTournament, nextRound);
         const priorAll = this.sortedRounds(completedTournament);
+        let newRound: TournamentRound;
         if (nextRound === phaseStart) {
           newRound = generateKothInitialRound(
             Object.values(tournament.playerIds ?? {}),
@@ -668,19 +715,27 @@ export class PadelService {
             Object.values(tournament.playerIds ?? {}),
           );
         }
-      } else {
-        const prior = this.sortedRounds(completedTournament);
-        newRound = this.buildDynamicRound(
+        newRounds = { [nextRound]: newRound };
+      } else if (
+        beatTheBoxSeatingBlock(completedTournament, nextRound)[0] === nextRound
+      ) {
+        newRounds = buildDynamicRounds(
           completedTournament,
           nextRound,
-          prior,
+          this.sortedRounds(completedTournament),
         );
+      } else {
+        const prior = this.sortedRounds(completedTournament);
+        newRounds = {
+          [nextRound]: this.buildDynamicRound(
+            completedTournament,
+            nextRound,
+            prior,
+          ),
+        };
       }
       await withTimeout(
-        set(
-          ref(this.#db, `tournaments/${tournamentId}/rounds/${nextRound}`),
-          newRound,
-        ),
+        update(ref(this.#db, `tournaments/${tournamentId}/rounds`), newRounds),
       );
     }
 

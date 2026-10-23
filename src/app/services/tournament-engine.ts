@@ -8,6 +8,7 @@
 import {
   isDynamicFormat,
   isTeamFormat,
+  isSeatingRound,
   isTwoPhase,
   phaseFormatFor,
   phaseStartIndex,
@@ -907,6 +908,22 @@ export function generateBeatTheBoxNextRound(
   return buildBeatTheBoxRound(boxes, roundIndex, sitters);
 }
 
+/**
+ * Round indices sharing one set of boxes with `roundIndex` when it is a
+ * beat-the-box seating round (the seating phase starts at 0); empty otherwise.
+ */
+export function beatTheBoxSeatingBlock(
+  t: { seatingFormat?: TournamentFormat; seatingRounds?: number },
+  roundIndex: number,
+): Array<number> {
+  if (t.seatingFormat !== "beat-the-box" || !isSeatingRound(t, roundIndex)) {
+    return [];
+  }
+  const start = roundIndex - (roundIndex % 3);
+  const end = Math.min(start + 3, t.seatingRounds ?? 0);
+  return Array.from({ length: end - start }, (_, i) => start + i);
+}
+
 // ── King of the Hill ─────────────────────────────────────────────────────────
 
 /** Court occupancy: two pairs per court. */
@@ -1515,6 +1532,27 @@ export function buildDynamicRound(
   );
 }
 
+/**
+ * Build the dynamic round at `roundIndex`. At the start of a beat-the-box
+ * seating block the rest of the block is built too, since its boxes are fixed.
+ */
+export function buildDynamicRounds(
+  t: Tournament,
+  roundIndex: number,
+  priorRounds: Array<TournamentRound>,
+): Record<string, TournamentRound> {
+  const block = beatTheBoxSeatingBlock(t, roundIndex);
+  const indices = block[0] === roundIndex ? block : [roundIndex];
+  const prior = [...priorRounds];
+  const rounds: Record<string, TournamentRound> = {};
+  for (const index of indices) {
+    const round = buildDynamicRound(t, index, prior);
+    rounds[String(index)] = round;
+    prior.push(round);
+  }
+  return rounds;
+}
+
 export interface InitialRoundsResult {
   rounds: Record<string, TournamentRound>;
   /** May differ from the input for round-robin team-americano schedules. */
@@ -1568,8 +1606,8 @@ function phaseOpeningRounds(
     };
     return { rounds, count: phaseRounds };
   }
-  // beat-the-box + mexicano-family: only the first round up front.
-  rounds[String(startIndex)] = buildDynamicRound(t, startIndex, []);
+  // beat-the-box + mexicano-family: only the first round (or box block) up front.
+  Object.assign(rounds, buildDynamicRounds(t, startIndex, []));
   return { rounds, count: phaseRounds };
 }
 
@@ -1645,12 +1683,25 @@ export function regenerateCurrentRound(t: Tournament): Tournament {
   if (!isDynamicFormat(fmt)) throw new Error("err.dynamicOnly");
   const round = t.rounds?.[roundIndex];
   if (round?.completed) throw new Error("err.roundDone");
-  const anyScore = Object.values(round?.matches ?? {}).some(
-    (m) => m.score1 !== undefined || m.score2 !== undefined,
+  const block = beatTheBoxSeatingBlock(t, roundIndex);
+  const isBlockStart = block[0] === roundIndex;
+  const anyScore = (isBlockStart ? block : [roundIndex]).some((index) =>
+    Object.values(t.rounds?.[index]?.matches ?? {}).some(
+      (m) => m.score1 !== undefined || m.score2 !== undefined,
+    ),
   );
   if (anyScore) throw new Error("err.regenScores");
 
   const prior = sortedRoundsOf(t).filter((r) => r.index < roundIndex);
+  if (isBlockStart) {
+    return {
+      ...t,
+      rounds: {
+        ...(t.rounds ?? {}),
+        ...buildDynamicRounds(t, roundIndex, prior),
+      },
+    };
+  }
   let newRound: TournamentRound;
   if (fmt === "king-of-the-hill") {
     const phaseStart = phaseStartIndex(t, roundIndex);
@@ -1761,10 +1812,14 @@ export function completeCurrentRound(t: Tournament): Tournament {
     result = { ...result, currentRound: nextRound };
   }
 
-  if (!isLast && !nextIsStatic) {
-    let newRound: TournamentRound;
+  const nextPrebuilt =
+    !!precomputedNext &&
+    beatTheBoxSeatingBlock(t, roundIndex).includes(nextRound);
+  if (!isLast && !nextIsStatic && !nextPrebuilt) {
+    let newRounds: Record<string, TournamentRound>;
     if (nextFmt === "king-of-the-hill") {
       const phaseStart = phaseStartIndex(result, nextRound);
+      let newRound: TournamentRound;
       if (nextRound === phaseStart) {
         newRound = generateKothInitialRound(
           Object.values(t.playerIds ?? {}),
@@ -1783,13 +1838,14 @@ export function completeCurrentRound(t: Tournament): Tournament {
           Object.values(t.playerIds ?? {}),
         );
       }
+      newRounds = { [nextRound]: newRound };
     } else {
       const prior = sortedRoundsOf(result);
-      newRound = buildDynamicRound(result, nextRound, prior);
+      newRounds = buildDynamicRounds(result, nextRound, prior);
     }
     result = {
       ...result,
-      rounds: { ...result.rounds, [nextRound]: newRound },
+      rounds: { ...result.rounds, ...newRounds },
     };
   }
 
