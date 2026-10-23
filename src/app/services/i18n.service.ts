@@ -174,7 +174,7 @@ const DA: Dict = {
   // Skill badges
   "achievement.precisionMachine.name": "Præcisionsmaskinen",
   "achievement.precisionMachine.desc":
-    "Høj kontrol. Rammer et frimærke fra baglinjen.",
+    "Kontrol på 9 eller derover. Rammer et frimærke fra baglinjen.",
   "achievement.surgeon.name": "Kirurgen",
   "achievement.surgeon.desc":
     "Høj kontrol og høj strategi. Skærer modstanderne op med kirurgisk præcision og en plan.",
@@ -243,16 +243,13 @@ const DA: Dict = {
     "Høj styrke og høj udholdenhed. Kører dig over — og bliver ved hele dagen.",
   "achievement.rookie.name": "Nybegynder",
   "achievement.rookie.desc":
-    "Alle færdigheder helt i bunden. Alle starter et sted. Det her er stedet.",
+    "Lav kontrol og strategi. Alle starter et sted. Det her er stedet.",
   "achievement.allRounder.name": "Allrounder",
   "achievement.allRounder.desc":
     "Alle færdigheder højt oppe. God til alt, uden svage punkter.",
   "achievement.average.name": "Den Balancerede",
   "achievement.average.desc":
     "Alle færdigheder i midten. Lige god og dårlig all-around.",
-  "achievement.perfectionist.name": "Perfektionist",
-  "achievement.perfectionist.desc":
-    "En færdighed helt i top. Lærebogsperfekt til noget.",
 
   // Tournament setup
   "setup.title": "Ny turnering",
@@ -743,7 +740,7 @@ const EN: Dict = {
   // Skill badges
   "achievement.precisionMachine.name": "Precision Machine",
   "achievement.precisionMachine.desc":
-    "High control. Can hit a postage stamp from the baseline.",
+    "Control of 9 or higher. Can hit a postage stamp from the baseline.",
   "achievement.surgeon.name": "The Surgeon",
   "achievement.surgeon.desc":
     "High control and high strategy. Carves opponents open with surgical precision and a plan.",
@@ -812,16 +809,13 @@ const EN: Dict = {
     "High power and high stamina. Rolls over you — and keeps it up all day.",
   "achievement.rookie.name": "Rookie",
   "achievement.rookie.desc":
-    "Every skill at rock bottom. Everyone starts somewhere. This is that somewhere.",
+    "Low control and strategy. Everyone starts somewhere. This is that somewhere.",
   "achievement.allRounder.name": "All-Rounder",
   "achievement.allRounder.desc":
     "Every skill up high. Good at everything, no weak spots.",
   "achievement.average.name": "Perfectly Balanced",
   "achievement.average.desc":
     "Every skill right in the middle. Equally good and bad all-around.",
-  "achievement.perfectionist.name": "Perfectionist",
-  "achievement.perfectionist.desc":
-    "A skill maxed to the very top. Textbook perfect at something.",
 
   // Tournament setup
   "setup.title": "New tournament",

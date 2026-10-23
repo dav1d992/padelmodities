@@ -64,8 +64,7 @@ export type BadgeId =
   | "tank"
   | "rookie"
   | "allRounder"
-  | "average"
-  | "perfectionist";
+  | "average";
 
 export interface BadgeDef {
   readonly id: BadgeId;
@@ -136,11 +135,11 @@ export const SKILL_BADGES: ReadonlyArray<BadgeDef> = [
   { id: "rookie", icon: "🌱" },
   { id: "allRounder", icon: "🔷" },
   { id: "average", icon: "⚖️" },
-  { id: "perfectionist", icon: "💯" },
 ];
 
 const SKILL_LOW = 3;
 const SKILL_HIGH = 8;
+const PRECISION_CONTROL = 9;
 
 /** Skill badges earned from a player's current skillset (low ≤ 3, high ≥ 8). */
 export function computeSkillBadges(skillset: Skillset): ReadonlySet<BadgeId> {
@@ -153,7 +152,7 @@ export function computeSkillBadges(skillset: Skillset): ReadonlySet<BadgeId> {
     if (condition) earned.add(id);
   };
 
-  add("precisionMachine", hi(control));
+  add("precisionMachine", control >= PRECISION_CONTROL);
   add("surgeon", hi(control) && hi(strategy));
   add("metronome", hi(control) && hi(stamina));
   add("vibora", hi(control) && hi(power));
@@ -176,10 +175,9 @@ export function computeSkillBadges(skillset: Skillset): ReadonlySet<BadgeId> {
   add("couchPotato", lo(power) && lo(stamina));
   add("duracell", hi(stamina) && hi(agility));
   add("tank", hi(power) && hi(stamina));
-  add("rookie", values.every((v) => v <= SKILL_LOW));
+  add("rookie", lo(control) && lo(strategy));
   add("allRounder", values.every((v) => v >= 7));
   add("average", values.every((v) => v >= 4 && v <= 6));
-  add("perfectionist", values.some((v) => v === 10));
 
   return earned;
 }

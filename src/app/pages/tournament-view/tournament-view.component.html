@@ -399,7 +399,7 @@
                             $any($event.target).value
                           )
                         "
-                        (change)="saveScore(match.id, roundIndex)"
+                        (change)="onScoreChange(match.id, roundIndex)"
                       />
                     </span>
                     <span class="vs">VS</span>
@@ -419,7 +419,7 @@
                             $any($event.target).value
                           )
                         "
-                        (change)="saveScore(match.id, roundIndex)"
+                        (change)="onScoreChange(match.id, roundIndex)"
                       />
                     </span>
                   </div>

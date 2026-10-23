@@ -12,7 +12,7 @@ import {
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
-import { PadelService } from "../../services/padel.service";
+import { PadelService, type CourtScore } from "../../services/padel.service";
 import { AdminService } from "../../services/admin.service";
 import { I18nService } from "../../services/i18n.service";
 import { ThemeService } from "../../services/theme.service";
@@ -454,25 +454,29 @@ export class TournamentViewComponent implements OnInit {
 
   async saveCourt(court: BoxCourt): Promise<void> {
     if (!this.canSaveCourt(court)) return;
-    const privileged = this.admin.isAdmin() || this.testMode();
-    this.savingCourt.set(court.courtIndex);
+    const courtScores: Array<CourtScore> = [];
+    for (const { match, roundIndex } of this.pendingEntries(court)) {
+      const s = this.getScore(match.id);
+      if (s.score1 === null || s.score2 === null) continue;
+      courtScores.push({
+        roundIndex,
+        matchId: match.id,
+        score1: s.score1,
+        score2: s.score2,
+      });
+    }
     this.error.set("");
+    if (this.testMode()) {
+      for (const s of courtScores) this.applySandboxScore(s.matchId, s.roundIndex);
+      return;
+    }
+    this.savingCourt.set(court.courtIndex);
     try {
-      for (const { match, roundIndex } of this.pendingEntries(court)) {
-        if (privileged) {
-          await this.saveScore(match.id, roundIndex);
-          continue;
-        }
-        const s = this.getScore(match.id);
-        if (s.score1 === null || s.score2 === null) continue;
-        await this.#service.submitMatchScore(
-          this.tournamentId(),
-          roundIndex,
-          match.id,
-          s.score1,
-          s.score2,
-        );
-      }
+      await this.#service.saveCourtScores(
+        this.tournamentId(),
+        courtScores,
+        this.admin.isAdmin(),
+      );
     } catch (error) {
       this.error.set(
         error instanceof Error
@@ -482,6 +486,11 @@ export class TournamentViewComponent implements OnInit {
     } finally {
       this.savingCourt.set(null);
     }
+  }
+
+  /** Box courts are saved explicitly per court; other views save on change. */
+  onScoreChange(matchId: string, roundIndex: number): void {
+    if (!this.isBoxBlock()) void this.saveScore(matchId, roundIndex);
   }
 
   courtName(index: number): string {

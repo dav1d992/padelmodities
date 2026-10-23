@@ -7,7 +7,6 @@ import {
   get,
   remove,
   onValue,
-  runTransaction,
 } from "firebase/database";
 import { Observable, shareReplay } from "rxjs";
 import { FIREBASE_DB } from "../core/firebase";
@@ -48,6 +47,14 @@ import {
   standingsOrder,
   validateScore,
 } from "./tournament-engine";
+
+/** One match result within a court save. */
+export interface CourtScore {
+  roundIndex: number;
+  matchId: string;
+  score1: number;
+  score2: number;
+}
 
 /** Everything needed to create or update a tournament (draft or active). */
 export interface CreateTournamentInput {
@@ -460,30 +467,36 @@ export class PadelService {
     await this.refreshPointsTable(tournamentId);
   }
 
-  /** Save a score only if the match has none yet (non-admins can't overwrite). */
-  async submitMatchScore(
+  /**
+   * Save one court's results in a single write touching only those matches'
+   * scores. Without `overwrite`, already-saved results are rejected.
+   */
+  async saveCourtScores(
     tournamentId: string,
-    roundIndex: number,
-    matchId: string,
-    score1: number,
-    score2: number,
+    scores: ReadonlyArray<CourtScore>,
+    overwrite: boolean,
   ): Promise<void> {
-    const result = await withTimeout(
-      runTransaction(
-        ref(
-          this.#db,
-          `tournaments/${tournamentId}/rounds/${roundIndex}/matches/${matchId}`,
+    const roundsPath = `tournaments/${tournamentId}/rounds`;
+    const matchPath = (s: CourtScore): string =>
+      `${s.roundIndex}/matches/${s.matchId}`;
+    if (!overwrite) {
+      const snaps = await withTimeout(
+        Promise.all(
+          scores.map((s) => get(ref(this.#db, `${roundsPath}/${matchPath(s)}`))),
         ),
-        (match: TournamentMatch | null) => {
-          // A null first pass is a cold cache; returning it lets the server retry.
-          if (match === null) return match;
-          if (match.score1 != null || match.score2 != null) return undefined;
-          return { ...match, score1, score2 };
-        },
-      ),
-    );
-    if (!result.committed) throw new Error("err.scoreAlreadySaved");
-    await this.refreshPointsTable(tournamentId);
+      );
+      const alreadySaved = snaps.some((snap) => {
+        const match = snap.val() as TournamentMatch | null;
+        return match?.score1 != null || match?.score2 != null;
+      });
+      if (alreadySaved) throw new Error("err.scoreAlreadySaved");
+    }
+    const updates: Record<string, number> = {};
+    for (const s of scores) {
+      updates[`${matchPath(s)}/score1`] = s.score1;
+      updates[`${matchPath(s)}/score2`] = s.score2;
+    }
+    await withTimeout(update(ref(this.#db, roundsPath), updates));
   }
 
   /** Clear a match score. */
