@@ -521,23 +521,36 @@ export class TournamentViewComponent implements OnInit {
   readonly standings = computed<Array<StandingRow>>(() => {
     const tournament = this.tournament();
     if (!tournament) return [];
-    return computeStandings(tournament, (id) => this.participantName(id));
+    const rows = computeStandings(tournament, (id) => this.participantName(id));
+    if (rows.some((row) => row.played > 0)) return rows;
+    // Before any games, order by expected placement (highest entry rating first).
+    const ratings = this.entryRatingsOf(tournament, rows);
+    if (!ratings) return rows;
+    return rows
+      .map((row, i) => ({ row, rating: ratings[i] ?? 1000 }))
+      .sort((a, b) => b.rating - a.rating)
+      .map(({ row }) => row);
+  });
+
+  readonly #entryRatings = computed<Array<number> | null>(() => {
+    const tournament = this.tournament();
+    return tournament ? this.entryRatingsOf(tournament, this.standings()) : null;
   });
 
   /**
    * Rating each row entered the tournament with: stored at award time, unknown
    * for legacy awards (null), otherwise the players' current ratings.
    */
-  readonly #entryRatings = computed<Array<number> | null>(() => {
-    const tournament = this.tournament();
-    if (!tournament) return null;
-    const standings = this.standings();
+  private entryRatingsOf(
+    tournament: Tournament,
+    standings: ReadonlyArray<StandingRow>,
+  ): Array<number> | null {
     const stored = tournament.ratingsBefore;
     if (stored) return standings.map((row) => stored[row.participantId] ?? 1000);
     if (tournament.ratingsAwarded) return null;
     const ratingById = new Map(this.players().map((p) => [p.id, p.rating]));
     return standingRatings(tournament, standings, (id) => ratingById.get(id) ?? 1000);
-  });
+  }
 
   /**
    * Elo change per standings row: the stored deltas once awarded, the legacy
