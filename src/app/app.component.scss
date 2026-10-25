@@ -72,6 +72,21 @@
   &:focus { outline: none; border-color: var(--primary); }
 }
 
+.admin-spinner {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  vertical-align: -0.1em;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: admin-spin 0.7s linear infinite;
+}
+
+@keyframes admin-spin {
+  to { transform: rotate(360deg); }
+}
+
 .admin-error {
   position: absolute;
   top: calc(100% + 0.4rem);

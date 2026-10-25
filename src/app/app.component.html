@@ -57,7 +57,18 @@
       [disabled]="adminChecking()"
       autofocus
     />
-    <button class="admin-btn" [disabled]="adminChecking()" (click)="submitAdminCode()">OK</button>
+    <button
+      class="admin-btn"
+      [disabled]="adminChecking()"
+      [attr.aria-busy]="adminChecking()"
+      (click)="submitAdminCode()"
+    >
+      @if (adminChecking()) {
+        <span class="admin-spinner" aria-hidden="true"></span>
+      } @else {
+        OK
+      }
+    </button>
     <button class="admin-btn ghost" (click)="toggleAdminInput()">✕</button>
     @if (adminError()) {
       <span class="admin-error" role="alert">{{ adminError() }}</span>
