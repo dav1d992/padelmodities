@@ -149,6 +149,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   playPromoVideo(video: HTMLVideoElement): void {
     this.videoPlaying.set(true);
     this.audioService.pauseBackgroundForVideo();
+    video.volume = 0.5;
     void video.play().catch(() => this.finishPromoVideo());
   }
 

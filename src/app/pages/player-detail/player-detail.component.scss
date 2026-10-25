@@ -111,6 +111,13 @@
   transition: opacity 220ms ease, visibility 0s linear 220ms;
 }
 
+/* controlslist can't hide the mute button, and Safari ignores nofullscreen. */
+.promo-video::-webkit-media-controls-mute-button,
+.promo-video::-webkit-media-controls-volume-slider,
+.promo-video::-webkit-media-controls-fullscreen-button {
+  display: none;
+}
+
 .image-wrapper.video-playing .promo-video {
   visibility: visible;
   pointer-events: auto;
@@ -127,6 +134,8 @@
 }
 
 .image-wrapper.video-playing .video-play-button {
+  /* Invisible but still on top of the controls; let taps through. */
+  pointer-events: none;
   animation: promoButtonFadeOut 220ms ease both;
 }
 
