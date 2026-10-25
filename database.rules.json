@@ -3,92 +3,60 @@
     ".read": false,
     ".write": false,
 
-    "players": {
-      "$playerId": {
-        ".read": true,
-        ".write": true,
-        ".validate": "newData.hasChildren(['id','name','rating','skillset','matchesPlayed','wins','losses','pointsFor','pointsAgainst','createdAt'])",
-        "id":             { ".validate": "newData.isString() && newData.val().length <= 64" },
-        "name":           { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
-        "shortname":      { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20 && newData.val().matches(/^[a-z0-9_-]+$/)" },
-        "rating":         { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999" },
-        "skillset": {
-          ".validate": "newData.hasChildren(['power','agility','stamina','control','strategy'])",
-          "power":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
-          "agility":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
-          "stamina":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
-          "control":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
-          "strategy":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
-          "$other":    { ".validate": false }
-        },
-        "matchesPlayed":  { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "wins":           { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "losses":         { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "pointsFor":      { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "pointsAgainst":  { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "createdAt":      { ".validate": "newData.isNumber()" },
-        "ratingHistory": {
-          "$entry": { ".validate": "newData.isNumber()" }
-        },
-        "$other": { ".validate": false }
+    "secrets": {
+      ".read": false,
+      ".write": false
+    },
+
+    "adminClaims": {
+      "$uid": {
+        ".read": false,
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.isString() && root.child('secrets/adminCode').isString() && newData.val() === root.child('secrets/adminCode').val()"
       }
+    },
+
+    "adminCheck": {
+      ".read": "auth != null && root.child('secrets/adminCode').isString() && root.child('adminClaims/' + auth.uid).val() === root.child('secrets/adminCode').val()",
+      ".write": false
+    },
+
+    "players": {
+      ".read": true,
+      ".write": "auth != null && root.child('secrets/adminCode').isString() && root.child('adminClaims/' + auth.uid).val() === root.child('secrets/adminCode').val()"
     },
 
     "tournaments": {
+      ".read": true,
+      ".write": "auth != null && root.child('secrets/adminCode').isString() && root.child('adminClaims/' + auth.uid).val() === root.child('secrets/adminCode').val()",
       "$tournamentId": {
-        ".read": true,
-        ".write": true,
-        ".validate": "newData.hasChildren(['id','name','format','status','currentRound','createdAt'])",
-        "id":           { ".validate": "newData.isString() && newData.val().length <= 64" },
-        "name":         { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 60" },
-        "description":  { ".validate": "newData.isString()" },
-        "format":       { ".validate": "newData.isString() && newData.val().matches(/^(americano|mexicano)$/)" },
-        "status":       { ".validate": "newData.isString() && newData.val().matches(/^(setup|active|finished)$/)" },
-        "currentRound": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-        "createdAt":    { ".validate": "newData.isNumber()" },
-        "playerIds": {
-          "$idx": { ".validate": "newData.isString() && newData.val().length <= 64" }
-        },
-        "pointsTable": {
-          "$playerId": { ".validate": "newData.isNumber() && newData.val() >= 0" }
-        },
         "rounds": {
           "$roundIndex": {
-            ".validate": "newData.hasChildren(['index','completed'])",
-            "index":     { ".validate": "newData.isNumber() && newData.val() >= 0" },
-            "completed": { ".validate": "newData.isBoolean()" },
             "matches": {
               "$matchId": {
-                ".validate": "newData.hasChildren(['id','team1p1','team1p2','team2p1','team2p2'])",
-                "id":     { ".validate": "newData.isString() && newData.val().length <= 64" },
-                "team1p1":{ ".validate": "newData.isString() && newData.val().length <= 64" },
-                "team1p2":{ ".validate": "newData.isString() && newData.val().length <= 64" },
-                "team2p1":{ ".validate": "newData.isString() && newData.val().length <= 64" },
-                "team2p2":{ ".validate": "newData.isString() && newData.val().length <= 64" },
-                "score1": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99" },
-                "score2": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99" },
-                "$other": { ".validate": false }
+                "score1": {
+                  ".write": "!data.exists() && data.parent().exists() && newData.isNumber() && newData.val() >= 0 && newData.val() <= 999 && root.child('tournaments/' + $tournamentId + '/status').val() === 'active' && root.child('tournaments/' + $tournamentId + '/rounds/' + $roundIndex + '/completed').val() === false && (root.child('tournaments/' + $tournamentId + '/format').val() === 'beat-the-box' || root.child('tournaments/' + $tournamentId + '/seatingFormat').val() === 'beat-the-box')"
+                },
+                "score2": {
+                  ".write": "!data.exists() && data.parent().exists() && newData.isNumber() && newData.val() >= 0 && newData.val() <= 999 && root.child('tournaments/' + $tournamentId + '/status').val() === 'active' && root.child('tournaments/' + $tournamentId + '/rounds/' + $roundIndex + '/completed').val() === false && (root.child('tournaments/' + $tournamentId + '/format').val() === 'beat-the-box' || root.child('tournaments/' + $tournamentId + '/seatingFormat').val() === 'beat-the-box')"
+                }
               }
-            },
-            "$other": { ".validate": false }
+            }
           }
-        },
-        "$other": { ".validate": false }
-      }
-    },
-
-    "freeTournaments": {
-      "$tournamentId": {
-        ".read": true,
-        ".write": true
+        }
       }
     },
 
     "playerBadges": {
       ".read": true,
-      ".write": true
+      ".write": "auth != null && root.child('secrets/adminCode').isString() && root.child('adminClaims/' + auth.uid).val() === root.child('secrets/adminCode').val()"
     },
 
-    "$other": { ".read": false, ".write": false }
+    "freeTournaments": {
+      ".read": true,
+      "$tournamentId": {
+        ".write": true
+      }
+    }
   }
 }

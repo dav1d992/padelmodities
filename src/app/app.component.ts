@@ -74,8 +74,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.adminCode.set("");
   }
 
-  submitAdminCode(): void {
-    if (this.admin.login(this.adminCode())) {
+  async submitAdminCode(): Promise<void> {
+    if (await this.admin.login(this.adminCode())) {
       this.adminInputOpen.set(false);
       this.adminCode.set("");
       this.adminError.set(false);
@@ -85,7 +85,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   logoutAdmin(): void {
-    this.admin.logout();
+    void this.admin.logout();
     this.adminInputOpen.set(false);
   }
 

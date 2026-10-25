@@ -26,6 +26,3 @@ src/app/generated/
 # OS
 .DS_Store
 Thumbs.db
-
-# Local dev admin code (use admin-code.example.ts as a template)
-src/environments/admin-code.ts

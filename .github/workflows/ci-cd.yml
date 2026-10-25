@@ -29,12 +29,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Provide local admin-code stub (value unused; production uses the secret)
-        run: echo "export const LOCAL_ADMIN_CODE = 'ci';" > src/environments/admin-code.ts
-
-      - name: Inject admin code
-        run: sed -i "s|__ADMIN_CODE__|${{ secrets.ADMIN_CODE }}|" src/app/models/padel.model.ts
-
       - name: Build (production)
         run: npm run build
 
