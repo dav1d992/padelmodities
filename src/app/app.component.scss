@@ -10,6 +10,8 @@
 }
 
 .app-footer {
+  /* Positioned so it paints above the fixed theme background (body::before). */
+  position: relative;
   padding: 1.5rem 1rem 2rem;
   text-align: center;
   font-size: 0.75rem;
