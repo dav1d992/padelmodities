@@ -76,6 +76,7 @@
             <button type="button" class="btn btn-ghost" (click)="togglePause()">
               {{ i18n.t(paused() ? 'game.resume' : 'game.pause') }}
             </button>
+            <button type="button" class="btn btn-ghost" (click)="endMatch()">{{ i18n.t('game.end') }}</button>
           </div>
         }
       </div>

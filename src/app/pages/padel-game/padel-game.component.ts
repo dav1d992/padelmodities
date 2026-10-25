@@ -59,6 +59,11 @@ const SOUNDS: Record<GameSound, { readonly src: string; readonly volume: number 
   strike: { src: "/assets/sounds-effects/strike.mp3", volume: 0.8 },
   bounce: { src: "/assets/sounds-effects/bounce.mp3", volume: 0.4 },
 };
+const SLAM_SOUND = "/assets/sounds-effects/gate-slam.mp3";
+const INTRO_IMPACT_MS = 700;
+const INTRO_MS = 2600;
+/** Flash, shake and recoil right after the impact; the fade-out runs on after it. */
+const INTRO_BURST_MS = 500;
 const COURT_THEMES: Record<ThemeMode, { readonly surround: string; readonly surface: string; readonly glass: string }> = {
   normal: { surround: "#0b1f33", surface: "#1f5fa6", glass: "rgba(190, 235, 255, 0.8)" },
   christmas: { surround: "#1a0f15", surface: "#1f7a45", glass: "rgba(225, 245, 255, 0.9)" },
@@ -130,6 +135,8 @@ export class PadelGameComponent implements OnInit {
   #acc = 0;
   #chargeStart: number | null = null;
   #shownEvent: GameMessage | null = null;
+  #introStart: number | null = null;
+  #slammed = false;
   readonly #keys = new Set<string>();
   readonly #images = new Map<string, HTMLImageElement>();
   readonly #imageSrc = new Map<string, string>();
@@ -137,7 +144,10 @@ export class PadelGameComponent implements OnInit {
   constructor() {
     effect(() => {
       this.#theme.mode();
+      const four = this.chosen();
       untracked(() => {
+        // Preload so the portraits are ready for the intro clash.
+        if (four) this.loadImages(four);
         if (this.#game) this.loadImages(this.#game.players);
       });
     });
@@ -146,9 +156,17 @@ export class PadelGameComponent implements OnInit {
   readonly #loop = (now: number): void => {
     const game = this.#game;
     const canvas = this.canvas()?.nativeElement;
+    const intro = this.#introStart === null ? null : now - this.#introStart;
+    if (intro !== null) {
+      if (!this.#slammed && intro >= INTRO_IMPACT_MS) {
+        this.#slammed = true;
+        this.#audio.playOneShot(SLAM_SOUND, 0.9);
+      }
+      if (intro >= INTRO_MS) this.#introStart = null;
+    }
     if (game && canvas) {
       game.input.charge = this.chargeAt(now);
-      if (!this.paused()) {
+      if (!this.paused() && intro === null) {
         this.applyKeys(game);
         this.#acc += Math.min(0.05, (now - this.#last) / 1000) * GAME_SPEED;
         while (this.#acc >= SIM_STEP) {
@@ -162,7 +180,7 @@ export class PadelGameComponent implements OnInit {
       }
       this.syncHud(game);
     }
-    if (canvas) this.draw(canvas, game);
+    if (canvas) this.draw(canvas, game, intro);
     this.#last = now;
     this.#frame = requestAnimationFrame(this.#loop);
   };
@@ -224,6 +242,8 @@ export class PadelGameComponent implements OnInit {
     this.loadImages(this.#game.players);
     this.teamNames.set([`${a1.name} & ${a2.name}`, `${b1.name} & ${b2.name}`]);
     this.#acc = 0;
+    this.#introStart = performance.now();
+    this.#slammed = false;
     this.#shownEvent = null;
     this.eventText.set("");
     this.prevEventText.set("");
@@ -234,6 +254,16 @@ export class PadelGameComponent implements OnInit {
 
   togglePause(): void {
     this.paused.update((p) => !p);
+  }
+
+  endMatch(): void {
+    this.#game = null;
+    this.#introStart = null;
+    this.clearKeys();
+    this.bannerText.set("");
+    this.paused.set(false);
+    this.over.set(false);
+    this.running.set(false);
   }
 
   setControl(value: string): void {
@@ -317,7 +347,7 @@ export class PadelGameComponent implements OnInit {
     this.over.set(game.phase === "over");
   }
 
-  private loadImages(players: ReadonlyArray<GamePlayer>): void {
+  private loadImages(players: ReadonlyArray<Pick<GamePlayer, "id" | "shortname">>): void {
     for (const p of players) {
       const sources = p.shortname
         ? [
@@ -343,7 +373,7 @@ export class PadelGameComponent implements OnInit {
     }
   }
 
-  private draw(canvas: HTMLCanvasElement, game: GameState | null): void {
+  private draw(canvas: HTMLCanvasElement, game: GameState | null, intro: number | null): void {
     const ctx = canvas.getContext("2d");
     const cssWidth = canvas.clientWidth;
     if (!ctx || cssWidth === 0) return;
@@ -378,6 +408,8 @@ export class PadelGameComponent implements OnInit {
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (!game) return;
+    // On-court players cross-fade in as the intro portraits fade out.
+    ctx.globalAlpha = intro === null ? 1 : this.introFade(intro);
     const radius = Math.max(22, 0.84 * scale);
     const ordered = [...game.players].sort(
       (a, b) => toScreen(a.x, a.y).y - toScreen(b.x, b.y).y,
@@ -388,6 +420,15 @@ export class PadelGameComponent implements OnInit {
       this.drawMarker(ctx, me, toScreen(me.x, me.y), radius, scale, game);
     }
     this.drawBall(ctx, game, toScreen, scale);
+    ctx.globalAlpha = 1;
+    if (intro !== null) this.drawIntro(ctx, game, intro, cssWidth, cssHeight);
+  }
+
+  /** 0 → 1 over the intro's fade-out, eased with smoothstep. */
+  private introFade(elapsed: number): number {
+    const sinceImpact = elapsed - INTRO_IMPACT_MS;
+    const t = Math.min(1, Math.max(0, (sinceImpact - 250) / (INTRO_MS - INTRO_IMPACT_MS - 250)));
+    return t * t * (3 - 2 * t);
   }
 
   private drawMarker(
@@ -503,27 +544,54 @@ export class PadelGameComponent implements OnInit {
     ctx.fillRect(COURT_WIDTH + 0.15, NET_Y - 0.12, 0.2, 0.24);
   }
 
-  private drawPlayer(
+  /** The four portraits fly in from the corners, clash in the middle, then fade before the first serve. */
+  private drawIntro(
     ctx: CanvasRenderingContext2D,
-    p: GamePlayer,
-    at: Point,
-    r: number,
+    game: GameState,
+    elapsed: number,
+    w: number,
+    h: number,
   ): void {
-    const color = TEAM_COLORS[p.team];
+    const r = Math.min(w, h) * 0.17;
+    const travel = Math.min(1, elapsed / INTRO_IMPACT_MS) ** 3;
+    const sinceImpact = elapsed - INTRO_IMPACT_MS;
+    const burst = Math.min(1, Math.max(0, sinceImpact / INTRO_BURST_MS));
+    const fade = this.introFade(elapsed);
+    const shake = burst > 0 ? (1 - burst) * 8 : 0;
+    const cx = w / 2 + (Math.random() - 0.5) * shake;
+    const cy = h / 2 + (Math.random() - 0.5) * shake;
 
-    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-    ctx.beginPath();
-    ctx.ellipse(at.x, at.y + r * 0.85, r * 0.85, r * 0.3, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillStyle = `rgba(0, 0, 0, ${0.5 * (1 - fade)})`;
+    ctx.fillRect(0, 0, w, h);
 
-    if (p.swing > 0) {
-      ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(1, p.swing * 4)})`;
-      ctx.lineWidth = 3;
+    if (burst > 0 && burst < 1) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.35 * (1 - burst) ** 2})`;
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = `rgba(255, 255, 255, ${1 - burst})`;
+      ctx.lineWidth = 6 * (1 - burst);
       ctx.beginPath();
-      ctx.arc(at.x, at.y, r + 4 + (0.25 - p.swing) * 40, 0, Math.PI * 2);
+      ctx.arc(cx, cy, r * (1 + burst * 3), 0, Math.PI * 2);
       ctx.stroke();
     }
 
+    // Team A from the left corners, team B from the right; they touch in the centre on impact.
+    const dirs: ReadonlyArray<Point> = [
+      { x: -1, y: -1 },
+      { x: -1, y: 1 },
+      { x: 1, y: -1 },
+      { x: 1, y: 1 },
+    ];
+    const distance = r + (1 - travel) * w * 0.6 + Math.sin(burst * Math.PI) * r * 0.3;
+    ctx.globalAlpha = 1 - fade;
+    game.players.forEach((p, i) => {
+      const d = dirs[i];
+      this.drawPortrait(ctx, p, { x: cx + d.x * distance, y: cy + d.y * distance }, r);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  private drawPortrait(ctx: CanvasRenderingContext2D, p: GamePlayer, at: Point, r: number): void {
+    const color = TEAM_COLORS[p.team];
     ctx.save();
     ctx.beginPath();
     ctx.arc(at.x, at.y, r, 0, Math.PI * 2);
@@ -544,6 +612,28 @@ export class PadelGameComponent implements OnInit {
     ctx.beginPath();
     ctx.arc(at.x, at.y, r, 0, Math.PI * 2);
     ctx.stroke();
+  }
+
+  private drawPlayer(
+    ctx: CanvasRenderingContext2D,
+    p: GamePlayer,
+    at: Point,
+    r: number,
+  ): void {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    ctx.beginPath();
+    ctx.ellipse(at.x, at.y + r * 0.85, r * 0.85, r * 0.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (p.swing > 0) {
+      ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(1, p.swing * 4)})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(at.x, at.y, r + 4 + (0.25 - p.swing) * 40, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    this.drawPortrait(ctx, p, at, r);
 
     ctx.font = "600 11px system-ui, sans-serif";
     ctx.textAlign = "center";
