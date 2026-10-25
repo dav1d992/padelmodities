@@ -1,0 +1,153 @@
+<a routerLink="/" class="back-link" [attr.aria-label]="i18n.t('common.back')"><span class="back-arrow" aria-hidden="true">←</span><span class="back-label">{{ i18n.t('common.back') }}</span></a>
+
+<div class="page">
+  <header class="game-header">
+    <h1>{{ i18n.t('game.title') }}</h1>
+    <p class="muted small">{{ i18n.t('game.subtitle') }}</p>
+  </header>
+
+  <p class="glass panel mobile-note">{{ i18n.t('game.desktopOnly') }}</p>
+
+  <div class="game-body">
+  @if (loading()) {
+    <div class="loader-row">
+      <span class="loader"></span>
+      <span class="muted">{{ i18n.t('rank.loading') }}</span>
+    </div>
+  } @else if (players().length < 4) {
+    <div class="glass panel empty">
+      <p>{{ i18n.t('game.needPlayers') }}</p>
+    </div>
+  } @else {
+    <div class="teams">
+      @for (team of teams; track team.css) {
+        <div class="glass panel team-card" [class]="team.css">
+          <div class="team-head">
+            <h3>{{ i18n.t(team.label) }}</h3>
+            <button type="button" class="btn btn-ghost" [disabled]="inMatch()" (click)="randomTeam(team.slots)">{{ i18n.t('game.random') }}</button>
+          </div>
+          @for (slot of team.slots; track slot; let n = $index) {
+            @if (n > 0) {
+              <hr class="player-divider" />
+            }
+            <label>
+              {{ i18n.t('game.player') }} {{ n + 1 }}
+              <select #pick [value]="slots()[slot]" [disabled]="inMatch()" (change)="select(slot, pick.value)">
+                <option value="" disabled hidden></option>
+                @for (p of sortedPlayers(); track p.id) {
+                  <option [value]="p.id" [disabled]="isTaken(p.id, slot)">{{ p.name }}</option>
+                }
+              </select>
+            </label>
+            <div class="skills-fold" [class.open]="playerIn(slot)">
+              <div class="skills">
+                @if (playerIn(slot); as p) {
+                  @for (skill of skillNames; track skill) {
+                    <div class="skill-row" [title]="i18n.t('game.skillInfo.' + skill)">
+                      <span class="skill-name">{{ i18n.t('skill.' + skill) }}</span>
+                      <span class="skill-bar"><span [style.width.%]="p.skillset[skill] * 10"></span></span>
+                      <b>{{ p.skillset[skill] }}</b>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (chosen() || running()) {
+      <div class="setup-bar">
+        @if (chosen(); as four) {
+          <label class="control-pick">
+            {{ i18n.t('game.control') }}
+            <select #ctl [value]="control()" (change)="setControl(ctl.value)">
+              <option value="-1">{{ i18n.t('game.controlNone') }}</option>
+              @for (p of four; track p.id; let i = $index) {
+                <option [value]="i">{{ p.name }} ({{ i18n.t(i < 2 ? 'game.teamA' : 'game.teamB') }})</option>
+              }
+            </select>
+          </label>
+        }
+        @if (running()) {
+          <div class="controls">
+            <button type="button" class="btn btn-ghost" [disabled]="!chosen()" (click)="start()">{{ i18n.t('game.restart') }}</button>
+            <button type="button" class="btn btn-ghost" (click)="togglePause()">
+              {{ i18n.t(paused() ? 'game.resume' : 'game.pause') }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="court-wrap">
+      <canvas #court></canvas>
+      <div class="court-layer">
+        @if (bannerText()) {
+          <div class="banner pop-in">{{ bannerText() }}</div>
+        }
+        @if (!running() || over()) {
+          <button type="button" class="btn btn-primary start-btn" [disabled]="!chosen()" (click)="start()">
+            {{ i18n.t(running() ? 'game.restart' : 'game.start') }}
+          </button>
+          @if (!chosen()) {
+            <p class="banner small">{{ i18n.t('game.pickAll') }}</p>
+          }
+        }
+      </div>
+    </div>
+    @if (running()) {
+      <div class="event" aria-live="polite">
+        <p>{{ eventText() }}</p>
+        <p class="prev">{{ prevEventText() }}</p>
+      </div>
+
+      <div class="glass panel scoreboard">
+        <div class="sb-row sb-head muted small">
+          <span></span>
+          <span>{{ i18n.t('game.games') }}</span>
+          <span>{{ i18n.t('game.points') }}</span>
+        </div>
+        <div class="sb-row team-a" [class.serving]="servingTeam() === 0">
+          <span class="sb-names">{{ teamNames()[0] }}</span>
+          <span class="sb-games">{{ gamesA() }}</span>
+          <span class="sb-points">{{ pointsA() }}</span>
+        </div>
+        <div class="sb-row team-b" [class.serving]="servingTeam() === 1">
+          <span class="sb-names">{{ teamNames()[1] }}</span>
+          <span class="sb-games">{{ gamesB() }}</span>
+          <span class="sb-points">{{ pointsB() }}</span>
+        </div>
+        <p class="muted small sb-foot">
+          {{ i18n.t('game.serving', { name: serverName() }) }} · {{ i18n.t('game.firstTo', { n: gamesToWin }) }}
+        </p>
+      </div>
+    }
+
+    @if (chosen() && control() >= 0) {
+      <ul class="glass panel keys">
+        <li><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>{{ i18n.t('game.keyMove') }}</li>
+        <li><span><kbd>K</kbd></span>{{ i18n.t('game.keyHit') }}</li>
+        <li><span>{{ i18n.t('game.hold') }} <kbd>K</kbd></span>{{ i18n.t('game.keyPower') }}</li>
+        <li><span><kbd>L</kbd></span>{{ i18n.t('game.keyLob') }}</li>
+        <li><span><kbd>WASD</kbd> + <kbd>K</kbd></span>{{ i18n.t('game.keyAim') }}</li>
+      </ul>
+    }
+
+    <div class="glass panel skill-guide">
+      <button type="button" class="guide-toggle" [class.open]="guideOpen()" [attr.aria-expanded]="guideOpen()" (click)="guideOpen.set(!guideOpen())">
+        <span class="chevron" aria-hidden="true">▸</span>{{ i18n.t('game.skillGuide') }}
+      </button>
+      <div class="skills-fold" [class.open]="guideOpen()">
+        <dl>
+          @for (skill of skillNames; track skill) {
+            <dt>{{ i18n.t('skill.' + skill) }}</dt>
+            <dd class="muted">{{ i18n.t('game.skillInfo.' + skill) }}</dd>
+          }
+        </dl>
+      </div>
+    </div>
+  }
+  </div>
+</div>

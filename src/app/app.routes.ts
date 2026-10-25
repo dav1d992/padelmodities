@@ -4,7 +4,7 @@ import { PlayerDetailComponent } from './pages/player-detail/player-detail.compo
 import { CreatePlayerComponent } from './pages/create-player/create-player.component';
 import { TournamentSetupComponent } from './pages/tournament-setup/tournament-setup.component';
 import { TournamentViewComponent } from './pages/tournament-view/tournament-view.component';
-import { SimulationComponent } from './pages/simulation/simulation.component';
+import { PadelGameComponent } from './pages/padel-game/padel-game.component';
 import { MexericanoTestComponent } from './pages/mexericano-test/mexericano-test.component';
 import { FreeSetupComponent } from './pages/free-setup/free-setup.component';
 import { FreeViewComponent } from './pages/free-view/free-view.component';
@@ -40,9 +40,9 @@ export const routes: Routes = [
     data: { noindex: true },
   },
   {
-    path: 'simulate',
-    component: SimulationComponent,
-    title: 'title.simulate',
+    path: 'game',
+    component: PadelGameComponent,
+    title: 'title.game',
     data: { noindex: true },
   },
   {

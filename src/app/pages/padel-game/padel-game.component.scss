@@ -1,0 +1,408 @@
+:host {
+  display: block;
+  width: 100%;
+  align-self: stretch;
+}
+
+.page {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 5vw, 2rem) clamp(1rem, 4vw, 1.5rem) 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.game-header h1 {
+  margin-bottom: 0.15rem;
+}
+
+.game-body {
+  display: contents;
+}
+
+.mobile-note {
+  display: none;
+}
+
+// Keyboard-only game: hide it on phones/tablets.
+@media (max-width: 767px), (hover: none) and (pointer: coarse) {
+  .game-body {
+    display: none;
+  }
+  .mobile-note {
+    display: block;
+  }
+}
+
+.teams {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.team-card {
+  gap: 0.6rem;
+
+  h3 {
+    margin: 0;
+  }
+  &.team-a h3 {
+    color: #4fc3f7;
+  }
+  &.team-b h3 {
+    color: #ffb74d;
+  }
+}
+
+.team-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+
+  .btn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+.player-divider {
+  width: 100%;
+  margin: 0.4rem 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+select {
+  appearance: none;
+  background-image: none;
+}
+
+select option {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.skills-fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  // Same fold timing as the tournament description accordion.
+  transition: grid-template-rows 0.3s ease;
+
+  &.open {
+    grid-template-rows: 1fr;
+  }
+}
+
+.skills {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.skill-row {
+  display: grid;
+  grid-template-columns: 6rem 1fr 1.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  cursor: help;
+
+  b {
+    text-align: right;
+  }
+}
+
+.skill-name {
+  color: var(--text-muted);
+}
+
+.skill-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--primary-dim), var(--primary));
+  }
+}
+
+.skill-guide {
+  gap: 0;
+
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.4rem 1rem;
+    min-height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding-top: 0.75rem;
+    font-size: 0.9rem;
+  }
+  dt {
+    font-weight: 700;
+  }
+  dd {
+    margin: 0;
+  }
+}
+
+.guide-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  .chevron {
+    transition: transform 0.3s ease;
+  }
+  &.open .chevron {
+    transform: rotate(90deg);
+  }
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  // Stays right-aligned even if the control picker isn't shown.
+  margin-left: auto;
+}
+
+.setup-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.scoreboard {
+  gap: 0.35rem;
+}
+
+.sb-row {
+  display: grid;
+  grid-template-columns: 1fr 4rem 4rem;
+  align-items: center;
+  gap: 0.5rem;
+
+  > span:not(:first-child) {
+    text-align: center;
+  }
+  &.team-a .sb-names {
+    color: #4fc3f7;
+  }
+  &.team-b .sb-names {
+    color: #ffb74d;
+  }
+  &.serving .sb-names::after {
+    content: " ●";
+    color: #e9f542;
+  }
+}
+
+.sb-names {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-games,
+.sb-points {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-foot {
+  margin-top: 0.25rem;
+}
+
+.court-wrap {
+  position: relative;
+
+  canvas {
+    display: block;
+    width: 100%;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.control-pick {
+  max-width: 320px;
+}
+
+.keys {
+  list-style: none;
+  margin: -0.5rem 0 0;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  li > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    min-width: 8.5rem;
+  }
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.6rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--border);
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: 700 0.8rem system-ui, sans-serif;
+  text-align: center;
+}
+
+.court-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.start-btn {
+  pointer-events: auto;
+  min-width: 10rem;
+  font-size: 1.1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.banner {
+  margin: 0;
+  padding: 0.6rem 1.2rem;
+  border-radius: 12px;
+  background: rgba(11, 31, 51, 0.85);
+  border: 1px solid var(--border);
+  font-size: 1.2rem;
+  font-weight: 800;
+  white-space: nowrap;
+
+  &.small {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+}
+
+.event {
+  text-align: center;
+  font-weight: 600;
+  margin-top: -0.5rem;
+
+  p {
+    min-height: 1.5em;
+    margin: 0;
+  }
+  .prev {
+    opacity: 0.45;
+    font-size: 0.9em;
+  }
+}
+
+.loader-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0;
+}
+
+/* Staggered fade-in; conditional blocks fade in when they appear. */
+.game-header,
+.mobile-note,
+.empty,
+.team-card,
+.court-wrap,
+.scoreboard,
+.controls,
+.control-pick,
+.keys,
+.skill-guide {
+  animation: fadeUp 0.4s ease both;
+}
+
+.game-header {
+  animation-delay: 0.02s;
+}
+.team-card:nth-child(1) {
+  animation-delay: 0.06s;
+}
+.team-card:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.court-wrap {
+  animation-delay: 0.18s;
+}
+.controls {
+  animation-delay: 0.24s;
+}
+.skill-guide {
+  animation-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-header,
+  .mobile-note,
+  .empty,
+  .team-card,
+  .court-wrap,
+  .scoreboard,
+  .controls,
+  .control-pick,
+  .keys,
+  .skill-guide {
+    animation: none;
+  }
+}
+
+.loader {
+  width: 22px;
+  height: 22px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

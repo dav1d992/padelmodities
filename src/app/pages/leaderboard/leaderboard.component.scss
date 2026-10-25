@@ -329,6 +329,13 @@
   }
 }
 
+// The game is keyboard-only, so don't offer it on phones/tablets.
+@media (max-width: 767px), (hover: none) and (pointer: coarse) {
+  .game-link {
+    display: none;
+  }
+}
+
 @media (max-width: 640px) {
   .shortname-tag {
     display: none;
