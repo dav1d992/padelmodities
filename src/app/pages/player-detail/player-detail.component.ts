@@ -11,6 +11,7 @@
 import { DOCUMENT } from "@angular/common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Router, RouterLink } from "@angular/router";
+import { map, of, switchMap } from "rxjs";
 import { PadelService } from "../../services/padel.service";
 import { AudioService } from "../../services/audio.service";
 import { AdminService } from "../../services/admin.service";
@@ -32,7 +33,6 @@ import {
   type Player,
   type SkillName,
   type Skillset,
-  type Tournament,
 } from "../../models/padel.model";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -78,7 +78,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   readonly heroFailed = signal(false);
   readonly skillLabels = SKILL_LABELS;
   readonly skillNames = SKILL_NAMES;
-  readonly #tournaments = signal<ReadonlyArray<Tournament>>([]);
+  readonly #earnedBadges = signal<ReadonlySet<BadgeId>>(new Set());
   readonly activeBadge = signal<{
     id: BadgeId;
     x: number;
@@ -105,23 +105,13 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.audioService.startBackground();
+    const cached = this.#service.cachedPlayer(this.playerId());
+    if (cached) this.showPlayer(cached);
     this.#service
       .watchPlayer(this.playerId())
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe({
-        next: (p) => {
-          this.player.set(p);
-          this.loading.set(false);
-          if (!p) {
-            this.#router.navigate(["/"]);
-            return;
-          }
-          this.updateSeo(p);
-          if (!this.#animationStarted) {
-            this.#animationStarted = true;
-            this.prepareHero(p.shortname);
-          }
-        },
+        next: (p) => this.showPlayer(p),
         error: (error) => {
           this.error.set(
             error?.message
@@ -132,9 +122,42 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
         },
       });
     this.#service
-      .watchTournaments()
-      .pipe(takeUntilDestroyed(this.#destroyRef))
-      .subscribe((list) => this.#tournaments.set(list));
+      .watchPlayerBadges()
+      .pipe(
+        switchMap((stored) => {
+          if (stored) {
+            const flags = stored.byPlayer?.[this.playerId()] ?? {};
+            return of(new Set(Object.keys(flags) as Array<BadgeId>));
+          }
+          // Not stored yet: derive from every tournament, and let an admin visit backfill it.
+          if (this.admin.isAdmin()) void this.#service.refreshBadges();
+          return this.#service
+            .watchTournaments()
+            .pipe(
+              map(
+                (list) =>
+                  computeAllBadges(list).get(this.playerId()) ??
+                  new Set<BadgeId>(),
+              ),
+            );
+        }),
+        takeUntilDestroyed(this.#destroyRef),
+      )
+      .subscribe((ids) => this.#earnedBadges.set(ids));
+  }
+
+  private showPlayer(p: Player | null): void {
+    this.player.set(p);
+    this.loading.set(false);
+    if (!p) {
+      this.#router.navigate(["/"]);
+      return;
+    }
+    this.updateSeo(p);
+    if (!this.#animationStarted) {
+      this.#animationStarted = true;
+      this.prepareHero(p.shortname);
+    }
   }
 
   ngOnDestroy(): void {
@@ -332,9 +355,7 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
     const player = this.player();
     // Inactive players (no matches) earn no achievements at all.
     if (!player || player.matchesPlayed === 0) return [];
-    const earned =
-      computeAllBadges(this.#tournaments()).get(this.playerId()) ??
-      new Set<BadgeId>();
+    const earned = this.#earnedBadges();
     const skillEarned = computeSkillBadges(player.skillset);
     return [
       ...BADGES.filter((def) => earned.has(def.id)),

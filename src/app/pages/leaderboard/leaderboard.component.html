@@ -121,6 +121,7 @@
             class="leaderboard-row"
             [routerLink]="['/player', player.id]"
             (mouseenter)="audioService.playHover()"
+            (pointerenter)="theme.prefetchPlayerImage(player.shortname)"
           >
             <div class="rank-cell">
               <span class="rank-num">#{{ entry.rank }}</span>
@@ -185,6 +186,7 @@
             class="leaderboard-row"
             [routerLink]="['/player', player.id]"
             (mouseenter)="audioService.playHover()"
+            (pointerenter)="theme.prefetchPlayerImage(player.shortname)"
           >
             <div class="rank-cell">
               <span class="rank-num muted">–</span>

@@ -47,6 +47,11 @@ import {
   standingsOrder,
   validateScore,
 } from "./tournament-engine";
+import {
+  computeAllBadges,
+  type BadgeId,
+  type StoredBadges,
+} from "./badges";
 
 /** One match result within a court save. */
 export interface CourtScore {
@@ -118,21 +123,32 @@ export class PadelService {
 
   // ── Players ──────────────────────────────────────────────────────────────
 
+  #cachedPlayers: ReadonlyArray<Player> = [];
+
+  // refCount false keeps the list alive across route changes, so returning to it is instant.
+  readonly #players$ = new Observable<Player[]>((subscriber) => {
+    const playersRef = ref(this.#db, "players");
+    const unsubscribe = onValue(
+      playersRef,
+      (snapshot) => {
+        const value = snapshot.val() as Record<string, Player> | null;
+        const list = value ? Object.values(value) : [];
+        list.sort((a, b) => b.rating - a.rating);
+        this.#cachedPlayers = list;
+        subscriber.next(list);
+      },
+      (error) => subscriber.error(error),
+    );
+    return () => unsubscribe();
+  }).pipe(shareReplay({ bufferSize: 1, refCount: false }));
+
   watchPlayers(): Observable<Player[]> {
-    return new Observable<Player[]>((subscriber) => {
-      const playersRef = ref(this.#db, "players");
-      const unsubscribe = onValue(
-        playersRef,
-        (snapshot) => {
-          const value = snapshot.val() as Record<string, Player> | null;
-          const list = value ? Object.values(value) : [];
-          list.sort((a, b) => b.rating - a.rating);
-          subscriber.next(list);
-        },
-        (error) => subscriber.error(error),
-      );
-      return () => unsubscribe();
-    });
+    return this.#players$;
+  }
+
+  /** A player from the already-downloaded list, without starting a download. */
+  cachedPlayer(playerId: string): Player | null {
+    return this.#cachedPlayers.find((p) => p.id === playerId) ?? null;
   }
 
   watchPlayer(playerId: string): Observable<Player | null> {
@@ -212,6 +228,57 @@ export class PadelService {
 
   async deletePlayer(playerId: string): Promise<void> {
     await withTimeout(remove(ref(this.#db, `players/${playerId}`)));
+  }
+
+  // ── Badges ───────────────────────────────────────────────────────────────
+
+  watchPlayerBadges(): Observable<StoredBadges | null> {
+    return new Observable<StoredBadges | null>((subscriber) => {
+      const badgesRef = ref(this.#db, "playerBadges");
+      const unsubscribe = onValue(
+        badgesRef,
+        (snapshot) => subscriber.next(snapshot.val() as StoredBadges | null),
+        (error) => subscriber.error(error),
+      );
+      return () => unsubscribe();
+    });
+  }
+
+  /** Recompute every player's tournament badges and store them under `playerBadges`. */
+  async refreshBadges(): Promise<void> {
+    try {
+      const snap = await withTimeout(get(ref(this.#db, "tournaments")));
+      const value = snap.val() as Record<string, Tournament> | null;
+      const byPlayer: Record<string, Partial<Record<BadgeId, true>>> = {};
+      computeAllBadges(value ? Object.values(value) : []).forEach(
+        (ids, playerId) => {
+          if (ids.size === 0) return;
+          const flags: Partial<Record<BadgeId, true>> = {};
+          ids.forEach((id) => (flags[id] = true));
+          byPlayer[playerId] = flags;
+        },
+      );
+      const stored: StoredBadges = { updatedAt: Date.now(), byPlayer };
+      await withTimeout(set(ref(this.#db, "playerBadges"), stored));
+    } catch {
+      // Badges are derived data: never fail the save that triggered this; the next refresh repairs it.
+    }
+  }
+
+  /** Score edits only affect badges once their round counts as completed. */
+  private async refreshBadgesIfCompleted(
+    tournamentId: string,
+    roundIndexes: Iterable<number>,
+  ): Promise<void> {
+    for (const index of new Set(roundIndexes)) {
+      const snap = await get(
+        ref(this.#db, `tournaments/${tournamentId}/rounds/${index}/completed`),
+      );
+      if (snap.val() === true) {
+        await this.refreshBadges();
+        return;
+      }
+    }
   }
 
   // ── Tournaments ──────────────────────────────────────────────────────────
@@ -465,6 +532,7 @@ export class PadelService {
       ),
     );
     await this.refreshPointsTable(tournamentId);
+    await this.refreshBadgesIfCompleted(tournamentId, [roundIndex]);
   }
 
   /**
@@ -497,6 +565,10 @@ export class PadelService {
       updates[`${matchPath(s)}/score2`] = s.score2;
     }
     await withTimeout(update(ref(this.#db, roundsPath), updates));
+    await this.refreshBadgesIfCompleted(
+      tournamentId,
+      scores.map((s) => s.roundIndex),
+    );
   }
 
   /** Clear a match score. */
@@ -515,6 +587,7 @@ export class PadelService {
       ),
     );
     await this.refreshPointsTable(tournamentId);
+    await this.refreshBadgesIfCompleted(tournamentId, [roundIndex]);
   }
 
   /** Regenerate the current round of a dynamic format (only if unscored). */
@@ -753,6 +826,7 @@ export class PadelService {
     }
 
     await this.refreshPointsTable(tournamentId);
+    await this.refreshBadges();
   }
 
   private sortedRounds(t: Tournament): Array<TournamentRound> {
@@ -795,10 +869,12 @@ export class PadelService {
       }),
     );
     await this.applyPlacementRatings({ ...tournament, status: "finished" });
+    await this.refreshBadges();
   }
 
   async deleteTournament(tournamentId: string): Promise<void> {
     await withTimeout(remove(ref(this.#db, `tournaments/${tournamentId}`)));
+    await this.refreshBadges();
   }
 
   // ── Private: ratings & stats ───────────────────────────────────────────────

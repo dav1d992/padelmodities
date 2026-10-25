@@ -11,6 +11,7 @@ export class ThemeService {
   #snowfallTimer?: ReturnType<typeof setTimeout>;
   #lightningTimer?: ReturnType<typeof setTimeout>;
   #initialized = false;
+  readonly #prefetched = new Set<string>();
   readonly mode = signal<ThemeMode>("normal");
   readonly christmas = computed(() => this.mode() === "christmas");
   readonly halloween = computed(() => this.mode() === "halloween");
@@ -97,6 +98,14 @@ export class ThemeService {
     const suffix = this.mode() === "normal" ? "" : `-${this.mode() === "christmas" ? "xmas" : "halloween"}`;
     const size = thumbnail ? "-thumb" : "";
     return `/assets/optimized/${shortname}-padel${suffix}${size}.webp`;
+  }
+
+  /** Warm the cache for a profile's hero portrait so it can slide in without waiting on the download. */
+  prefetchPlayerImage(shortname: string | undefined): void {
+    const src = this.playerImage(shortname);
+    if (!src || this.#prefetched.has(src)) return;
+    this.#prefetched.add(src);
+    new Image().src = src;
   }
 
   normalPlayerImage(shortname: string): string {

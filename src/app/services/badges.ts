@@ -66,6 +66,12 @@ export type BadgeId =
   | "allRounder"
   | "average";
 
+/** `computeAllBadges` result stored at `playerBadges`, so a profile needn't download every tournament. */
+export interface StoredBadges {
+  readonly updatedAt: number;
+  readonly byPlayer?: Readonly<Record<string, Partial<Record<BadgeId, true>>>>;
+}
+
 export interface BadgeDef {
   readonly id: BadgeId;
   readonly icon: string;

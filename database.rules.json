@@ -84,6 +84,11 @@
       }
     },
 
+    "playerBadges": {
+      ".read": true,
+      ".write": true
+    },
+
     "$other": { ".read": false, ".write": false }
   }
 }
