@@ -479,14 +479,10 @@ export class PadelGameComponent implements OnInit {
     if (team === null) return;
     const fade = game.phase === "pause" ? Math.min(1, game.timer / 0.5) : 1;
     const top = team === 0 ? 0 : NET_Y;
-    // Brighten with white and outline in the team colour; a tinted fill mixes to grey on the court colour.
+    // Brighten with white; a team-tinted fill mixes to grey on the court colour.
     ctx.globalAlpha = 0.22 * fade;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, top, COURT_WIDTH, NET_Y);
-    ctx.globalAlpha = fade;
-    ctx.strokeStyle = TEAM_COLORS[team];
-    ctx.lineWidth = 0.25;
-    ctx.strokeRect(0.125, top + 0.125, COURT_WIDTH - 0.25, NET_Y - 0.25);
     ctx.globalAlpha = 1;
   }
 
@@ -574,18 +570,15 @@ export class PadelGameComponent implements OnInit {
       ctx.stroke();
     }
 
-    // Team A from the left corners, team B from the right; they touch in the centre on impact.
-    const dirs: ReadonlyArray<Point> = [
-      { x: -1, y: -1 },
-      { x: -1, y: 1 },
-      { x: 1, y: -1 },
-      { x: 1, y: 1 },
-    ];
+    // Team A from the left corners, team B from the right; each player takes the corner matching
+    // their court position (larger world x is higher on screen) so the cross-fade lines up.
     const distance = r + (1 - travel) * w * 0.6 + Math.sin(burst * Math.PI) * r * 0.3;
     ctx.globalAlpha = 1 - fade;
     game.players.forEach((p, i) => {
-      const d = dirs[i];
-      this.drawPortrait(ctx, p, { x: cx + d.x * distance, y: cy + d.y * distance }, r);
+      const mate = game.players.find((q, j) => j !== i && q.team === p.team);
+      const dx = p.team === 0 ? -1 : 1;
+      const dy = mate && p.x < mate.x ? 1 : -1;
+      this.drawPortrait(ctx, p, { x: cx + dx * distance, y: cy + dy * distance }, r);
     });
     ctx.globalAlpha = 1;
   }
