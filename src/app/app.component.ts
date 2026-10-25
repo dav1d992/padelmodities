@@ -41,7 +41,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   readonly adminInputOpen = signal(false);
   readonly adminCode = signal("");
-  readonly adminError = signal(false);
+  readonly adminError = signal("");
+  readonly adminChecking = signal(false);
   readonly snowflakes = Array.from({ length: 44 }, (_, index) => ({
     index,
     delay: `${(index * 0.055).toFixed(2)}s`,
@@ -70,17 +71,31 @@ export class AppComponent implements OnInit, OnDestroy {
 
   toggleAdminInput(): void {
     this.adminInputOpen.set(!this.adminInputOpen());
-    this.adminError.set(false);
+    this.adminError.set("");
     this.adminCode.set("");
   }
 
   async submitAdminCode(): Promise<void> {
-    if (await this.admin.login(this.adminCode())) {
-      this.adminInputOpen.set(false);
-      this.adminCode.set("");
-      this.adminError.set(false);
-    } else {
-      this.adminError.set(true);
+    // Every submit costs one of the limited attempts, so ignore empty input and double submits.
+    if (this.adminChecking() || !this.adminCode().trim()) return;
+    this.adminChecking.set(true);
+    const result = await this.admin.login(this.adminCode());
+    this.adminChecking.set(false);
+    this.adminCode.set("");
+    switch (result.status) {
+      case "ok":
+        this.adminInputOpen.set(false);
+        this.adminError.set("");
+        break;
+      case "wrong":
+        this.adminError.set(this.i18n.t("app.adminWrong", { n: result.attemptsLeft }));
+        break;
+      case "locked":
+        this.adminError.set(this.i18n.t("app.adminLocked", { min: result.minutes }));
+        break;
+      case "error":
+        this.adminError.set(this.i18n.t("common.error"));
+        break;
     }
   }
 

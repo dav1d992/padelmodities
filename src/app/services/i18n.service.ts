@@ -10,6 +10,8 @@ type Dict = Record<string, string>;
 const DA: Dict = {
   // App / common
   "app.logout": "Log ud",
+  "app.adminWrong": "Forkert kode. {n} forsøg tilbage.",
+  "app.adminLocked": "For mange forsøg. Prøv igen om {min} min.",
   "app.music": "Musik",
   "app.language": "Sprog",
   "app.disclaimer":
@@ -575,6 +577,8 @@ const DA: Dict = {
 const EN: Dict = {
   // App / common
   "app.logout": "Log out",
+  "app.adminWrong": "Wrong code. {n} attempts left.",
+  "app.adminLocked": "Too many attempts. Try again in {min} min.",
   "app.music": "Music",
   "app.language": "Language",
   "app.disclaimer":

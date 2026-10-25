@@ -1,9 +1,23 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { onAuthStateChanged, signInAnonymously, type User } from 'firebase/auth';
-import { get, ref, remove, set } from 'firebase/database';
+import { get, ref, remove, serverTimestamp, update } from 'firebase/database';
 import { FIREBASE_AUTH, FIREBASE_DB } from '../core/firebase';
 
 const STORAGE_KEY = 'padel_admin';
+// Must match the 3 attempts / 300000 ms in database.rules.json (adminAttempts).
+const MAX_ATTEMPTS = 3;
+const LOCKOUT_MS = 5 * 60_000;
+
+interface LoginAttempts {
+  count: number;
+  at: number;
+}
+
+export type AdminLoginResult =
+  | { status: 'ok' }
+  | { status: 'wrong'; attemptsLeft: number }
+  | { status: 'locked'; minutes: number }
+  | { status: 'error' };
 
 /**
  * Tracks whether the current user is admin. The code is checked by the
@@ -21,20 +35,32 @@ export class AdminService {
     onAuthStateChanged(this.#auth, (user) => void this.verify(user));
   }
 
-  /** Returns true if the database accepted the code. */
-  async login(code: string): Promise<boolean> {
-    const trimmed = code.trim();
-    if (!trimmed) return false;
+  /** Each try is recorded together with the claim, so the rules can cap tries per lockout window. */
+  async login(code: string): Promise<AdminLoginResult> {
     try {
       await this.#auth.authStateReady();
       const user =
         this.#auth.currentUser ?? (await signInAnonymously(this.#auth)).user;
-      await set(ref(this.#db, `adminClaims/${user.uid}`), trimmed);
+      const attemptsRef = ref(this.#db, `adminAttempts/${user.uid}`);
+      const prev = (await get(attemptsRef)).val() as LoginAttempts | null;
+      const sinceLast = prev ? Date.now() - prev.at : Infinity;
+      const count = prev && sinceLast < LOCKOUT_MS ? prev.count + 1 : 1;
+      if (count > MAX_ATTEMPTS) {
+        return { status: 'locked', minutes: Math.ceil((LOCKOUT_MS - sinceLast) / 60_000) };
+      }
+      await update(ref(this.#db), {
+        [`adminAttempts/${user.uid}`]: { count, at: serverTimestamp() },
+        [`adminClaims/${user.uid}`]: code.trim(),
+      });
       await this.verify(user);
+      if (this.isAdmin()) return { status: 'ok' };
+      if (count >= MAX_ATTEMPTS) {
+        return { status: 'locked', minutes: LOCKOUT_MS / 60_000 };
+      }
+      return { status: 'wrong', attemptsLeft: MAX_ATTEMPTS - count };
     } catch {
-      return false;
+      return { status: 'error' };
     }
-    return this.isAdmin();
   }
 
   async logout(): Promise<void> {

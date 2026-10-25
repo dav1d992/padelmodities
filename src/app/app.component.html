@@ -53,11 +53,15 @@
       [ngModel]="adminCode()"
       (ngModelChange)="adminCode.set($event)"
       (keyup.enter)="submitAdminCode()"
-      [class.error]="adminError()"
+      [class.error]="adminError() !== ''"
+      [disabled]="adminChecking()"
       autofocus
     />
-    <button class="admin-btn" (click)="submitAdminCode()">OK</button>
+    <button class="admin-btn" [disabled]="adminChecking()" (click)="submitAdminCode()">OK</button>
     <button class="admin-btn ghost" (click)="toggleAdminInput()">✕</button>
+    @if (adminError()) {
+      <span class="admin-error" role="alert">{{ adminError() }}</span>
+    }
   } @else {
     <button class="admin-btn" (click)="toggleAdminInput()">🔓</button>
   }

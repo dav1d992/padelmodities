@@ -8,11 +8,22 @@
       ".write": false
     },
 
+    "adminAttempts": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && newData.exists()",
+        ".validate": "newData.hasChildren(['count', 'at']) && newData.child('at').val() === now && ((data.exists() && data.child('at').val() >= now - 300000 && data.child('count').val() < 3 && newData.child('count').val() === data.child('count').val() + 1) || ((!data.exists() || data.child('at').val() < now - 300000) && newData.child('count').val() === 1))",
+        "count": { ".validate": "newData.isNumber()" },
+        "at": { ".validate": "newData.isNumber()" },
+        "$other": { ".validate": false }
+      }
+    },
+
     "adminClaims": {
       "$uid": {
         ".read": false,
         ".write": "auth != null && auth.uid === $uid",
-        ".validate": "newData.isString() && root.child('secrets/adminCode').isString() && newData.val() === root.child('secrets/adminCode').val()"
+        ".validate": "newData.isString() && newData.val().length <= 200 && newData.parent().parent().child('adminAttempts/' + $uid + '/at').val() === now"
       }
     },
 
