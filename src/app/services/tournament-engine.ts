@@ -317,8 +317,8 @@ export interface MexericanoWeights {
   samePartnerLastRound: number;
   /** Repeating any earlier partner, scaled by how often (mild). */
   samePartnerRecent: number;
-  /** Facing the same opponent again, scaled by how often (medium). */
-  repeatedOpponent: number;
+  /** Facing an opponent from the immediately-previous round again (strong). */
+  sameOpponentLastRound: number;
   /** Reproducing an identical four-player matchup (very strong). */
   repeatedFoursome: number;
   /** Penalty per rank-position of spread within a court (keeps scores close). */
@@ -334,7 +334,7 @@ export interface MexericanoWeights {
 export const DEFAULT_MEXERICANO_WEIGHTS: MexericanoWeights = {
   samePartnerLastRound: 500,
   samePartnerRecent: 20,
-  repeatedOpponent: 25,
+  sameOpponentLastRound: 60,
   repeatedFoursome: 800,
   scoreSpread: 2,
   teamImbalance: 1.5,
@@ -369,6 +369,8 @@ export interface MexericanoOptions {
 interface MexHistory extends ScheduleHistory {
   /** playerId → partner id in the most recent prior round (undefined if none). */
   lastPartner: Record<string, string>;
+  /** playerId → opponent ids faced in the most recent prior round. */
+  lastOpponents: Record<string, Set<string>>;
   /** Set of sorted four-player matchup keys already played. */
   foursomes: Set<string>;
 }
@@ -383,21 +385,26 @@ function buildMexHistory(
 ): MexHistory {
   const base = buildHistory(rounds, playerIds);
   const lastPartner: Record<string, string> = {};
+  const lastOpponents: Record<string, Set<string>> = {};
   const foursomes = new Set<string>();
 
   const ordered = [...rounds].sort((a, b) => a.index - b.index);
   ordered.forEach((round) => {
     for (const m of Object.values(round.matches ?? {})) {
       foursomes.add(foursomeKey([m.a1, m.a2, m.b1, m.b2]));
-      // Later rounds overwrite, leaving the most recent partner.
+      // Later rounds overwrite, leaving the most recent partner/opponents.
       lastPartner[m.a1] = m.a2;
       lastPartner[m.a2] = m.a1;
       lastPartner[m.b1] = m.b2;
       lastPartner[m.b2] = m.b1;
+      lastOpponents[m.a1] = new Set([m.b1, m.b2]);
+      lastOpponents[m.a2] = new Set([m.b1, m.b2]);
+      lastOpponents[m.b1] = new Set([m.a1, m.a2]);
+      lastOpponents[m.b2] = new Set([m.a1, m.a2]);
     }
   });
 
-  return { ...base, lastPartner, foursomes };
+  return { ...base, lastPartner, lastOpponents, foursomes };
 }
 
 /** Permutation keeping every element within ~`window` positions of its rank. */
@@ -420,6 +427,20 @@ function partnerPairCost(
   return cost;
 }
 
+/** Count how many of the four players face a last-round opponent in this split. */
+function lastRoundOpponentRepeats(
+  h: MexHistory,
+  a1: string,
+  a2: string,
+  b1: string,
+  b2: string,
+): number {
+  const faces = (x: string, y: string): number => (h.lastOpponents[x]?.has(y) ? 1 : 0);
+  return (
+    faces(a1, b1) + faces(a1, b2) + faces(a2, b1) + faces(a2, b2)
+  );
+}
+
 /** Cost of one concrete split of four players into two teams. */
 function splitCost(
   split: { a1: string; a2: string; b1: string; b2: string },
@@ -433,11 +454,7 @@ function splitCost(
   let cost =
     partnerPairCost(h, w, a1, a2) +
     partnerPairCost(h, w, b1, b2) +
-    w.repeatedOpponent *
-      (opponentRepeat(h, a1, b1) +
-        opponentRepeat(h, a1, b2) +
-        opponentRepeat(h, a2, b1) +
-        opponentRepeat(h, a2, b2));
+    w.sameOpponentLastRound * lastRoundOpponentRepeats(h, a1, a2, b1, b2);
 
   if (h.foursomes.has(foursomeKey([a1, a2, b1, b2]))) {
     cost += w.repeatedFoursome;
@@ -1463,7 +1480,7 @@ export function mexericanoOptionsFor(
     weights: {
       samePartnerLastRound: 0,
       samePartnerRecent: 0,
-      repeatedOpponent: 0,
+      sameOpponentLastRound: 0,
       repeatedFoursome: 0,
     },
   };

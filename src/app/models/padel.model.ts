@@ -200,8 +200,8 @@ export interface CourtBonusConfig {
 export const DEFAULT_BONUS: CourtBonusConfig = {
   enabled: true,
   startRound: 1,
-  winnersOnly: false,
-  points: { "0": 3, "1": 2, "2": 1 },
+  winnersOnly: true,
+  points: { "0": 5, "1": 4, "2": 3, "3": 2 },
 };
 
 /** A fixed team of two players (team formats). */

@@ -327,7 +327,7 @@ const DA: Dict = {
     "• Runde 1 er tilfældig — alle starter lige.\n" +
     "• Fra runde 2 rangeres spillerne efter point og deles i baner med fire (bane 1 = de fire bedste). En lille ±6-blanding holder dig mod spillere på dit niveau.\n" +
     "• På hver bane vælges holdene, så I undgår gentagne makkere og modstandere, aldrig spiller den samme firer igen, og holdene er jævnbyrdige.\n" +
-    "• Bane-bonus: højere baner giver flere point (fx bane 1 = 3, bane 2 = 2, bane 3 = 1) oveni dine kamppoint. Bonus starter først, når feltet har sat sig (de første baner−1 runder giver ingen), og kan gives til alle på banen eller kun vinderne.\n" +
+    "• Bane-bonus: højere baner giver flere point (fx bane 1 = 5, bane 2 = 4, bane 3 = 3) oveni dine kamppoint. Bonus starter først, når feltet har sat sig (de første baner−1 runder giver ingen), og kan gives til alle på banen eller kun vinderne.\n" +
     "• Går tallene ikke op, sidder den, der har siddet mindst over, over næste gang.\n" +
     "• Dine samlede point er de point du vinder i hver kamp plus eventuel bane-bonus. Finalerunden samler de fire bedste for at afgøre vinderen.\n" +
     "• Rating (Elo): når en turnering slutter, tæller den endelige stilling som indbyrdes kampe — du har 'slået' alle under dig og 'tabt' til alle over dig. Hver af dem vurderes med almindelig Elo ud fra jeres ratings, så du vinder mere ved at slå et stærkt felt og mindre, når du var favorit. Højst ca. ±64 Elo pr. turnering (nulsum).",
@@ -924,7 +924,7 @@ const EN: Dict = {
     "• Round 1 is random — everyone starts equal.\n" +
     "• From round 2, players are ranked by points and split into courts of four (court 1 = the top four). A small ±6 shuffle keeps you against players near your level.\n" +
     "• On each court, teams are picked to avoid repeat partners and opponents, never replay the same four, and keep both teams even.\n" +
-    "• Court bonus: higher courts award more points (e.g. court 1 = 3, court 2 = 2, court 3 = 1), added on top of your match points. Bonuses only start after the field has settled (the first courts−1 rounds give none), and can be set to reward everyone on the court or the winners only.\n" +
+    "• Court bonus: higher courts award more points (e.g. court 1 = 5, court 2 = 4, court 3 = 3), added on top of your match points. Bonuses only start after the field has settled (the first courts−1 rounds give none), and can be set to reward everyone on the court or the winners only.\n" +
     "• When numbers don't divide evenly, whoever has sat out least sits out next.\n" +
     "• Your total is the points you win in each match plus any court bonus. The final round groups the top four to decide the winner.\n" +
     "• Rating (Elo): when a tournament ends, the final standings count as head-to-head results — you 'beat' everyone below you and 'lost' to everyone above you. Each is scored with normal Elo from your ratings, so beating a strong field earns more and winning as the favourite earns less. At most about ±64 Elo per tournament (zero-sum).",
