@@ -42,7 +42,10 @@ const HERO_DURATION_MS = 1050;
 /** Moment (ms after the portrait renders) it "lands" and the slam sound fires. */
 const IMPACT_MS = 560;
 /** Files in `assets/promo-videos`; the prefix before the first `-` is the owning player's shortname. */
-const PROMO_VIDEOS: ReadonlyArray<string> = ["men-recording-edit.mp4"];
+const PROMO_VIDEOS: ReadonlyArray<string> = [
+  "men-recording-edit.mp4",
+  "krr-recording-edit.mp4",
+];
 /** Must match the tooltip `width` in the SCSS. */
 const BADGE_TIP_WIDTH_PX = 220;
 
@@ -305,10 +308,10 @@ export class PlayerDetailComponent implements OnInit, OnDestroy {
   });
 
   readonly promoVideoSrc = computed(() => {
-    const shortname = this.player()?.shortname;
+    const shortname = this.player()?.shortname?.toLowerCase();
     if (!shortname) return null;
     const file = PROMO_VIDEOS.find((name) =>
-      name.startsWith(`${shortname}-`),
+      name.toLowerCase().startsWith(`${shortname}-`),
     );
     return file ? `/assets/promo-videos/${file}` : null;
   });
